@@ -515,30 +515,76 @@ export function AppShell({ children, showServiceSidebar = false }: AppShellProps
       </footer>
 
       {/* Mobile Bottom Tab Bar (Home, Bookings, Offers, Profile) */}
+      {/* Mobile Bottom Navigation — 5 tabs with centre FAB search */}
       <nav
         aria-label="Mobile navigation"
-        className="md:hidden fixed bottom-0 left-0 right-0 z-40 h-14 bg-white/95 backdrop-blur-md border-t border-[#DCE7F9] grid grid-cols-4"
+        className="md:hidden fixed bottom-0 left-0 right-0 z-40 h-16 bg-white/97 backdrop-blur-md border-t border-[#DCE7F9]"
+        style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
       >
-        {[
-          { to: '/', label: t('navHome'), icon: Home },
-          { to: '/bookings', label: t('navBookings'), icon: LayoutGrid },
-          { to: '/offers', label: t('navOffers'), icon: Tag },
-          { to: user ? '/profile' : '/login', label: user ? t('navProfile') : t('signIn'), icon: UserIcon },
-        ].map((tab) => {
-          const active = tab.to === '/' ? pathname === '/' : pathname.startsWith(tab.to);
-          return (
+        <div className="grid grid-cols-5 h-full">
+          {/* Home */}
+          {(() => {
+            const active = pathname === '/';
+            return (
+              <Link to="/" className={`flex flex-col items-center justify-center gap-0.5 text-[10px] font-semibold ${active ? 'text-[#0B5FD9]' : 'text-[#94A3B8]'}`}>
+                <div className={`w-6 h-6 flex items-center justify-center rounded-lg ${active ? 'bg-[#EAF2FF]' : ''}`}>
+                  <Home className="w-5 h-5" />
+                </div>
+                <span>Home</span>
+              </Link>
+            );
+          })()}
+          {/* Bookings */}
+          {(() => {
+            const active = pathname.startsWith('/bookings');
+            return (
+              <Link to="/bookings" className={`flex flex-col items-center justify-center gap-0.5 text-[10px] font-semibold ${active ? 'text-[#0B5FD9]' : 'text-[#94A3B8]'}`}>
+                <div className={`w-6 h-6 flex items-center justify-center rounded-lg ${active ? 'bg-[#EAF2FF]' : ''}`}>
+                  <LayoutGrid className="w-5 h-5" />
+                </div>
+                <span>{t('navBookings')}</span>
+              </Link>
+            );
+          })()}
+          {/* Centre FAB — Search */}
+          <div className="flex items-center justify-center relative">
             <Link
-              key={tab.to}
-              to={tab.to}
-              className={`flex flex-col items-center justify-center min-h-[44px] text-[11px] font-medium ${
-                active ? 'text-[#0B5FD9]' : 'text-[#5B6B8C]'
-              }`}
+              to="/search"
+              aria-label="Search"
+              className="absolute -top-5 w-14 h-14 rounded-full bg-[#0B5FD9] shadow-xl shadow-blue-400/40 flex items-center justify-center border-4 border-white"
             >
-              <tab.icon className="w-5 h-5 mb-0.5" />
-              <span className="truncate max-w-[72px]">{tab.label}</span>
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2}>
+                <circle cx="11" cy="11" r="7" /><path d="M21 21l-4.35-4.35" strokeLinecap="round"/>
+              </svg>
             </Link>
-          );
-        })}
+          </div>
+          {/* Offers */}
+          {(() => {
+            const active = pathname.startsWith('/offers');
+            return (
+              <Link to="/offers" className={`flex flex-col items-center justify-center gap-0.5 text-[10px] font-semibold ${active ? 'text-[#0B5FD9]' : 'text-[#94A3B8]'}`}>
+                <div className={`w-6 h-6 flex items-center justify-center rounded-lg ${active ? 'bg-[#EAF2FF]' : ''}`}>
+                  <Tag className="w-5 h-5" />
+                </div>
+                <span>{t('navOffers')}</span>
+              </Link>
+            );
+          })()}
+          {/* Sign In / Profile */}
+          {(() => {
+            const to = user ? '/profile' : '/login';
+            const label = user ? t('navProfile') : t('signIn');
+            const active = pathname.startsWith(to);
+            return (
+              <Link to={to} className={`flex flex-col items-center justify-center gap-0.5 text-[10px] font-semibold ${active ? 'text-[#0B5FD9]' : 'text-[#94A3B8]'}`}>
+                <div className={`w-6 h-6 flex items-center justify-center rounded-lg ${active ? 'bg-[#EAF2FF]' : ''}`}>
+                  <UserIcon className="w-5 h-5" />
+                </div>
+                <span className="truncate max-w-[56px]">{label}</span>
+              </Link>
+            );
+          })()}
+        </div>
       </nav>
 
       <ScrollRevealObserver />
