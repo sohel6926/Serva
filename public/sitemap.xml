@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>/</loc><priority>1.0</priority></url>
+  <url><loc>/services</loc><priority>0.9</priority></url>
+  <url><loc>/home-services</loc><priority>0.9</priority></url>
+  <url><loc>/home-services/repairing</loc><priority>0.8</priority></url>
+  <url><loc>/home-services/cleaning</loc><priority>0.8</priority></url>
+  <url><loc>/home-services/cooking</loc><priority>0.8</priority></url>
+  <url><loc>/home-services/painting</loc><priority>0.8</priority></url>
+  <url><loc>/contractors</loc><priority>0.9</priority></url>
+  <url><loc>/contractors/interior-design</loc><priority>0.8</priority></url>
+  <url><loc>/contractors/construction-workers</loc><priority>0.8</priority></url>
+  <url><loc>/contractors/construction-vehicles</loc><priority>0.8</priority></url>
+  <url><loc>/contractors/home-construction</loc><priority>0.8</priority></url>
+  <url><loc>/events</loc><priority>0.9</priority></url>
+  <url><loc>/events/plan</loc><priority>0.8</priority></url>
+  <url><loc>/events/dj</loc><priority>0.8</priority></url>
+  <url><loc>/agriculture</loc><priority>0.9</priority></url>
+  <url><loc>/agriculture/workers</loc><priority>0.8</priority></url>
+  <url><loc>/agriculture/services</loc><priority>0.8</priority></url>
+  <url><loc>/agriculture/machinery</loc><priority>0.8</priority></url>
+  <url><loc>/moving</loc><priority>0.9</priority></url>
+  <url><loc>/moving/home-shifting</loc><priority>0.8</priority></url>
+  <url><loc>/offers</loc><priority>0.7</priority></url>
+  <url><loc>/support</loc><priority>0.7</priority></url>
+  <url><loc>/partner/register</loc><priority>0.8</priority></url>
+  <url><loc>/about</loc><priority>0.6</priority></url>
+  <url><loc>/terms</loc><priority>0.5</priority></url>
+  <url><loc>/privacy</loc><priority>0.5</priority></url>
+  <url><loc>/refund-policy</loc><priority>0.5</priority></url>
+</urlset>

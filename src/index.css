@@ -1,0 +1,221 @@
+@import "tailwindcss";
+
+:root {
+  --serva-primary: #0B5FD9;
+  --serva-primary-hover: #094FB6;
+  --serva-bright: #1E88FF;
+  --serva-navy: #0A1F5C;
+  --serva-ink: #111111;
+  --serva-muted: #5B6B8C;
+  --serva-bg-top: #EAF2FF;
+  --serva-border: #DCE7F9;
+  --serva-success: #16A34A;
+  --serva-warning: #F59E0B;
+  --serva-danger: #DC2626;
+}
+
+@layer base {
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+    min-height: 100%;
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    color: var(--serva-ink);
+    background: linear-gradient(180deg, #EAF2FF 0%, #F5F9FF 40%, #FFFFFF 100%);
+    background-attachment: fixed;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3, h4, .font-display {
+    font-family: 'Poppins', 'Plus Jakarta Sans', system-ui, sans-serif;
+    color: var(--serva-navy);
+  }
+
+  .font-mono-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-variant-numeric: tabular-nums;
+  }
+
+  button,
+  a,
+  input,
+  select,
+  textarea {
+    &:focus-visible {
+      outline: 2px solid var(--serva-primary);
+      outline-offset: 2px;
+    }
+  }
+}
+
+.serva-card {
+  background-color: #FFFFFF;
+  border: 1px solid #DCE7F9;
+  border-radius: 20px;
+  box-shadow: 0 8px 24px -8px rgba(10, 31, 92, 0.08);
+}
+
+a.serva-card,
+button.serva-card,
+.serva-card-press {
+  position: relative;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition:
+    transform 150ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 180ms cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 180ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+a.serva-card::before,
+button.serva-card::before,
+.serva-card-press::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    135deg,
+    rgba(0, 240, 255, 0.16) 0%,
+    rgba(30, 136, 255, 0.12) 48%,
+    rgba(168, 85, 247, 0.18) 100%
+  );
+  opacity: 0;
+  pointer-events: none;
+  z-index: 2;
+  transition: opacity 160ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+a.serva-card::after,
+button.serva-card::after,
+.serva-card-press::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  padding: 2.5px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, #00F0FF 0%, #1E88FF 42%, #9333EA 78%, #00E5FF 100%);
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 3;
+  transition: opacity 150ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+a.serva-card:active,
+button.serva-card:active,
+.serva-card-press:active,
+a.serva-card[data-neon-pressed="true"],
+button.serva-card[data-neon-pressed="true"],
+.serva-card-press[data-neon-pressed="true"] {
+  transform: scale(0.985);
+  border-color: transparent;
+  box-shadow:
+    0 0 0 1px rgba(0, 240, 255, 0.45),
+    0 10px 28px -4px rgba(30, 136, 255, 0.52),
+    0 0 34px -2px rgba(147, 51, 234, 0.38);
+}
+
+a.serva-card:active::before,
+button.serva-card:active::before,
+.serva-card-press:active::before,
+a.serva-card[data-neon-pressed="true"]::before,
+button.serva-card[data-neon-pressed="true"]::before,
+.serva-card-press[data-neon-pressed="true"]::before,
+a.serva-card:active::after,
+button.serva-card:active::after,
+.serva-card-press:active::after,
+a.serva-card[data-neon-pressed="true"]::after,
+button.serva-card[data-neon-pressed="true"]::after,
+.serva-card-press[data-neon-pressed="true"]::after {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  a.serva-card:active,
+  button.serva-card:active,
+  .serva-card-press:active,
+  a.serva-card[data-neon-pressed="true"],
+  button.serva-card[data-neon-pressed="true"],
+  .serva-card-press[data-neon-pressed="true"] {
+    transform: none;
+  }
+}
+
+.serva-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  padding: 0.625rem 1.5rem;
+  border-radius: 9999px;
+  background-color: #0B5FD9;
+  color: #FFFFFF;
+  font-weight: 600;
+  font-size: 0.9375rem;
+  line-height: 1.25;
+  white-space: nowrap;
+  transition: background-color 160ms cubic-bezier(0.16, 1, 0.3, 1), transform 160ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.serva-pill-btn:hover:not(:disabled) {
+  background-color: #094FB6;
+}
+
+.serva-pill-btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.serva-pill-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Global Route Slide & Scroll-to-Reveal Animations (compositor-only) */
+@keyframes servaPageSlideIn {
+  from {
+    opacity: 0.85;
+    transform: translate3d(0, 12px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.serva-page-slide {
+  animation: servaPageSlideIn 260ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+[data-reveal="pending"] {
+  opacity: 0;
+  transform: translate3d(0, 22px, 0);
+  will-change: opacity, transform;
+}
+
+[data-reveal="visible"] {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+  transition:
+    opacity 460ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 460ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .serva-page-slide {
+    animation: none;
+  }
+  [data-reveal="pending"],
+  [data-reveal="visible"] {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}

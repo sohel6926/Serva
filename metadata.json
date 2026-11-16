@@ -1,0 +1,6 @@
+{
+  "name": "SERVA",
+  "description": "SERVA: Multiple Services Provider — All Your Needs, One Platform. Book Home Services, Contractors, Events, Agriculture, and Moving & Shifting.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
