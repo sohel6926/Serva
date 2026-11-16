@@ -419,8 +419,8 @@ export function AppShell({ children, showServiceSidebar = false }: AppShellProps
         )}
       </div>
 
-      {/* Footer */}
-      <footer className="bg-white border-t border-[#DCE7F9] mt-12 pb-20 md:pb-8">
+      {/* Footer — desktop only */}
+      <footer className="hidden md:block bg-white border-t border-[#DCE7F9] mt-12 pb-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           <div className="space-y-3">
             <BrandLogo variant="horizontal" />
