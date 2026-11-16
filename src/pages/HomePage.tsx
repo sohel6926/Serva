@@ -127,52 +127,52 @@ export function HomePage() {
     {
       to: '/home-services',
       label: t('homeServices'),
-      sub: 'Repair, Clean, Cook, Paint',
+      sub: 'Cleaning · Electrical · Plumbing · Cooking · Painting · Repairing',
       icon: Home,
       bg: 'bg-blue-50',
       fg: 'text-[#0B5FD9]',
-      image: '/src/assets/images/svc_electrician_1794825491346.jpg',
+      image: '/src/assets/images/hero_home_services_1794821794674.jpg',
     },
     {
       to: '/contractors',
       label: t('contractors'),
-      sub: 'Interiors, Workers, Vehicles',
+      sub: 'Interior Design · Construction · Heavy Machinery · Skilled Labour',
       icon: HardHat,
       bg: 'bg-amber-50',
       fg: 'text-amber-600',
-      image: '/src/assets/images/svc_interior_design_1794825494857.jpg',
+      image: '/src/assets/images/hero_contractors_1794821794462.jpg',
     },
     {
       to: '/events',
       label: t('events'),
-      sub: 'Decor, Catering, Photo, DJ',
+      sub: 'Weddings · DJ & Sound · Catering · Photography · Decoration',
       icon: Calendar,
       bg: 'bg-purple-50',
       fg: 'text-purple-600',
-      image: '/src/assets/images/svc_event_decor_1794825496811.jpg',
+      image: '/src/assets/images/hero_events_1794821796128.jpg',
     },
     {
       to: '/agriculture',
       label: t('agriculture'),
-      sub: 'Workers, Farm Ops, Tractors',
+      sub: 'Farm Labour · Drone Spraying · Tractor Rentals · Harvesting',
       icon: Sprout,
       bg: 'bg-green-50',
       fg: 'text-green-600',
-      image: '/src/assets/images/svc_agri_tractor_harvest_1794825499106.jpg',
+      image: '/src/assets/images/hero_agriculture_1794821795928.jpg',
     },
     {
       to: '/moving',
       label: t('moving'),
-      sub: 'Home, Office, Packing, Labour',
+      sub: 'Home Shifting · Office Relocation · Packing · Loading & Unloading',
       icon: Truck,
-      bg: 'bg-red-50',
-      fg: 'text-red-600',
-      image: '/src/assets/images/svc_moving_shifting_1794825499341.jpg',
+      bg: 'bg-orange-50',
+      fg: 'text-orange-600',
+      image: '/src/assets/images/hero_moving_1794821795552.jpg',
     },
     {
       to: '/services',
       label: t('moreServices'),
-      sub: 'All categories & portfolios',
+      sub: 'Browse all categories · Special packages · Verified professionals',
       icon: LayoutGrid,
       bg: 'bg-slate-100',
       fg: 'text-slate-700',
@@ -261,74 +261,49 @@ export function HomePage() {
         </div>
       </section>
 
-      {/* Six Category Icon Tiles */}
-      <section className="space-y-4">
+      {/* All 6 Category Big Cards — always visible, full detail */}
+      <section className="space-y-5">
         <div className="flex items-center justify-between">
           <h2 className="text-xl sm:text-2xl font-bold text-[#0A1F5C]">{t('categoriesTitle')}</h2>
-          <Link to="/services" className="text-sm font-semibold text-[#0B5FD9] hover:underline">
-            {t('ourServicesLink')}
+          <Link to="/services" className="text-sm font-semibold text-[#0B5FD9] hover:underline inline-flex items-center gap-1">
+            {t('ourServicesLink')} <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {categoryTiles.map((tile) => (
             <Link
               key={tile.to}
               to={tile.to}
               className="serva-card serva-card-press overflow-hidden flex flex-col hover:border-[#0B5FD9] transition-colors group"
             >
-              <div className="aspect-[16/10] bg-[#EAF2FF] overflow-hidden">
+              {/* Big image */}
+              <div className="aspect-[16/9] bg-[#EAF2FF] overflow-hidden relative">
                 <img
                   src={tile.image}
                   alt={tile.label}
                   referrerPolicy="no-referrer"
                   loading="lazy"
-                  className="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-200"
+                  className="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-500"
                 />
-              </div>
-              <div className="p-3.5 flex flex-col items-start gap-1.5">
-                <h3 className="text-sm font-bold text-[#0A1F5C] leading-tight">{tile.label}</h3>
-                <p className="text-xs text-[#5B6B8C] leading-snug">{tile.sub}</p>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      {/* Category Photo Cards (from API seed) */}
-      {categories.length > 0 && (
-        <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {categories.map((cat) => (
-            <Link
-              key={cat.id}
-              to={`/${cat.slug}`}
-              className="serva-card overflow-hidden flex flex-col hover:border-[#0B5FD9] transition-colors"
-            >
-              <div className="aspect-[16/9] bg-[#EAF2FF] overflow-hidden">
-                <img
-                  src={cat.hero_image}
-                  alt={cat.name}
-                  referrerPolicy="no-referrer"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div className="p-5 flex-1 flex flex-col justify-between gap-2">
-                <div>
-                  <p className="text-xs text-[#5B6B8C]">
-                    {cat.service_count} services · Sample Catalogue
-                  </p>
-                  <h3 className="text-lg font-bold text-[#0A1F5C] mt-0.5">
-                    {language === 'te' && cat.name_te ? cat.name_te : cat.name}
-                  </h3>
-                  <p className="text-sm text-[#5B6B8C] mt-1">{cat.tagline}</p>
+                {/* Category icon badge */}
+                <div className={`absolute top-3 left-3 w-9 h-9 rounded-xl ${tile.bg} ${tile.fg} flex items-center justify-center shadow-sm`}>
+                  <tile.icon className="w-5 h-5" />
                 </div>
-                <span className="text-sm font-semibold text-[#0B5FD9] inline-flex items-center gap-1 pt-2">
+              </div>
+              {/* Card body */}
+              <div className="p-5 flex-1 flex flex-col justify-between gap-3">
+                <div>
+                  <h3 className="text-lg font-bold text-[#0A1F5C] leading-snug">{tile.label}</h3>
+                  <p className="text-sm text-[#5B6B8C] mt-1">{tile.sub}</p>
+                </div>
+                <span className="text-sm font-semibold text-[#0B5FD9] inline-flex items-center gap-1 pt-2 border-t border-[#EAF2FF]">
                   {t('exploreLabel')} <ArrowRight className="w-4 h-4" />
                 </span>
               </div>
             </Link>
           ))}
-        </section>
-      )}
+        </div>
+      </section>
 
       {/* Popular Services */}
       {popular.length > 0 && (

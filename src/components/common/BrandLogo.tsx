@@ -1,9 +1,9 @@
 import React from 'react';
 
 export const SERVA_LOGO_HORIZONTAL =
-  '/assets/aistudio/3961820c-62e1-4ebf-bc7b-216e14457099_cfc65845.jpg';
+  '/assets/brand/serva-logo-horizontal.jpg';
 export const SERVA_LOGO_STACKED =
-  '/assets/aistudio/78042e5d-7898-4ab6-a6a0-4d33c7f11ff4_0788bcdb.jpg';
+  '/assets/brand/serva-logo-stacked.jpg';
 
 interface BrandLogoProps {
   variant?: 'horizontal' | 'stacked';

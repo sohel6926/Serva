@@ -12,7 +12,7 @@ SERVA is a full-stack multi-service booking and partner operations marketplace b
 - Node.js 20+ and npm
 
 ### 2. Environment Variables
-Copy `.env.example` to `.env` if running outside AI Studio (default development values work out of the box):
+Copy `.env.example` to `.env` for local configuration (default development values work out of the box):
 - `GEMINI_API_KEY`: Optional (not required for core booking flows)
 - `APP_URL`: Optional application base URL
 - `SESSION_SECRET`: Optional HMAC signing secret for `serva_session` HTTP-only cookies (falls back to a local dev secret when unset)

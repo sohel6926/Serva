@@ -33,7 +33,7 @@ export function ScrollRevealObserver() {
       window.setTimeout(() => {
         el.style.transitionDelay = '';
         el.setAttribute('data-reveal', 'done');
-      }, 520 + delayMs);
+      }, 850 + delayMs);
     };
 
     if (prefersReduced || typeof IntersectionObserver === 'undefined') {
@@ -50,7 +50,7 @@ export function ScrollRevealObserver() {
           if (!entry.isIntersecting) continue;
           const el = entry.target as HTMLElement;
           observer.unobserve(el);
-          const delay = Math.min(batchIdx * 45, 180);
+          const delay = Math.min(batchIdx * 65, 260);
           batchIdx += 1;
           revealElement(el, delay);
         }

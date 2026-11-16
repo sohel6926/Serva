@@ -3,20 +3,93 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Primary Meta Title & Description -->
     <title>SERVA — Multiple Services Provider | All Your Needs, One Platform</title>
-    <meta name="description" content="Book trusted services for Home Services, Contractors, Events, Agriculture, and Moving & Shifting on SERVA." />
-    <meta property="og:title" content="SERVA — Multiple Services Provider" />
-    <meta property="og:description" content="All Your Needs, One Platform. Book Home Services, Contractors, Events, Agriculture, and Moving & Shifting." />
+    <meta name="title" content="SERVA — Multiple Services Provider | All Your Needs, One Platform" />
+    <meta
+      name="description"
+      content="SERVA is your all-in-one platform for trusted doorstep services. Book verified Home Services, Contractors, Events, Agriculture & Machinery, and Moving & Shifting with transparent pricing."
+    />
+    <meta
+      name="keywords"
+      content="SERVA, home services, electrician, plumber, home cleaning, cooking services, painting contractors, civil contractors, interior design, event planning, DJ booking, agriculture services, tractor rental, moving and shifting, packers and movers"
+    />
+    <meta name="author" content="SERVA" />
+    <meta name="robots" content="index, follow" />
+    <meta name="theme-color" content="#033E8C" />
+
+    <!-- Open Graph / Facebook / WhatsApp -->
     <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="SERVA" />
+    <meta property="og:title" content="SERVA — Multiple Services Provider | All Your Needs, One Platform" />
+    <meta
+      property="og:description"
+      content="SERVA is your all-in-one platform for trusted doorstep services. Book verified Home Services, Contractors, Events, Agriculture & Machinery, and Moving & Shifting."
+    />
+    <meta property="og:url" content="/" />
+    <meta property="og:image" content="/serva-og-image.jpg" />
+    <meta property="og:image:secure_url" content="/serva-og-image.jpg" />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="SERVA — Multiple Services Provider" />
+    <meta property="og:locale" content="en_IN" />
+
+    <!-- Twitter / X Card -->
     <meta name="twitter:card" content="summary_large_image" />
-    <link rel="icon" type="image/jpeg" href="/assets/aistudio/78042e5d-7898-4ab6-a6a0-4d33c7f11ff4_0788bcdb.jpg" />
+    <meta name="twitter:title" content="SERVA — Multiple Services Provider | All Your Needs, One Platform" />
+    <meta
+      name="twitter:description"
+      content="Book trusted doorstep services: Home Services, Contractors, Events, Agriculture, and Moving & Shifting on SERVA."
+    />
+    <meta name="twitter:image" content="/serva-og-image.jpg" />
+    <meta name="twitter:image:alt" content="SERVA — Multiple Services Provider" />
+
+    <!-- Favicon & App Icons -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Poppins:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Runtime Absolute URL Resolution for Social Sharing -->
+    <script>
+      (function() {
+        try {
+          if (window.location && window.location.origin && window.location.origin.startsWith('http')) {
+            var origin = window.location.origin;
+            var ogImg = document.querySelector('meta[property="og:image"]');
+            if (ogImg && !ogImg.content.startsWith('http')) {
+              ogImg.content = origin + (ogImg.getAttribute('content').startsWith('/') ? '' : '/') + ogImg.getAttribute('content');
+            }
+            var ogSec = document.querySelector('meta[property="og:image:secure_url"]');
+            if (ogSec && !ogSec.content.startsWith('http')) {
+              ogSec.content = origin + (ogSec.getAttribute('content').startsWith('/') ? '' : '/') + ogSec.getAttribute('content');
+            }
+            var twImg = document.querySelector('meta[name="twitter:image"]');
+            if (twImg && !twImg.content.startsWith('http')) {
+              twImg.content = origin + (twImg.getAttribute('content').startsWith('/') ? '' : '/') + twImg.getAttribute('content');
+            }
+            var ogUrl = document.querySelector('meta[property="og:url"]');
+            if (ogUrl) {
+              ogUrl.content = window.location.href;
+            }
+          }
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
-
