@@ -3,80 +3,24 @@
   "cleanUrls": true,
   "trailingSlash": false,
   "redirects": [
-    {
-      "source": "/home",
-      "destination": "/",
-      "permanent": true
-    },
-    {
-      "source": "/index",
-      "destination": "/",
-      "permanent": true
-    },
-    {
-      "source": "/index.html",
-      "destination": "/",
-      "permanent": true
-    },
-    {
-      "source": "/service",
-      "destination": "/services",
-      "permanent": true
-    },
-    {
-      "source": "/booking",
-      "destination": "/bookings",
-      "permanent": true
-    },
-    {
-      "source": "/partner",
-      "destination": "/partner/register",
-      "permanent": true
-    },
-    {
-      "source": "/contractor",
-      "destination": "/contractors",
-      "permanent": true
-    },
-    {
-      "source": "/event",
-      "destination": "/events",
-      "permanent": true
-    },
-    {
-      "source": "/agri",
-      "destination": "/agriculture",
-      "permanent": true
-    },
-    {
-      "source": "/shift",
-      "destination": "/moving",
-      "permanent": true
-    },
-    {
-      "source": "/cleaning",
-      "destination": "/home-services/cleaning",
-      "permanent": true
-    },
-    {
-      "source": "/repairing",
-      "destination": "/home-services/repairing",
-      "permanent": true
-    },
-    {
-      "source": "/cooking",
-      "destination": "/home-services/cooking",
-      "permanent": true
-    },
-    {
-      "source": "/painting",
-      "destination": "/home-services/painting",
-      "permanent": true
-    }
+    { "source": "/home",       "destination": "/",                       "permanent": true },
+    { "source": "/index",      "destination": "/",                       "permanent": true },
+    { "source": "/index.html", "destination": "/",                       "permanent": true },
+    { "source": "/service",    "destination": "/services",               "permanent": true },
+    { "source": "/booking",    "destination": "/bookings",               "permanent": true },
+    { "source": "/partner",    "destination": "/partner/register",       "permanent": true },
+    { "source": "/contractor", "destination": "/contractors",            "permanent": true },
+    { "source": "/event",      "destination": "/events",                 "permanent": true },
+    { "source": "/agri",       "destination": "/agriculture",            "permanent": true },
+    { "source": "/shift",      "destination": "/moving",                 "permanent": true },
+    { "source": "/cleaning",   "destination": "/home-services/cleaning", "permanent": true },
+    { "source": "/repairing",  "destination": "/home-services/repairing","permanent": true },
+    { "source": "/cooking",    "destination": "/home-services/cooking",  "permanent": true },
+    { "source": "/painting",   "destination": "/home-services/painting", "permanent": true }
   ],
   "rewrites": [
     {
-      "source": "/((?!assets/|media/|uploads/|favicon.*|apple-touch-icon.*|serva-.*|og-image.*|site\\.webmanifest|robots\\.txt|sitemap\\.xml|404\\.html|.*\\.[\\w]+$).*)",
+      "source": "/(.*)",
       "destination": "/index.html"
     }
   ],
@@ -84,42 +28,23 @@
     {
       "source": "/(.*\\.(ico|png|jpg|jpeg|svg|webp|woff|woff2))",
       "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
-        }
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
       ]
     },
     {
       "source": "/(serva-og-image.jpg|og-image.jpg|serva-og-image.png)",
       "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=86400, stale-while-revalidate=43200"
-        }
+        { "key": "Cache-Control", "value": "public, max-age=86400, stale-while-revalidate=43200" }
       ]
     },
     {
       "source": "/(.*)",
       "headers": [
-        {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
-        },
-        {
-          "key": "X-Frame-Options",
-          "value": "DENY"
-        },
-        {
-          "key": "X-XSS-Protection",
-          "value": "1; mode=block"
-        },
-        {
-          "key": "Referrer-Policy",
-          "value": "strict-origin-when-cross-origin"
-        }
+        { "key": "X-Content-Type-Options",  "value": "nosniff" },
+        { "key": "X-Frame-Options",         "value": "DENY" },
+        { "key": "X-XSS-Protection",        "value": "1; mode=block" },
+        { "key": "Referrer-Policy",         "value": "strict-origin-when-cross-origin" }
       ]
     }
   ]
 }
-
