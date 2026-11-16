@@ -23,7 +23,6 @@ import {
 import { useAuth } from '../../context/AuthContext.tsx';
 import { Link, useRouter } from '../../lib/router.tsx';
 import { BrandLogo } from '../common/BrandLogo.tsx';
-import { BackgroundIllustrations } from '../common/BackgroundIllustrations.tsx';
 import { ScrollRevealObserver } from '../common/ScrollRevealObserver.tsx';
 import { ScrollToTopButton } from '../common/ScrollToTopButton.tsx';
 
@@ -95,7 +94,6 @@ export function AppShell({ children, showServiceSidebar = false }: AppShellProps
 
   return (
     <div className="min-h-screen flex flex-col relative">
-      <BackgroundIllustrations />
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:px-4 focus:py-2 focus:rounded-full focus:bg-[#0B5FD9] focus:text-white focus:text-xs focus:font-bold"
