@@ -549,16 +549,18 @@ export function AppShell({ children, showServiceSidebar = false }: AppShellProps
               </Link>
             );
           })()}
-          {/* Centre FAB — Search */}
-          <div className="flex items-center justify-center relative">
-            <Link
-              to="/search"
-              aria-label="Search"
-              className="absolute -top-5 w-13 h-13 rounded-full bg-[#0B5FD9] hover:bg-[#094FB6] shadow-lg shadow-blue-500/40 flex items-center justify-center border-[3.5px] border-white text-white active:scale-95 transition-transform"
-            >
-              <Search className="w-5 h-5 text-white" strokeWidth={2.5} />
-            </Link>
-          </div>
+          {/* Search */}
+          {(() => {
+            const active = pathname.startsWith('/search');
+            return (
+              <Link to="/search" className="flex flex-col items-center justify-center gap-0.5">
+                <div className={`w-13 h-7 rounded-2xl flex items-center justify-center transition-colors ${active ? 'bg-[#EBF2FE] text-[#0B5FD9]' : 'text-[#64748B]'}`}>
+                  <Search className="w-5 h-5" />
+                </div>
+                <span className={`text-[10px] font-semibold ${active ? 'text-[#0B5FD9]' : 'text-[#64748B]'}`}>Search</span>
+              </Link>
+            );
+          })()}
           {/* Offers */}
           {(() => {
             const active = pathname.startsWith('/offers');
