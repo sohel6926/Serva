@@ -407,7 +407,7 @@ function PartnerAuthGate({ onSignedIn }: PartnerAuthGateProps) {
   };
 
   return (
-    <div className="min-h-screen bg-[#F6F9FD] flex flex-col text-[#0A1F5C] font-sans">
+    <div className="min-h-screen bg-[#F6F9FD] flex flex-col text-[#0A1F5C] partner-portal">
       {/* ── Standalone Partner Portal Header ── */}
       <header className="sticky top-0 z-40 h-16 bg-white/95 backdrop-blur-md border-b border-[#DCE7F9] px-4 sm:px-6 shadow-sm">
         <div className="max-w-7xl mx-auto h-full flex items-center justify-between">
@@ -1222,7 +1222,7 @@ export function PartnerPanelPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F4F8FE] text-[#0A1F5C] flex flex-col font-sans">
+    <div className="min-h-screen bg-[#F4F8FE] text-[#0A1F5C] flex flex-col partner-portal">
       {/* ── Standalone Partner Portal Top Navbar ── */}
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#DCE7F9] shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">

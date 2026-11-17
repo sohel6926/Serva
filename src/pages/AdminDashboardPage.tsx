@@ -544,7 +544,7 @@ function AdminAuthGate() {
   };
 
   return (
-    <div className="min-h-screen bg-[#071330] text-white flex flex-col font-sans">
+    <div className="min-h-screen bg-[#071330] text-white flex flex-col admin-portal">
       {/* Standalone Admin Header */}
       <header className="sticky top-0 z-40 bg-[#0A1F5C]/90 backdrop-blur-md border-b border-blue-900/80 px-4 sm:px-6 h-16 shadow-md">
         <div className="max-w-7xl mx-auto h-full flex items-center justify-between">
@@ -910,7 +910,7 @@ export function AdminDashboardPage() {
   const openTicketCount = tickets.filter((t) => t.status === 'OPEN').length;
 
   return (
-    <div className="min-h-screen bg-[#F6F9FD] text-[#0A1F5C] font-sans pb-16">
+    <div className="min-h-screen bg-[#F6F9FD] text-[#0A1F5C] admin-portal pb-16">
       {/* Top Admin Bar & Role Switcher */}
       <div className="bg-[#0A1F5C] text-white border-b border-[#1E3A8A] px-4 py-2.5">
         <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
