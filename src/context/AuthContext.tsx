@@ -86,49 +86,54 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const refreshUser = useCallback(async (): Promise<SessionUser | null> => {
     try {
-      const res = await fetch('/api/auth/me', { credentials: 'include' });
-      if (res.ok) {
-        const data = (await res.json()) as { user: SessionUser | null };
-        if (data.user) {
-          setUser(data.user);
-          localStorage.setItem(DEMO_USER_STORAGE_KEY, JSON.stringify(data.user));
-          if (data.user?.language === 'te' || data.user?.language === 'en') {
-            const stored = localStorage.getItem(LANG_STORAGE_KEY);
-            if (!stored) {
-              setLanguageState(data.user.language);
-              localStorage.setItem(LANG_STORAGE_KEY, data.user.language);
-            }
-          }
-          if (data.user?.default_city) {
-            setCityState(data.user.default_city);
-            localStorage.setItem(CITY_STORAGE_KEY, data.user.default_city);
-          }
-          return data.user;
-        }
-      }
-    } catch {
-      // Backend not accessible (e.g. static deploy on Vercel)
-    }
-
-    // Check localStorage fallback for demo user session
-    const savedDemo = localStorage.getItem(DEMO_USER_STORAGE_KEY);
-    if (savedDemo) {
       try {
-        const parsed = JSON.parse(savedDemo) as SessionUser;
-        if (parsed?.id && parsed?.role) {
-          setUser(parsed);
-          return parsed;
+        const res = await fetch('/api/auth/me', { credentials: 'include' });
+        if (res.ok) {
+          const data = (await res.json()) as { user: SessionUser | null };
+          if (data.user) {
+            setUser(data.user);
+            localStorage.setItem(DEMO_USER_STORAGE_KEY, JSON.stringify(data.user));
+            if (data.user?.language === 'te' || data.user?.language === 'en') {
+              const stored = localStorage.getItem(LANG_STORAGE_KEY);
+              if (!stored) {
+                setLanguageState(data.user.language);
+                localStorage.setItem(LANG_STORAGE_KEY, data.user.language);
+              }
+            }
+            if (data.user?.default_city) {
+              setCityState(data.user.default_city);
+              localStorage.setItem(CITY_STORAGE_KEY, data.user.default_city);
+            }
+            return data.user;
+          }
         }
       } catch {
-        localStorage.removeItem(DEMO_USER_STORAGE_KEY);
+        // Backend not accessible (e.g. static deploy on Vercel)
       }
-    }
 
-    setUser(null);
-    return null;
+      // Check localStorage fallback for demo user session
+      const savedDemo = localStorage.getItem(DEMO_USER_STORAGE_KEY);
+      if (savedDemo) {
+        try {
+          const parsed = JSON.parse(savedDemo) as SessionUser;
+          if (parsed?.id && parsed?.role) {
+            setUser(parsed);
+            return parsed;
+          }
+        } catch {
+          localStorage.removeItem(DEMO_USER_STORAGE_KEY);
+        }
+      }
+
+      setUser(null);
+      return null;
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   const loginAsDemo = useCallback(async (role: DemoRole): Promise<SessionUser> => {
+    setLoading(true);
     const target = DEMO_USERS[role];
     const email = target.email!;
     const password = role === 'admin' ? 'Admin@123' : 'Serva@123';
@@ -146,6 +151,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (d?.user) {
           setUser(d.user);
           localStorage.setItem(DEMO_USER_STORAGE_KEY, JSON.stringify(d.user));
+          setLoading(false);
           return d.user;
         }
       }
@@ -156,11 +162,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // 2. Always persist and set demo session in client state
     setUser(target);
     localStorage.setItem(DEMO_USER_STORAGE_KEY, JSON.stringify(target));
+    setLoading(false);
     return target;
   }, []);
 
   useEffect(() => {
-    refreshUser();
+    refreshUser().finally(() => setLoading(false));
   }, [refreshUser]);
 
   const setLanguage = useCallback(

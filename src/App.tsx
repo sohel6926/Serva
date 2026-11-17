@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { RoleGuard } from './components/auth/RoleGuard.tsx';
 import { LoadingScreen } from './components/common/LoadingScreen.tsx';
 import { AppShell } from './components/layout/AppShell.tsx';
@@ -48,9 +48,15 @@ const SERVICE_SIDEBAR_PREFIXES = [
 
 function AppRoutes() {
   const { loading } = useAuth();
+  const [timedOut, setTimedOut] = useState(false);
   const { pathname: rawPath } = useRouter();
 
-  if (loading) {
+  useEffect(() => {
+    const timer = setTimeout(() => setTimedOut(true), 1200);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (loading && !timedOut) {
     return <LoadingScreen />;
   }
 
