@@ -8,7 +8,7 @@ type TabMode = 'login' | 'register' | 'forgot';
 type LoginMethod = 'password' | 'otp';
 
 export function LoginPage() {
-  const { refreshUser, user } = useAuth();
+  const { refreshUser, user, loginAsDemo } = useAuth();
   const { navigate, search } = useRouter();
   const nextPath = new URLSearchParams(search).get('next') || '/';
 
@@ -67,6 +67,21 @@ export function LoginPage() {
       });
       const data = await res.json();
       if (!res.ok) {
+        // Fallback for demo logins on static hosting (e.g. Vercel)
+        const lower = identifier.trim().toLowerCase();
+        if (lower === 'ananya@serva.demo' || lower === '9876543210') {
+          await loginAsDemo('customer');
+          navigate(nextPath);
+          return;
+        } else if (lower === 'ramesh.partner@serva.demo' || lower === '9876543211') {
+          await loginAsDemo('partner');
+          navigate('/partner/dashboard');
+          return;
+        } else if (lower === 'admin@serva.demo' || lower === '9876543212') {
+          await loginAsDemo('admin');
+          navigate('/admin');
+          return;
+        }
         setError(data.error || 'Sign in failed.');
         return;
       }
@@ -242,24 +257,16 @@ export function LoginPage() {
     }
   };
 
-  const quickDemoLogin = async (email: string, pw: string) => {
+  const quickDemoLogin = async (role: 'customer' | 'partner' | 'admin') => {
     clearAlerts();
     setBusy(true);
     try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ identifier: email, password: pw }),
-      });
-      if (!res.ok) {
-        setError('Demo login failed.');
-        return;
-      }
-      const loggedUser = await refreshUser();
+      const loggedUser = await loginAsDemo(role);
       if (loggedUser?.role === 'ADMIN') navigate('/admin');
       else if (loggedUser?.role === 'PARTNER') navigate('/partner/dashboard');
-      else navigate('/');
+      else navigate(nextPath);
+    } catch {
+      setError('Demo login failed. Please try again.');
     } finally {
       setBusy(false);
     }
@@ -296,7 +303,7 @@ export function LoginPage() {
             <button
               type="button"
               disabled={busy}
-              onClick={() => quickDemoLogin('ananya@serva.demo', 'Serva@123')}
+              onClick={() => quickDemoLogin('customer')}
               className="min-h-[44px] px-3.5 py-2 rounded-xl border border-[#DCE7F9] hover:bg-[#F1F6FF] text-left text-xs flex items-center justify-between cursor-pointer"
             >
               <span>
@@ -308,7 +315,7 @@ export function LoginPage() {
             <button
               type="button"
               disabled={busy}
-              onClick={() => quickDemoLogin('ramesh.partner@serva.demo', 'Serva@123')}
+              onClick={() => quickDemoLogin('partner')}
               className="min-h-[44px] px-3.5 py-2 rounded-xl border border-[#DCE7F9] hover:bg-[#F1F6FF] text-left text-xs flex items-center justify-between cursor-pointer"
             >
               <span>
@@ -320,7 +327,7 @@ export function LoginPage() {
             <button
               type="button"
               disabled={busy}
-              onClick={() => quickDemoLogin('admin@serva.demo', 'Admin@123')}
+              onClick={() => quickDemoLogin('admin')}
               className="min-h-[44px] px-3.5 py-2 rounded-xl border border-[#DCE7F9] hover:bg-[#F1F6FF] text-left text-xs flex items-center justify-between cursor-pointer"
             >
               <span>
@@ -493,7 +500,7 @@ export function LoginPage() {
                   <button
                     type="button"
                     disabled={busy}
-                    onClick={() => quickDemoLogin('ananya@serva.demo', 'Serva@123')}
+                    onClick={() => quickDemoLogin('customer')}
                     className="w-full min-h-[46px] rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-sm shadow-md shadow-emerald-600/20 flex items-center justify-center gap-2 active:scale-[0.99] transition-all cursor-pointer"
                   >
                     <Zap className="w-4 h-4 fill-current" />
@@ -504,7 +511,7 @@ export function LoginPage() {
                     <button
                       type="button"
                       disabled={busy}
-                      onClick={() => quickDemoLogin('ramesh.partner@serva.demo', 'Serva@123')}
+                      onClick={() => quickDemoLogin('partner')}
                       className="min-h-[38px] px-2.5 py-1.5 rounded-lg border border-[#DCE7F9] bg-[#F8FAFC] hover:bg-[#F1F6FF] text-[#0A1F5C] text-xs font-semibold flex items-center justify-center gap-1.5 active:scale-98 transition-all cursor-pointer"
                     >
                       <ShieldCheck className="w-3.5 h-3.5 text-[#16A34A]" />
@@ -513,7 +520,7 @@ export function LoginPage() {
                     <button
                       type="button"
                       disabled={busy}
-                      onClick={() => quickDemoLogin('admin@serva.demo', 'Admin@123')}
+                      onClick={() => quickDemoLogin('admin')}
                       className="min-h-[38px] px-2.5 py-1.5 rounded-lg border border-[#DCE7F9] bg-[#F8FAFC] hover:bg-[#F1F6FF] text-[#0A1F5C] text-xs font-semibold flex items-center justify-center gap-1.5 active:scale-98 transition-all cursor-pointer"
                     >
                       <KeyRound className="w-3.5 h-3.5 text-[#0B5FD9]" />

@@ -52,7 +52,7 @@ interface AppShellProps {
 }
 
 export function AppShell({ children, showServiceSidebar = false }: AppShellProps) {
-  const { user, refreshUser, language, setLanguage, city, setCity, t, logout } = useAuth();
+  const { user, refreshUser, loginAsDemo, language, setLanguage, city, setCity, t, logout } = useAuth();
   const { pathname, navigate } = useRouter();
   const [notifOpen, setNotifOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -297,17 +297,7 @@ export function AppShell({ children, showServiceSidebar = false }: AppShellProps
                 <button
                   type="button"
                   onClick={async () => {
-                    try {
-                      await fetch('/api/auth/login', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        credentials: 'include',
-                        body: JSON.stringify({ identifier: 'ananya@serva.demo', password: 'Serva@123' }),
-                      });
-                      await refreshUser();
-                    } catch {
-                      navigate('/login');
-                    }
+                    await loginAsDemo('customer');
                   }}
                   className="min-h-[34px] px-2.5 sm:px-3 py-1 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] sm:text-xs font-bold whitespace-nowrap shrink-0 inline-flex items-center gap-1 shadow-sm active:scale-95 transition-all cursor-pointer"
                   title="One-click demo customer sign in"
@@ -372,17 +362,7 @@ export function AppShell({ children, showServiceSidebar = false }: AppShellProps
                   type="button"
                   onClick={async () => {
                     setMobileMenuOpen(false);
-                    try {
-                      await fetch('/api/auth/login', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        credentials: 'include',
-                        body: JSON.stringify({ identifier: 'ananya@serva.demo', password: 'Serva@123' }),
-                      });
-                      await refreshUser();
-                    } catch {
-                      navigate('/login');
-                    }
+                    await loginAsDemo('customer');
                   }}
                   className="w-full min-h-[42px] px-4 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-sm cursor-pointer"
                 >
