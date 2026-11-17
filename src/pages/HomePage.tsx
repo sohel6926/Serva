@@ -588,11 +588,13 @@ export function HomePage() {
         </section>
 
         {/* ── Services Cards of Each Service (below banner) ── */}
-        <section className="mx-3 space-y-3 pt-2">
-          <div className="flex items-center justify-between">
+        <section className="mx-3 pt-4">
+          <div className="flex items-center justify-between mb-3.5">
             <div>
-              <h2 className="text-base font-extrabold text-[#0A1F5C]">All Doorstep Services</h2>
-              <p className="text-[11px] text-[#55698C] font-medium">Verified professionals with upfront transparent pricing</p>
+              <h2 className="text-base font-extrabold text-[#0A1F5C] leading-snug">All Doorstep Services</h2>
+              <p className="text-[11.5px] text-[#55698C] font-medium leading-relaxed mt-0.5">
+                Verified professionals with upfront transparent pricing
+              </p>
             </div>
             <Link to="/services" className="text-xs font-semibold text-[#0B5FD9] inline-flex items-center gap-0.5 hover:underline">
               View All <ArrowRight className="w-3 h-3" />
@@ -600,7 +602,7 @@ export function HomePage() {
           </div>
 
           {/* Category Filter Pills */}
-          <div className="flex gap-2 overflow-x-auto pb-1 -mx-3 px-3 scrollbar-hide snap-x">
+          <div className="flex gap-2.5 overflow-x-auto pt-2 pb-3 -mx-3 px-3 scrollbar-hide snap-x mb-1">
             {[
               { id: 'ALL', label: 'All Services' },
               { id: 'home-services', label: 'Home Services' },
