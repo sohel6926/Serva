@@ -23,6 +23,16 @@ import {
 import { useAuth } from '../context/AuthContext.tsx';
 import { Link, useRouter } from '../lib/router.tsx';
 import { getServicePath } from '../components/search/SearchBar.tsx';
+import {
+  HomeServicesIllustration,
+  ConstructionIllustration,
+  AgricultureIllustration,
+  EventIllustration,
+  MovingIllustration,
+  RepairIllustration,
+  ManpowerIllustration,
+  MoreServicesIllustration,
+} from '../components/home/ServiceIllustrations.tsx';
 
 interface HomeCategory {
   id: string;
@@ -83,42 +93,50 @@ const MOBILE_SERVICE_TILES = [
   {
     to: '/home-services',
     label: 'Home\nServices',
-    image: '/src/assets/images/tile_home_services.png',
+    Illustration: HomeServicesIllustration,
+    bg: 'bg-[#E1F4FF]',
   },
   {
     to: '/contractors',
     label: 'Construction\nServices',
-    image: '/src/assets/images/tile_construction.png',
+    Illustration: ConstructionIllustration,
+    bg: 'bg-[#EEF4FF]',
   },
   {
     to: '/agriculture',
     label: 'Agriculture\nServices',
-    image: '/src/assets/images/tile_agriculture.png',
+    Illustration: AgricultureIllustration,
+    bg: 'bg-[#EAF9F1]',
   },
   {
     to: '/events',
     label: 'Event\nServices',
-    image: '/src/assets/images/tile_events.png',
+    Illustration: EventIllustration,
+    bg: 'bg-[#F6EFFF]',
   },
   {
     to: '/moving',
     label: 'Moving &\nShifting',
-    image: '/src/assets/images/tile_moving.png',
+    Illustration: MovingIllustration,
+    bg: 'bg-[#EDF5FF]',
   },
   {
     to: '/home-services/repairing',
     label: 'Repair &\nMaintenance',
-    image: '/src/assets/images/tile_repair.png',
+    Illustration: RepairIllustration,
+    bg: 'bg-[#F2F4FD]',
   },
   {
     to: '/contractors',
     label: 'Manpower\nServices',
-    image: '/src/assets/images/tile_manpower.png',
+    Illustration: ManpowerIllustration,
+    bg: 'bg-[#EBF5FE]',
   },
   {
     to: '/services',
     label: 'More\nServices',
-    image: '/src/assets/images/tile_more.png',
+    Illustration: MoreServicesIllustration,
+    bg: 'bg-[#EBF2FE]',
   },
 ];
 
@@ -355,13 +373,9 @@ export function HomePage() {
                 to={tile.to}
                 className="flex flex-col items-center group active:scale-95 transition-transform"
               >
-                {/* Illustration card matching mockup */}
-                <div className="w-full aspect-[1/0.8] rounded-2xl overflow-hidden shadow-[0_2px_8px_rgba(11,95,217,0.05)] border border-slate-100">
-                  <img
-                    src={tile.image}
-                    alt={tile.label}
-                    className="w-full h-full object-cover"
-                  />
+                {/* Ultra-crisp vector illustration card */}
+                <div className={`w-full aspect-[1/0.82] rounded-2xl ${tile.bg} overflow-hidden shadow-[0_2px_8px_rgba(11,95,217,0.06)] border border-white/80 p-1 flex items-center justify-center`}>
+                  <tile.Illustration />
                 </div>
                 {/* Label */}
                 <p className="text-[10px] font-semibold text-[#0A1F5C] text-center leading-tight whitespace-pre-line mt-1.5">
@@ -376,7 +390,7 @@ export function HomePage() {
         <section className="mx-3">
           <div className="relative rounded-2xl overflow-hidden min-h-[160px] shadow-sm border border-slate-100">
             <img
-              src="/src/assets/images/hero_agriculture_1794821795928.jpg"
+              src={currentSlide.image}
               alt={currentSlide.title}
               className="absolute inset-0 w-full h-full object-cover object-right"
             />
