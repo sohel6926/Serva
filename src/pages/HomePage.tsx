@@ -464,39 +464,7 @@ export function HomePage() {
           </div>
         </section>
 
-        {/* ── Trust Strip ── */}
-        <div className="mx-3 bg-white rounded-2xl border border-[#EBF2FE] shadow-[0_2px_10px_rgba(11,95,217,0.04)] p-3">
-          <div className="grid grid-cols-4 gap-1 text-center divide-x divide-slate-100">
-            {/* 1. Verified Providers */}
-            <div className="flex flex-col items-center gap-1.5 py-0.5 px-0.5">
-              <div className="w-7 h-7 rounded-full bg-[#EBF4FE] flex items-center justify-center text-[#0B5FD9]">
-                <ShieldCheck className="w-4 h-4 text-[#0B5FD9] fill-[#0B5FD9]/20" />
-              </div>
-              <p className="text-[9.5px] font-semibold text-[#0A1F5C] leading-tight">Verified<br/>Providers</p>
-            </div>
-            {/* 2. Fast & Easy Booking */}
-            <div className="flex flex-col items-center gap-1.5 py-0.5 px-0.5">
-              <div className="w-7 h-7 rounded-full bg-[#EBF4FE] flex items-center justify-center text-[#0B5FD9]">
-                <Zap className="w-4 h-4 text-[#0B5FD9] fill-current" />
-              </div>
-              <p className="text-[9.5px] font-semibold text-[#0A1F5C] leading-tight">Fast &<br/>Easy Booking</p>
-            </div>
-            {/* 3. Transparent Pricing */}
-            <div className="flex flex-col items-center gap-1.5 py-0.5 px-0.5">
-              <div className="w-7 h-7 rounded-full bg-[#0B5FD9] flex items-center justify-center text-white">
-                <span className="text-xs font-bold leading-none">₹</span>
-              </div>
-              <p className="text-[9.5px] font-semibold text-[#0A1F5C] leading-tight">Transparent<br/>Pricing</p>
-            </div>
-            {/* 4. Dedicated Support */}
-            <div className="flex flex-col items-center gap-1.5 py-0.5 px-0.5">
-              <div className="w-7 h-7 rounded-full bg-[#EBF4FE] flex items-center justify-center text-[#0B5FD9]">
-                <Headphones className="w-4 h-4 text-[#0B5FD9]" />
-              </div>
-              <p className="text-[9.5px] font-semibold text-[#0A1F5C] leading-tight">Dedicated<br/>Support</p>
-            </div>
-          </div>
-        </div>
+
 
         {/* ── Explore Our Services (5 core categories) ── */}
         <section className="mx-3">
