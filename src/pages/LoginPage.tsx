@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowRight, Eye, EyeOff, KeyRound, Lock, Mail, Phone, ShieldCheck, UserCheck, Zap } from 'lucide-react';
+import { ArrowRight, Eye, EyeOff, KeyRound, Lock, Mail, Phone, ShieldCheck, Zap } from 'lucide-react';
 import { BrandLogo } from '../components/common/BrandLogo.tsx';
 import { useAuth } from '../context/AuthContext.tsx';
 import { Link, useRouter } from '../lib/router.tsx';
@@ -294,50 +294,7 @@ export function LoginPage() {
           </div>
         )}
 
-        {/* Sample Demo Accounts for Testing */}
-        <div className="pt-4 border-t border-[#EAF2FF] space-y-2.5">
-          <p className="text-xs font-semibold text-[#5B6B8C]">
-            Sample Demo Logins (for testing)
-          </p>
-          <div className="grid grid-cols-1 gap-2">
-            <button
-              type="button"
-              disabled={busy}
-              onClick={() => quickDemoLogin('customer')}
-              className="min-h-[44px] px-3.5 py-2 rounded-xl border border-[#DCE7F9] hover:bg-[#F1F6FF] text-left text-xs flex items-center justify-between cursor-pointer"
-            >
-              <span>
-                <strong className="text-[#0A1F5C] block">Customer · Ananya Reddy</strong>
-                <span className="text-[#5B6B8C]">ananya@serva.demo · 9876543210</span>
-              </span>
-              <UserCheck className="w-4 h-4 text-[#0B5FD9]" />
-            </button>
-            <button
-              type="button"
-              disabled={busy}
-              onClick={() => quickDemoLogin('partner')}
-              className="min-h-[44px] px-3.5 py-2 rounded-xl border border-[#DCE7F9] hover:bg-[#F1F6FF] text-left text-xs flex items-center justify-between cursor-pointer"
-            >
-              <span>
-                <strong className="text-[#0A1F5C] block">Partner (Verified) · Ramesh Kumar</strong>
-                <span className="text-[#5B6B8C]">ramesh.partner@serva.demo</span>
-              </span>
-              <ShieldCheck className="w-4 h-4 text-[#16A34A]" />
-            </button>
-            <button
-              type="button"
-              disabled={busy}
-              onClick={() => quickDemoLogin('admin')}
-              className="min-h-[44px] px-3.5 py-2 rounded-xl border border-[#DCE7F9] hover:bg-[#F1F6FF] text-left text-xs flex items-center justify-between cursor-pointer"
-            >
-              <span>
-                <strong className="text-[#0A1F5C] block">Admin · SERVA Operations</strong>
-                <span className="text-[#5B6B8C]">admin@serva.demo</span>
-              </span>
-              <KeyRound className="w-4 h-4 text-[#0B5FD9]" />
-            </button>
-          </div>
-        </div>
+
       </div>
 
       {/* Right Auth Form Card */}
