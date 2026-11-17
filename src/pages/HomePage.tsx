@@ -485,28 +485,6 @@ export function HomePage() {
           </div>
         </section>
 
-        {/* ── CTA Buttons ── */}
-        <div className="mx-3 grid grid-cols-2 gap-3">
-          <Link
-            to="/services"
-            className="flex items-center justify-center gap-2 min-h-[46px] rounded-full bg-[#0B5FD9] hover:bg-[#094FB6] text-white text-xs sm:text-sm font-bold shadow-md shadow-blue-500/25 active:scale-95 transition-transform"
-          >
-            <Calendar className="w-4 h-4" />
-            <span>Book a Service</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </Link>
-          <Link
-            to="/partner/register"
-            className="flex items-center justify-center gap-2 min-h-[46px] rounded-full border border-[#DCE7F9] bg-white text-[#0A1F5C] text-xs sm:text-sm font-bold shadow-sm active:scale-95 transition-transform"
-          >
-            {/* Handshake icon */}
-            <svg className="w-4 h-4 text-[#0B5FD9]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-              <path d="M20.5 14.5L19 16l-1.5-1.5M4 10l5 5 3-3 4 4" /><path d="M9.5 7.5L12 5l4.5 4.5-3 3" /><path d="M5 14l1.5 1.5L8 14" />
-            </svg>
-            <span>Become a Partner</span>
-          </Link>
-        </div>
-
         {/* ── Trust Strip ── */}
         <div className="mx-3 bg-white rounded-2xl border border-[#EBF2FE] shadow-[0_2px_10px_rgba(11,95,217,0.04)] p-3">
           <div className="grid grid-cols-4 gap-1 text-center divide-x divide-slate-100">
