@@ -602,7 +602,7 @@ export function HomePage() {
           </div>
 
           {/* Category Filter Pills */}
-          <div className="flex gap-2.5 overflow-x-auto pt-2 pb-3 -mx-3 px-3 scrollbar-hide snap-x mb-1">
+          <div className="flex gap-2 overflow-x-auto pt-1.5 pb-3 scrollbar-hide snap-x mb-1">
             {[
               { id: 'ALL', label: 'All Services' },
               { id: 'home-services', label: 'Home Services' },
