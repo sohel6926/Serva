@@ -494,21 +494,20 @@ export function HomePage() {
           </div>
         </section>
 
-        {/* ── Promotional Banner Carousel matching mockup ── */}
+        {/* ── Promotional Banner Carousel ── */}
         <section className="mx-3">
           <div className="relative rounded-2xl overflow-hidden min-h-[160px] shadow-sm border border-slate-100">
             <img
               src={currentSlide.image}
               alt={currentSlide.title}
-              className="absolute inset-0 w-full h-full object-cover object-right"
+              className="absolute inset-0 w-full h-full object-cover object-center"
             />
-            <div className="absolute inset-0 bg-gradient-to-r from-white via-white/85 to-transparent max-w-[80%]" />
-            <div className="relative z-10 p-4 h-full flex flex-col justify-between min-h-[160px] max-w-[80%]">
-              <div>
+            <div className="relative z-10 p-4 h-full flex flex-col justify-between min-h-[160px] max-w-[85%]">
+              <div className="backdrop-blur-md bg-white/75 p-2.5 rounded-xl border border-white/60 shadow-sm inline-block">
                 <h3 className="text-sm sm:text-base font-bold text-[#0A1F5C] leading-snug">
                   {currentSlide.title}
                 </h3>
-                <p className="text-[10px] sm:text-[11px] text-[#5B6B8C] mt-1 line-clamp-2 leading-relaxed">
+                <p className="text-[10px] sm:text-[11px] text-[#334155] mt-1 line-clamp-2 leading-relaxed">
                   {currentSlide.subtitle}
                 </p>
               </div>
@@ -530,22 +529,6 @@ export function HomePage() {
                 </button>
               </div>
             </div>
-          </div>
-
-          {/* Dots Indicator matching mockup */}
-          <div className="flex items-center justify-center gap-1.5 mt-3">
-            {BANNER_SLIDES.map((_, i) => (
-              <button
-                key={i}
-                onClick={() => setSlideIdx(i)}
-                aria-label={`Go to slide ${i + 1}`}
-                className={`rounded-full transition-all ${
-                  i === slideIdx
-                    ? 'w-5 h-1.5 bg-[#0B5FD9]'
-                    : 'w-1.5 h-1.5 bg-slate-300'
-                }`}
-              />
-            ))}
           </div>
         </section>
 
