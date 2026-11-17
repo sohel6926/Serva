@@ -1,125 +1,85 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "installCommand": "npm install --legacy-peer-deps",
   "cleanUrls": true,
   "trailingSlash": false,
   "redirects": [
-    {
-      "source": "/home",
-      "destination": "/",
-      "permanent": true
-    },
-    {
-      "source": "/index",
-      "destination": "/",
-      "permanent": true
-    },
-    {
-      "source": "/index.html",
-      "destination": "/",
-      "permanent": true
-    },
-    {
-      "source": "/service",
-      "destination": "/services",
-      "permanent": true
-    },
-    {
-      "source": "/booking",
-      "destination": "/bookings",
-      "permanent": true
-    },
-    {
-      "source": "/partner",
-      "destination": "/partner/register",
-      "permanent": true
-    },
-    {
-      "source": "/contractor",
-      "destination": "/contractors",
-      "permanent": true
-    },
-    {
-      "source": "/event",
-      "destination": "/events",
-      "permanent": true
-    },
-    {
-      "source": "/agri",
-      "destination": "/agriculture",
-      "permanent": true
-    },
-    {
-      "source": "/shift",
-      "destination": "/moving",
-      "permanent": true
-    },
-    {
-      "source": "/cleaning",
-      "destination": "/home-services/cleaning",
-      "permanent": true
-    },
-    {
-      "source": "/repairing",
-      "destination": "/home-services/repairing",
-      "permanent": true
-    },
-    {
-      "source": "/cooking",
-      "destination": "/home-services/cooking",
-      "permanent": true
-    },
-    {
-      "source": "/painting",
-      "destination": "/home-services/painting",
-      "permanent": true
-    }
+    { "source": "/home",                    "destination": "/",                            "permanent": true },
+    { "source": "/index",                   "destination": "/",                            "permanent": true },
+    { "source": "/index.html",              "destination": "/",                            "permanent": true },
+    { "source": "/home-service",            "destination": "/home-services",               "permanent": true },
+    { "source": "/homeservices",            "destination": "/home-services",               "permanent": true },
+    { "source": "/home-services-provider",  "destination": "/home-services",               "permanent": true },
+    { "source": "/service",                 "destination": "/services",                    "permanent": true },
+    { "source": "/all-services",            "destination": "/services",                    "permanent": true },
+    { "source": "/our-services",            "destination": "/services",                    "permanent": true },
+    { "source": "/booking",                 "destination": "/bookings",                    "permanent": true },
+    { "source": "/my-bookings",             "destination": "/bookings",                    "permanent": true },
+    { "source": "/my-booking",              "destination": "/bookings",                    "permanent": true },
+    { "source": "/partner",                 "destination": "/partner/register",            "permanent": true },
+    { "source": "/partner-register",        "destination": "/partner/register",            "permanent": true },
+    { "source": "/join",                    "destination": "/partner/register",            "permanent": true },
+    { "source": "/contractor",              "destination": "/contractors",                 "permanent": true },
+    { "source": "/contractor-services",     "destination": "/contractors",                 "permanent": true },
+    { "source": "/contractors/interior",    "destination": "/contractors/interior-design", "permanent": true },
+    { "source": "/contractors/construction","destination": "/contractors/home-construction", "permanent": true },
+    { "source": "/contractors/machinery",   "destination": "/contractors/heavy-machinery", "permanent": true },
+    { "source": "/event",                   "destination": "/events",                      "permanent": true },
+    { "source": "/events/catering",         "destination": "/events/plan",                 "permanent": true },
+    { "source": "/events/dj",               "destination": "/events/plan",                 "permanent": true },
+    { "source": "/events/decor",            "destination": "/events/plan",                 "permanent": true },
+    { "source": "/agri",                   "destination": "/agriculture",                 "permanent": true },
+    { "source": "/agri-services",           "destination": "/agriculture",                 "permanent": true },
+    { "source": "/agriculture/tractor",     "destination": "/agriculture/services",         "permanent": true },
+    { "source": "/agriculture/drone",       "destination": "/agriculture/services",         "permanent": true },
+    { "source": "/shift",                   "destination": "/moving",                      "permanent": true },
+    { "source": "/shifting",                "destination": "/moving",                      "permanent": true },
+    { "source": "/moving-shifting",         "destination": "/moving",                      "permanent": true },
+    { "source": "/moving-and-shifting",     "destination": "/moving",                      "permanent": true },
+    { "source": "/home-shifting",           "destination": "/moving/home-shifting",         "permanent": true },
+    { "source": "/cleaning",                "destination": "/home-services/cleaning",      "permanent": true },
+    { "source": "/clean",                   "destination": "/home-services/cleaning",      "permanent": true },
+    { "source": "/repairing",               "destination": "/home-services/repairing",     "permanent": true },
+    { "source": "/repair",                  "destination": "/home-services/repairing",     "permanent": true },
+    { "source": "/cooking",                 "destination": "/home-services/cooking",       "permanent": true },
+    { "source": "/cook",                    "destination": "/home-services/cooking",       "permanent": true },
+    { "source": "/painting",                "destination": "/home-services/painting",      "permanent": true },
+    { "source": "/paint",                   "destination": "/home-services/painting",      "permanent": true },
+    { "source": "/plumbing",                "destination": "/home-services/repairing",     "permanent": true },
+    { "source": "/electrician",             "destination": "/home-services/repairing",     "permanent": true },
+    { "source": "/ac-repair",               "destination": "/home-services/repairing",     "permanent": true },
+    { "source": "/offer",                   "destination": "/offers",                      "permanent": true },
+    { "source": "/deals",                   "destination": "/offers",                      "permanent": true },
+    { "source": "/deal",                    "destination": "/offers",                      "permanent": true },
+    { "source": "/help",                    "destination": "/support",                     "permanent": true },
+    { "source": "/contact",                 "destination": "/support",                     "permanent": true },
+    { "source": "/contact-us",              "destination": "/support",                     "permanent": true },
+    { "source": "/account",                 "destination": "/profile",                     "permanent": true },
+    { "source": "/user",                    "destination": "/profile",                     "permanent": true },
+    { "source": "/signin",                  "destination": "/login",                       "permanent": true },
+    { "source": "/signup",                  "destination": "/login",                       "permanent": true },
+    { "source": "/register",                "destination": "/login",                       "permanent": true }
   ],
   "rewrites": [
-    {
-      "source": "/((?!assets/|media/|uploads/|favicon.*|apple-touch-icon.*|serva-.*|og-image.*|site\\.webmanifest|robots\\.txt|sitemap\\.xml|404\\.html|.*\\.[\\w]+$).*)",
-      "destination": "/index.html"
-    }
+    { "source": "/:path*", "destination": "/index.html" }
   ],
   "headers": [
     {
-      "source": "/(.*\\.(ico|png|jpg|jpeg|svg|webp|woff|woff2))",
+      "source": "/(.*\\.(ico|png|jpg|jpeg|svg|webp|woff|woff2|js|css))",
       "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
-        }
-      ]
-    },
-    {
-      "source": "/(serva-og-image.jpg|og-image.jpg|serva-og-image.png)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=86400, stale-while-revalidate=43200"
-        }
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
       ]
     },
     {
       "source": "/(.*)",
       "headers": [
-        {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
-        },
-        {
-          "key": "X-Frame-Options",
-          "value": "DENY"
-        },
-        {
-          "key": "X-XSS-Protection",
-          "value": "1; mode=block"
-        },
-        {
-          "key": "Referrer-Policy",
-          "value": "strict-origin-when-cross-origin"
-        }
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options",        "value": "DENY" },
+        { "key": "X-XSS-Protection",       "value": "1; mode=block" },
+        { "key": "Referrer-Policy",        "value": "strict-origin-when-cross-origin" }
       ]
     }
   ]
 }
-
