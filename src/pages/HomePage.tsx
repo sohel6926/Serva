@@ -496,37 +496,66 @@ export function HomePage() {
 
         {/* ── Promotional Banner Carousel ── */}
         <section className="mx-3">
-          <div className="relative rounded-2xl overflow-hidden min-h-[160px] shadow-sm border border-slate-100">
+          <div className="relative rounded-2xl overflow-hidden min-h-[180px] shadow-[0_4px_20px_rgba(11,95,217,0.08)] border border-slate-100 bg-slate-900">
             <img
               src={currentSlide.image}
               alt={currentSlide.title}
-              className="absolute inset-0 w-full h-full object-cover object-center"
+              className="absolute inset-0 w-full h-full object-cover object-center transition-all duration-700 ease-out"
             />
-            <div className="relative z-10 p-4 h-full flex flex-col justify-between min-h-[160px] max-w-[85%]">
-              <div className="backdrop-blur-md bg-white/75 p-2.5 rounded-xl border border-white/60 shadow-sm inline-block">
-                <h3 className="text-sm sm:text-base font-bold text-[#0A1F5C] leading-snug">
+            {/* Elegant dark scrim for text clarity without masking the image */}
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/30 to-transparent" />
+            <div className="relative z-10 p-4 sm:p-5 h-full flex flex-col justify-end min-h-[180px]">
+              <div>
+                <span className="inline-block px-2.5 py-0.5 rounded-full bg-white/20 backdrop-blur-md text-white text-[10px] font-semibold border border-white/25 mb-1.5 shadow-sm">
+                  Featured
+                </span>
+                <h3 className="text-base sm:text-lg font-bold text-white leading-tight drop-shadow-sm">
                   {currentSlide.title}
                 </h3>
-                <p className="text-[10px] sm:text-[11px] text-[#334155] mt-1 line-clamp-2 leading-relaxed">
+                <p className="text-white/85 text-[11px] sm:text-xs mt-1 line-clamp-2 leading-relaxed drop-shadow-sm max-w-[95%]">
                   {currentSlide.subtitle}
                 </p>
               </div>
               <div className="pt-3 flex flex-wrap items-center gap-2">
                 <Link
                   to={currentSlide.to}
-                  className="inline-flex items-center gap-1.5 bg-white border border-[#DCE7F9] text-[#0A1F5C] text-xs font-bold px-3 py-1.5 rounded-full shadow-sm hover:bg-slate-50 active:scale-95 transition-all"
+                  className="inline-flex items-center gap-1.5 bg-white text-[#0A1F5C] text-xs font-bold px-3.5 py-1.5 rounded-full shadow-md hover:bg-slate-50 active:scale-95 transition-all"
                 >
                   <span>{currentSlide.cta}</span>
-                  <ArrowRight className="w-3 h-3 text-[#0A1F5C]" />
+                  <ArrowRight className="w-3.5 h-3.5 text-[#0A1F5C]" />
                 </Link>
                 <button
                   type="button"
                   onClick={() => setShowBannerEnquiry(true)}
-                  className="inline-flex items-center gap-1.5 bg-[#0B5FD9] text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-sm hover:bg-blue-700 active:scale-95 transition-all cursor-pointer"
+                  className="inline-flex items-center gap-1.5 bg-[#0B5FD9] text-white text-xs font-bold px-3.5 py-1.5 rounded-full shadow-md border border-white/20 hover:bg-blue-600 active:scale-95 transition-all cursor-pointer"
                 >
-                  <MessageSquare className="w-3 h-3" />
+                  <MessageSquare className="w-3.5 h-3.5" />
                   <span>Enquire Now</span>
                 </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Progress Line Indicator */}
+          <div className="flex items-center justify-center mt-3">
+            <div className="w-28 h-1 bg-[#E2E8F0] rounded-full overflow-hidden relative">
+              <div
+                className="h-full bg-[#0B5FD9] rounded-full transition-transform duration-500 ease-out pointer-events-none"
+                style={{
+                  width: `${100 / BANNER_SLIDES.length}%`,
+                  transform: `translateX(${slideIdx * 100}%)`,
+                }}
+              />
+              <div className="absolute inset-0 flex">
+                {BANNER_SLIDES.map((_, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => setSlideIdx(i)}
+                    aria-label={`Go to slide ${i + 1}`}
+                    className="flex-1 h-full cursor-pointer focus:outline-none"
+                  />
+                ))}
               </div>
             </div>
           </div>
