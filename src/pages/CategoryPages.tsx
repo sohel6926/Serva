@@ -13,10 +13,12 @@ import {
   Truck,
   Users,
   Wrench,
+  MessageSquare,
 } from 'lucide-react';
 import { PortfolioGallery } from '../components/gallery/PortfolioGallery.tsx';
 import { getServicePath } from '../components/search/SearchBar.tsx';
 import { Link } from '../lib/router.tsx';
+import { EnquiryModal } from '../components/common/EnquiryModal.tsx';
 
 interface ServiceRecord {
   id: string;
@@ -52,38 +54,60 @@ function CategoryHero({
   image,
   ctaLabel,
   ctaTo,
+  enquireLabel = 'Enquire Now',
 }: {
   title: string;
   subtitle: string;
   image: string;
   ctaLabel?: string;
   ctaTo?: string;
+  enquireLabel?: string;
 }) {
+  const [showEnquiry, setShowEnquiry] = useState(false);
+
   return (
-    <section className="serva-card overflow-hidden relative min-h-[220px] flex items-end">
-      <img
-        src={image}
-        alt={title}
-        referrerPolicy="no-referrer"
-        className="absolute inset-0 w-full h-full object-cover"
-      />
-      <div className="absolute inset-0 bg-gradient-to-t from-[#0A1F5C]/90 via-[#0A1F5C]/55 to-black/20" />
-      <div className="relative z-10 p-6 sm:p-8 text-white w-full flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-        <div className="space-y-1.5 max-w-2xl">
-          <h1 className="text-2xl sm:text-3xl font-bold text-white">{title}</h1>
-          <p className="text-sm sm:text-base text-blue-100">{subtitle}</p>
+    <>
+      <section className="serva-card overflow-hidden relative min-h-[220px] flex items-end">
+        <img
+          src={image}
+          alt={title}
+          referrerPolicy="no-referrer"
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0A1F5C]/90 via-[#0A1F5C]/55 to-black/20" />
+        <div className="relative z-10 p-5 sm:p-8 text-white w-full flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+          <div className="space-y-1.5 max-w-2xl">
+            <h1 className="text-2xl sm:text-3xl font-bold text-white drop-shadow-sm">{title}</h1>
+            <p className="text-sm sm:text-base text-blue-100 drop-shadow-sm">{subtitle}</p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+            {ctaLabel && ctaTo && (
+              <Link
+                to={ctaTo}
+                className="min-h-[42px] px-5 py-2.5 rounded-full bg-white text-[#0B5FD9] font-bold text-sm inline-flex items-center gap-2 hover:bg-blue-50 shadow-md active:scale-95 transition-all"
+              >
+                <span>{ctaLabel}</span>
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            )}
+            <button
+              type="button"
+              onClick={() => setShowEnquiry(true)}
+              className="min-h-[42px] px-5 py-2.5 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-md text-white border border-white/40 font-bold text-sm inline-flex items-center gap-2 shadow-md active:scale-95 transition-all cursor-pointer"
+            >
+              <MessageSquare className="w-4 h-4" />
+              <span>{enquireLabel}</span>
+            </button>
+          </div>
         </div>
-        {ctaLabel && ctaTo && (
-          <Link
-            to={ctaTo}
-            className="min-h-[44px] px-6 py-2.5 rounded-full bg-white text-[#0B5FD9] font-semibold text-sm inline-flex items-center gap-2 hover:bg-blue-50 shrink-0"
-          >
-            <span>{ctaLabel}</span>
-            <ArrowRight className="w-4 h-4" />
-          </Link>
-        )}
-      </div>
-    </section>
+      </section>
+
+      <EnquiryModal
+        isOpen={showEnquiry}
+        onClose={() => setShowEnquiry(false)}
+        initialCategory={title}
+      />
+    </>
   );
 }
 

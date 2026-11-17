@@ -19,10 +19,12 @@ import {
   Wallet,
   Wrench,
   Zap,
+  MessageSquare,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.tsx';
 import { Link, useRouter } from '../lib/router.tsx';
 import { getServicePath } from '../components/search/SearchBar.tsx';
+import { EnquiryModal } from '../components/common/EnquiryModal.tsx';
 import {
   HomeServicesIllustration,
   ConstructionIllustration,
@@ -406,6 +408,7 @@ export function HomePage() {
   const [selectedCategory, setSelectedCategory] = useState('ALL');
   const [popular, setPopular] = useState<PopularService[]>([]);
   const [offers, setOffers] = useState<OfferItem[]>([]);
+  const [showBannerEnquiry, setShowBannerEnquiry] = useState(false);
 
   useEffect(() => {
     fetch('/api/home-data')
@@ -578,8 +581,8 @@ export function HomePage() {
               alt={currentSlide.title}
               className="absolute inset-0 w-full h-full object-cover object-right"
             />
-            <div className="absolute inset-0 bg-gradient-to-r from-white via-white/85 to-transparent max-w-[75%]" />
-            <div className="relative z-10 p-4 h-full flex flex-col justify-between min-h-[160px] max-w-[68%]">
+            <div className="absolute inset-0 bg-gradient-to-r from-white via-white/85 to-transparent max-w-[80%]" />
+            <div className="relative z-10 p-4 h-full flex flex-col justify-between min-h-[160px] max-w-[80%]">
               <div>
                 <h3 className="text-sm sm:text-base font-bold text-[#0A1F5C] leading-snug">
                   {currentSlide.title}
@@ -588,14 +591,22 @@ export function HomePage() {
                   {currentSlide.subtitle}
                 </p>
               </div>
-              <div className="pt-3">
+              <div className="pt-3 flex flex-wrap items-center gap-2">
                 <Link
                   to={currentSlide.to}
-                  className="inline-flex items-center gap-1.5 bg-white border border-[#DCE7F9] text-[#0A1F5C] text-xs font-bold px-3.5 py-1.5 rounded-full shadow-sm hover:bg-slate-50"
+                  className="inline-flex items-center gap-1.5 bg-white border border-[#DCE7F9] text-[#0A1F5C] text-xs font-bold px-3 py-1.5 rounded-full shadow-sm hover:bg-slate-50 active:scale-95 transition-all"
                 >
                   <span>{currentSlide.cta}</span>
                   <ArrowRight className="w-3 h-3 text-[#0A1F5C]" />
                 </Link>
+                <button
+                  type="button"
+                  onClick={() => setShowBannerEnquiry(true)}
+                  className="inline-flex items-center gap-1.5 bg-[#0B5FD9] text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-sm hover:bg-blue-700 active:scale-95 transition-all cursor-pointer"
+                >
+                  <MessageSquare className="w-3 h-3" />
+                  <span>Enquire Now</span>
+                </button>
               </div>
             </div>
           </div>
@@ -935,6 +946,12 @@ export function HomePage() {
           </Link>
         </section>
       </div>
+
+      <EnquiryModal
+        isOpen={showBannerEnquiry}
+        onClose={() => setShowBannerEnquiry(false)}
+        initialCategory={currentSlide.title}
+      />
     </div>
   );
 }
