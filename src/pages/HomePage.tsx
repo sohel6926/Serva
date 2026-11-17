@@ -234,7 +234,7 @@ export function HomePage() {
       {/* ═══════════════════════════════════════════════
        *  MOBILE LAYOUT  (hidden on md+)
        * ═══════════════════════════════════════════════ */}
-      <div className="md:hidden -mx-3 space-y-3.5 pb-20">
+      <div className="md:hidden -mx-3 space-y-3.5 pb-4">
 
         {/* ── Hero Card matching mockup ── */}
         <section className="relative overflow-hidden bg-gradient-to-b from-[#EBF3FE] via-[#F4F8FE] to-white mx-3 rounded-3xl min-h-[195px] flex flex-col justify-between p-4.5 border border-[#E2EEFE]">

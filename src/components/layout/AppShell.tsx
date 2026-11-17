@@ -356,7 +356,7 @@ export function AppShell({ children, showServiceSidebar = false }: AppShellProps
       </header>
 
       {/* Main Content Area (with optional Service Left Sidebar) */}
-      <div className="flex-1 w-full max-w-7xl mx-auto px-3 sm:px-6 py-6">
+      <div className="flex-1 w-full max-w-7xl mx-auto px-3 sm:px-6 pt-4 pb-28 md:py-6">
         {showServiceSidebar ? (
           <div className="flex flex-col lg:flex-row gap-6 items-start">
             <aside
