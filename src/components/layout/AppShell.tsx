@@ -20,6 +20,7 @@ import {
   Wallet,
   Wrench,
   X,
+  Zap,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext.tsx';
 import { Link, useRouter } from '../../lib/router.tsx';
@@ -51,7 +52,7 @@ interface AppShellProps {
 }
 
 export function AppShell({ children, showServiceSidebar = false }: AppShellProps) {
-  const { user, language, setLanguage, city, setCity, t, logout } = useAuth();
+  const { user, refreshUser, language, setLanguage, city, setCity, t, logout } = useAuth();
   const { pathname, navigate } = useRouter();
   const [notifOpen, setNotifOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -292,13 +293,36 @@ export function AppShell({ children, showServiceSidebar = false }: AppShellProps
                 )}
               </div>
             ) : (
-              <Link
-                to="/login"
-                className="min-h-[36px] px-3.5 py-1.5 rounded-full bg-[#0B5FD9] hover:bg-[#094FB6] text-white text-xs font-semibold whitespace-nowrap shrink-0 inline-flex items-center gap-1.5 shadow-sm"
-              >
-                <UserIcon className="w-3.5 h-3.5 text-white" />
-                <span>{t('signIn')}</span>
-              </Link>
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={async () => {
+                    try {
+                      await fetch('/api/auth/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
+                        body: JSON.stringify({ identifier: 'ananya@serva.demo', password: 'Serva@123' }),
+                      });
+                      await refreshUser();
+                    } catch {
+                      navigate('/login');
+                    }
+                  }}
+                  className="min-h-[34px] px-2.5 sm:px-3 py-1 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] sm:text-xs font-bold whitespace-nowrap shrink-0 inline-flex items-center gap-1 shadow-sm active:scale-95 transition-all cursor-pointer"
+                  title="One-click demo customer sign in"
+                >
+                  <Zap className="w-3.5 h-3.5 fill-current" />
+                  <span>Demo Login</span>
+                </button>
+                <Link
+                  to="/login"
+                  className="min-h-[34px] px-3 py-1 rounded-full bg-[#0B5FD9] hover:bg-[#094FB6] text-white text-[11px] sm:text-xs font-semibold whitespace-nowrap shrink-0 inline-flex items-center gap-1 shadow-sm active:scale-95 transition-all"
+                >
+                  <UserIcon className="w-3.5 h-3.5 text-white" />
+                  <span>{t('signIn')}</span>
+                </Link>
+              </div>
             )}
 
             {/* Mobile drawer toggle */}
@@ -342,7 +366,30 @@ export function AppShell({ children, showServiceSidebar = false }: AppShellProps
                 {item.label}
               </Link>
             ))}
-            <div className="pt-2 border-t border-[#EAF2FF] flex flex-wrap gap-2">
+            <div className="pt-2 border-t border-[#EAF2FF] flex flex-col gap-2">
+              {!user && (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    setMobileMenuOpen(false);
+                    try {
+                      await fetch('/api/auth/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
+                        body: JSON.stringify({ identifier: 'ananya@serva.demo', password: 'Serva@123' }),
+                      });
+                      await refreshUser();
+                    } catch {
+                      navigate('/login');
+                    }
+                  }}
+                  className="w-full min-h-[42px] px-4 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-sm cursor-pointer"
+                >
+                  <Zap className="w-4 h-4 fill-current" />
+                  <span>⚡ Instant Demo Login</span>
+                </button>
+              )}
               <Link
                 to="/partner/register"
                 onClick={() => setMobileMenuOpen(false)}

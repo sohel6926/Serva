@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowRight, Eye, EyeOff, KeyRound, Lock, Mail, Phone, ShieldCheck, UserCheck } from 'lucide-react';
+import { ArrowRight, Eye, EyeOff, KeyRound, Lock, Mail, Phone, ShieldCheck, UserCheck, Zap } from 'lucide-react';
 import { BrandLogo } from '../components/common/BrandLogo.tsx';
 import { useAuth } from '../context/AuthContext.tsx';
 import { Link, useRouter } from '../lib/router.tsx';
@@ -487,6 +487,40 @@ export function LoginPage() {
                   <span>{busy ? 'Signing in...' : 'Sign In'}</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
+
+                {/* Instant 1-Click Demo Login */}
+                <div className="pt-2 space-y-2">
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={() => quickDemoLogin('ananya@serva.demo', 'Serva@123')}
+                    className="w-full min-h-[46px] rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-sm shadow-md shadow-emerald-600/20 flex items-center justify-center gap-2 active:scale-[0.99] transition-all cursor-pointer"
+                  >
+                    <Zap className="w-4 h-4 fill-current" />
+                    <span>⚡ One-Click Demo Login (Customer)</span>
+                  </button>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      disabled={busy}
+                      onClick={() => quickDemoLogin('ramesh.partner@serva.demo', 'Serva@123')}
+                      className="min-h-[38px] px-2.5 py-1.5 rounded-lg border border-[#DCE7F9] bg-[#F8FAFC] hover:bg-[#F1F6FF] text-[#0A1F5C] text-xs font-semibold flex items-center justify-center gap-1.5 active:scale-98 transition-all cursor-pointer"
+                    >
+                      <ShieldCheck className="w-3.5 h-3.5 text-[#16A34A]" />
+                      <span>Demo Partner</span>
+                    </button>
+                    <button
+                      type="button"
+                      disabled={busy}
+                      onClick={() => quickDemoLogin('admin@serva.demo', 'Admin@123')}
+                      className="min-h-[38px] px-2.5 py-1.5 rounded-lg border border-[#DCE7F9] bg-[#F8FAFC] hover:bg-[#F1F6FF] text-[#0A1F5C] text-xs font-semibold flex items-center justify-center gap-1.5 active:scale-98 transition-all cursor-pointer"
+                    >
+                      <KeyRound className="w-3.5 h-3.5 text-[#0B5FD9]" />
+                      <span>Demo Admin</span>
+                    </button>
+                  </div>
+                </div>
               </form>
             ) : (
               <form onSubmit={handleOtpLoginVerify} className="space-y-4">
