@@ -78,63 +78,47 @@ const BANNER_SLIDES = [
   },
 ];
 
-/* Mobile service grid tiles — 4 × 2 layout */
+/* Mobile service grid tiles — 4 × 2 layout matching design mockup */
 const MOBILE_SERVICE_TILES = [
   {
     to: '/home-services',
     label: 'Home\nServices',
-    icon: Home,
-    grad: 'from-blue-400 to-blue-600',
-    emoji: '🏠',
+    image: '/src/assets/images/tile_home_services.png',
   },
   {
     to: '/contractors',
     label: 'Construction\nServices',
-    icon: HardHat,
-    grad: 'from-amber-400 to-orange-500',
-    emoji: '🏗️',
+    image: '/src/assets/images/tile_construction.png',
   },
   {
     to: '/agriculture',
     label: 'Agriculture\nServices',
-    icon: Sprout,
-    grad: 'from-green-400 to-green-600',
-    emoji: '🌾',
+    image: '/src/assets/images/tile_agriculture.png',
   },
   {
     to: '/events',
     label: 'Event\nServices',
-    icon: Calendar,
-    grad: 'from-purple-400 to-purple-600',
-    emoji: '🎪',
+    image: '/src/assets/images/tile_events.png',
   },
   {
     to: '/moving',
     label: 'Moving &\nShifting',
-    icon: Truck,
-    grad: 'from-orange-400 to-red-500',
-    emoji: '🚛',
+    image: '/src/assets/images/tile_moving.png',
   },
   {
     to: '/home-services/repairing',
     label: 'Repair &\nMaintenance',
-    icon: Wrench,
-    grad: 'from-sky-400 to-cyan-500',
-    emoji: '🔧',
+    image: '/src/assets/images/tile_repair.png',
   },
   {
     to: '/contractors',
     label: 'Manpower\nServices',
-    icon: Users,
-    grad: 'from-teal-400 to-teal-600',
-    emoji: '👷',
+    image: '/src/assets/images/tile_manpower.png',
   },
   {
     to: '/services',
     label: 'More\nServices',
-    icon: LayoutGrid,
-    grad: 'from-slate-400 to-slate-600',
-    emoji: '⚡',
+    image: '/src/assets/images/tile_more.png',
   },
 ];
 
@@ -250,44 +234,32 @@ export function HomePage() {
       {/* ═══════════════════════════════════════════════
        *  MOBILE LAYOUT  (hidden on md+)
        * ═══════════════════════════════════════════════ */}
-      <div className="md:hidden -mx-3 space-y-4 pb-24">
+      <div className="md:hidden -mx-3 space-y-3.5 pb-20">
 
-        {/* ── Hero Card ── */}
-        <section className="relative overflow-hidden bg-gradient-to-br from-[#0B5FD9] via-[#1565D8] to-[#1E88FF] mx-3 rounded-2xl min-h-[195px] flex flex-col justify-between p-5">
-          {/* Badge */}
-          <div>
-            <span className="inline-flex items-center gap-1.5 bg-white/20 text-white text-[11px] font-semibold px-3 py-1 rounded-full mb-3">
-              <span className="text-[#F59E0B]">✦</span> Multiple Services Provider
+        {/* ── Hero Card matching mockup ── */}
+        <section className="relative overflow-hidden bg-gradient-to-b from-[#EBF3FE] via-[#F4F8FE] to-white mx-3 rounded-3xl min-h-[195px] flex flex-col justify-between p-4.5 border border-[#E2EEFE]">
+          {/* Badge & Text */}
+          <div className="z-10">
+            <span className="inline-flex items-center gap-1.5 bg-white/90 border border-[#DCE7F9] shadow-[0_2px_8px_rgba(11,95,217,0.06)] text-[#0B5FD9] text-[11px] font-semibold px-3 py-1 rounded-full mb-2.5">
+              <span className="text-[#0B5FD9]">✦</span> Multiple Services Provider
             </span>
             {/* Headline */}
-            <h1 className="text-[22px] font-bold text-white leading-tight max-w-[58%]">
-              All Your Service Needs in{' '}
-              <span className="text-[#F59E0B]">One Platform</span>
+            <h1 className="text-[21px] font-extrabold text-[#0A1F5C] leading-tight max-w-[62%]">
+              All Your Service Needs <br />
+              in <span className="text-[#0B5FD9]">One Platform</span>
             </h1>
             {/* Subtext */}
-            <p className="text-[11px] text-blue-100 mt-2 max-w-[58%] leading-relaxed">
+            <p className="text-[11px] text-[#5B6B8C] mt-2 max-w-[58%] leading-relaxed">
               Book trusted services for your Home, Construction, Events, Agriculture, Moving & Shifting and more.
             </p>
           </div>
 
-          {/* Verified badge */}
-          <div className="absolute bottom-4 left-5 flex items-center gap-1.5 bg-white rounded-xl px-2.5 py-1.5 shadow-md">
-            <div className="w-5 h-5 rounded-full bg-[#16A34A] flex items-center justify-center shrink-0">
-              <CheckCircle className="w-3.5 h-3.5 text-white" strokeWidth={2.5} />
-            </div>
-            <div>
-              <p className="text-[9px] font-bold text-[#0A1F5C] leading-none">Verified</p>
-              <p className="text-[9px] text-[#5B6B8C] leading-none">Professionals</p>
-            </div>
-          </div>
-
-          {/* Person image — right side */}
-          <div className="absolute right-0 bottom-0 h-[195px] w-[42%] pointer-events-none">
+          {/* Serviceman with blue swoosh & verified badge — right side */}
+          <div className="absolute right-0 bottom-0 top-1 h-full w-[46%] pointer-events-none flex items-end justify-end">
             <img
-              src="/src/assets/images/svc_site_workers_1794825495047.jpg"
-              alt="SERVA professional"
-              className="w-full h-full object-cover object-top"
-              style={{ maskImage: 'linear-gradient(to left, black 60%, transparent 100%)', WebkitMaskImage: 'linear-gradient(to left, black 60%, transparent 100%)' }}
+              src="/src/assets/images/mobile_hero_serviceman.png"
+              alt="SERVA Verified Professional"
+              className="h-[195px] w-auto object-contain object-bottom"
             />
           </div>
         </section>
@@ -296,17 +268,17 @@ export function HomePage() {
         <div className="mx-3">
           <form
             onSubmit={(e) => { e.preventDefault(); if (searchQuery.trim()) navigate(`/search?q=${encodeURIComponent(searchQuery)}`); }}
-            className="flex items-center gap-3 bg-white border border-[#DCE7F9] rounded-full px-4 py-3 shadow-sm"
+            className="flex items-center gap-3 bg-white border border-[#DCE7F9] rounded-full px-4 py-2.5 shadow-[0_2px_12px_rgba(11,95,217,0.06)]"
           >
-            <Search className="w-4 h-4 text-[#94A3B8] shrink-0" />
+            <Search className="w-4 h-4 text-[#64748B] shrink-0" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search for services, e.g. Tractor Rental"
-              className="flex-1 text-sm text-[#0A1F5C] placeholder-[#94A3B8] bg-transparent outline-none"
+              className="flex-1 text-xs sm:text-sm text-[#0A1F5C] placeholder-[#94A3B8] bg-transparent outline-none font-medium"
             />
-            <button type="button" aria-label="Voice search" className="shrink-0 text-[#0B5FD9]">
+            <button type="button" aria-label="Voice search" className="w-8 h-8 rounded-full bg-[#F0F6FF] flex items-center justify-center text-[#0B5FD9] shrink-0 cursor-pointer">
               <Mic className="w-4 h-4" />
             </button>
           </form>
@@ -316,7 +288,7 @@ export function HomePage() {
         <div className="mx-3 grid grid-cols-2 gap-3">
           <Link
             to="/services"
-            className="flex items-center justify-center gap-2 min-h-[48px] rounded-full bg-[#0B5FD9] text-white text-sm font-bold shadow-md shadow-blue-200"
+            className="flex items-center justify-center gap-2 min-h-[46px] rounded-full bg-[#0B5FD9] hover:bg-[#094FB6] text-white text-xs sm:text-sm font-bold shadow-md shadow-blue-500/25 active:scale-95 transition-transform"
           >
             <Calendar className="w-4 h-4" />
             <span>Book a Service</span>
@@ -324,7 +296,7 @@ export function HomePage() {
           </Link>
           <Link
             to="/partner/register"
-            className="flex items-center justify-center gap-2 min-h-[48px] rounded-full border-2 border-[#DCE7F9] bg-white text-[#0A1F5C] text-sm font-bold"
+            className="flex items-center justify-center gap-2 min-h-[46px] rounded-full border border-[#DCE7F9] bg-white text-[#0A1F5C] text-xs sm:text-sm font-bold shadow-sm active:scale-95 transition-transform"
           >
             {/* Handshake icon */}
             <svg className="w-4 h-4 text-[#0B5FD9]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
@@ -335,27 +307,42 @@ export function HomePage() {
         </div>
 
         {/* ── Trust Strip ── */}
-        <div className="mx-3 bg-white rounded-2xl border border-[#DCE7F9] p-3 shadow-sm">
-          <div className="grid grid-cols-4 gap-1 text-center">
-            {[
-              { icon: ShieldCheck, label: 'Verified\nProviders',   color: 'text-[#0B5FD9]', bg: 'bg-blue-50' },
-              { icon: Zap,         label: 'Fast &\nEasy Booking',  color: 'text-[#F59E0B]', bg: 'bg-amber-50' },
-              { icon: Wallet,      label: 'Transparent\nPricing',  color: 'text-[#16A34A]', bg: 'bg-green-50' },
-              { icon: Headphones,  label: 'Dedicated\nSupport',    color: 'text-purple-600', bg: 'bg-purple-50' },
-            ].map(({ icon: Icon, label, color, bg }) => (
-              <div key={label} className="flex flex-col items-center gap-1.5 py-1">
-                <div className={`w-9 h-9 rounded-xl ${bg} ${color} flex items-center justify-center`}>
-                  <Icon className="w-5 h-5" />
-                </div>
-                <p className="text-[9.5px] font-semibold text-[#0A1F5C] leading-tight whitespace-pre-line">{label}</p>
+        <div className="mx-3 bg-white rounded-2xl border border-[#EBF2FE] shadow-[0_2px_10px_rgba(11,95,217,0.04)] p-3">
+          <div className="grid grid-cols-4 gap-1 text-center divide-x divide-slate-100">
+            {/* 1. Verified Providers */}
+            <div className="flex flex-col items-center gap-1.5 py-0.5 px-0.5">
+              <div className="w-7 h-7 rounded-full bg-[#EBF4FE] flex items-center justify-center text-[#0B5FD9]">
+                <ShieldCheck className="w-4 h-4 text-[#0B5FD9] fill-[#0B5FD9]/20" />
               </div>
-            ))}
+              <p className="text-[9.5px] font-semibold text-[#0A1F5C] leading-tight">Verified<br/>Providers</p>
+            </div>
+            {/* 2. Fast & Easy Booking */}
+            <div className="flex flex-col items-center gap-1.5 py-0.5 px-0.5">
+              <div className="w-7 h-7 rounded-full bg-[#EBF4FE] flex items-center justify-center text-[#0B5FD9]">
+                <Zap className="w-4 h-4 text-[#0B5FD9] fill-current" />
+              </div>
+              <p className="text-[9.5px] font-semibold text-[#0A1F5C] leading-tight">Fast &<br/>Easy Booking</p>
+            </div>
+            {/* 3. Transparent Pricing */}
+            <div className="flex flex-col items-center gap-1.5 py-0.5 px-0.5">
+              <div className="w-7 h-7 rounded-full bg-[#0B5FD9] flex items-center justify-center text-white">
+                <span className="text-xs font-bold leading-none">₹</span>
+              </div>
+              <p className="text-[9.5px] font-semibold text-[#0A1F5C] leading-tight">Transparent<br/>Pricing</p>
+            </div>
+            {/* 4. Dedicated Support */}
+            <div className="flex flex-col items-center gap-1.5 py-0.5 px-0.5">
+              <div className="w-7 h-7 rounded-full bg-[#EBF4FE] flex items-center justify-center text-[#0B5FD9]">
+                <Headphones className="w-4 h-4 text-[#0B5FD9]" />
+              </div>
+              <p className="text-[9.5px] font-semibold text-[#0A1F5C] leading-tight">Dedicated<br/>Support</p>
+            </div>
           </div>
         </div>
 
-        {/* ── Explore Our Services (4 × 2 grid) ── */}
+        {/* ── Explore Our Services (4 × 2 grid matching mockup) ── */}
         <section className="mx-3">
-          <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center justify-between mb-2.5">
             <h2 className="text-base font-bold text-[#0A1F5C]">Explore Our Services</h2>
             <Link to="/services" className="text-xs font-semibold text-[#0B5FD9] inline-flex items-center gap-0.5">
               View All <ArrowRight className="w-3 h-3" />
@@ -366,125 +353,69 @@ export function HomePage() {
               <Link
                 key={tile.label}
                 to={tile.to}
-                className="flex flex-col items-center gap-2 group"
+                className="flex flex-col items-center group active:scale-95 transition-transform"
               >
-                {/* Icon card */}
-                <div className={`w-full aspect-square rounded-2xl bg-gradient-to-br ${tile.grad} flex items-center justify-center shadow-sm group-active:scale-95 transition-transform`}>
-                  <span className="text-2xl">{tile.emoji}</span>
+                {/* Illustration card matching mockup */}
+                <div className="w-full aspect-[1/0.8] rounded-2xl overflow-hidden shadow-[0_2px_8px_rgba(11,95,217,0.05)] border border-slate-100">
+                  <img
+                    src={tile.image}
+                    alt={tile.label}
+                    className="w-full h-full object-cover"
+                  />
                 </div>
                 {/* Label */}
-                <p className="text-[10px] font-semibold text-[#0A1F5C] text-center leading-tight whitespace-pre-line">{tile.label}</p>
+                <p className="text-[10px] font-semibold text-[#0A1F5C] text-center leading-tight whitespace-pre-line mt-1.5">
+                  {tile.label}
+                </p>
               </Link>
             ))}
           </div>
         </section>
 
-        {/* ── Promotional Banner Carousel ── */}
+        {/* ── Promotional Banner Carousel matching mockup ── */}
         <section className="mx-3">
-          <div className="relative rounded-2xl overflow-hidden min-h-[160px]">
+          <div className="relative rounded-2xl overflow-hidden min-h-[160px] shadow-sm border border-slate-100">
             <img
-              src={currentSlide.image}
+              src="/src/assets/images/hero_agriculture_1794821795928.jpg"
               alt={currentSlide.title}
-              className="absolute inset-0 w-full h-full object-cover"
+              className="absolute inset-0 w-full h-full object-cover object-right"
             />
-            <div className="absolute inset-0 bg-gradient-to-r from-[#0A1F5C]/90 via-[#0A1F5C]/65 to-transparent" />
-            <div className="relative z-10 p-5 h-full flex flex-col justify-between min-h-[160px]">
+            <div className="absolute inset-0 bg-gradient-to-r from-white via-white/85 to-transparent max-w-[75%]" />
+            <div className="relative z-10 p-4 h-full flex flex-col justify-between min-h-[160px] max-w-[68%]">
               <div>
-                <h3 className="text-base font-bold text-white leading-snug max-w-[65%]">{currentSlide.title}</h3>
-                <p className="text-[11px] text-blue-100 mt-1 max-w-[65%]">{currentSlide.subtitle}</p>
+                <h3 className="text-sm sm:text-base font-bold text-[#0A1F5C] leading-snug">
+                  {currentSlide.title}
+                </h3>
+                <p className="text-[10px] sm:text-[11px] text-[#5B6B8C] mt-1 line-clamp-2 leading-relaxed">
+                  {currentSlide.subtitle}
+                </p>
               </div>
-              <div className="flex items-center justify-between mt-3">
+              <div className="pt-3">
                 <Link
                   to={currentSlide.to}
-                  className="inline-flex items-center gap-1.5 bg-white text-[#0B5FD9] text-xs font-bold px-4 py-2 rounded-full"
+                  className="inline-flex items-center gap-1.5 bg-white border border-[#DCE7F9] text-[#0A1F5C] text-xs font-bold px-3.5 py-1.5 rounded-full shadow-sm hover:bg-slate-50"
                 >
-                  {currentSlide.cta} <ArrowRight className="w-3 h-3" />
+                  <span>{currentSlide.cta}</span>
+                  <ArrowRight className="w-3 h-3 text-[#0A1F5C]" />
                 </Link>
-                {/* Dots */}
-                <div className="flex items-center gap-1.5">
-                  {BANNER_SLIDES.map((_, i) => (
-                    <button
-                      key={i}
-                      onClick={() => setSlideIdx(i)}
-                      className={`rounded-full transition-all ${i === slideIdx ? 'w-5 h-2 bg-white' : 'w-2 h-2 bg-white/40'}`}
-                    />
-                  ))}
-                </div>
               </div>
             </div>
           </div>
-        </section>
 
-        {/* ── Popular Services (horizontal scroll) ── */}
-        {popular.length > 0 && (
-          <section className="mx-3">
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-base font-bold text-[#0A1F5C]">{t('popularTitle')}</h2>
-              <Link to="/search" className="text-xs font-semibold text-[#0B5FD9] inline-flex items-center gap-0.5">
-                See All <ArrowRight className="w-3 h-3" />
-              </Link>
-            </div>
-            <div className="flex gap-3 overflow-x-auto pb-1 -mx-3 px-3 snap-x snap-mandatory scrollbar-hide">
-              {popular.slice(0, 6).map((svc) => (
-                <Link
-                  key={svc.id}
-                  to={getServicePath(svc.category_slug, svc.slug)}
-                  className="snap-start shrink-0 w-40 serva-card overflow-hidden flex flex-col"
-                >
-                  <div className="h-24 bg-[#EAF2FF] overflow-hidden">
-                    <img src={svc.image_url} alt={svc.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                  </div>
-                  <div className="p-2.5">
-                    <p className="text-[9px] text-[#5B6B8C]">{svc.category_name}</p>
-                    <p className="text-xs font-bold text-[#0A1F5C] leading-tight mt-0.5 line-clamp-2">{svc.name}</p>
-                    <p className="text-xs font-semibold text-[#0B5FD9] mt-1">
-                      {svc.base_price_paise > 0 ? `₹${Math.round(svc.base_price_paise / 100).toLocaleString('en-IN')}` : 'Free'}
-                    </p>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* ── Offers Strip ── */}
-        {offers.length > 0 && (
-          <section className="mx-3">
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-base font-bold text-[#0A1F5C]">{t('offersTitle')}</h2>
-              <Link to="/offers" className="text-xs font-semibold text-[#0B5FD9] inline-flex items-center gap-0.5">
-                All <ArrowRight className="w-3 h-3" />
-              </Link>
-            </div>
-            <div className="flex gap-3 overflow-x-auto pb-1 -mx-3 px-3 snap-x snap-mandatory">
-              {offers.map((offer) => (
-                <div key={offer.id} className="snap-start shrink-0 w-56 serva-card p-3.5 flex items-start gap-2.5">
-                  <div className="w-8 h-8 rounded-xl bg-[#EAF2FF] text-[#0B5FD9] flex items-center justify-center shrink-0">
-                    <Tag className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-mono font-bold text-[#0B5FD9]">{offer.code}</p>
-                    <p className="text-xs font-bold text-[#0A1F5C] mt-0.5">{offer.title}</p>
-                    <p className="text-[10px] text-[#5B6B8C] mt-0.5">{offer.description}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* ── Partner CTA ── */}
-        <section className="mx-3">
-          <div className="rounded-2xl bg-gradient-to-r from-[#0A1F5C] via-[#0B5FD9] to-[#1E88FF] text-white p-5">
-            <p className="text-[10px] font-semibold text-blue-200">{t('becomePartnerTitle')}</p>
-            <h2 className="text-base font-bold text-white mt-1">{t('partnerCtaHeading')}</h2>
-            <p className="text-xs text-blue-100 mt-1">{t('partnerCtaDesc')}</p>
-            <Link
-              to="/partner/register"
-              className="mt-4 inline-flex items-center gap-1.5 min-h-[42px] px-5 py-2 rounded-full bg-white text-[#0B5FD9] font-bold text-sm"
-            >
-              {t('registerNow')} <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
+          {/* Dots Indicator matching mockup */}
+          <div className="flex items-center justify-center gap-1.5 mt-3">
+            {BANNER_SLIDES.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setSlideIdx(i)}
+                aria-label={`Go to slide ${i + 1}`}
+                className={`rounded-full transition-all ${
+                  i === slideIdx
+                    ? 'w-5 h-1.5 bg-[#0B5FD9]'
+                    : 'w-1.5 h-1.5 bg-slate-300'
+                }`}
+              />
+            ))}
           </div>
         </section>
       </div>

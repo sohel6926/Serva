@@ -73,7 +73,7 @@ export function ScrollToTopButton() {
       onClick={handleScrollTop}
       aria-label={`Scroll to top (${percent}% of page read)`}
       title={`Back to top · ${percent}%`}
-      className={`fixed ${positionClass} z-40 w-[54px] h-[54px] rounded-full bg-white/95 backdrop-blur-md shadow-[0_8px_24px_-4px_rgba(10,31,92,0.22)] flex items-center justify-center cursor-pointer transition-all duration-200 hover:scale-105 active:scale-95 focus-visible:outline-2 focus-visible:outline-[#0B5FD9] ${
+      className={`hidden md:flex fixed ${positionClass} z-40 w-[54px] h-[54px] rounded-full bg-white/95 backdrop-blur-md shadow-[0_8px_24px_-4px_rgba(10,31,92,0.22)] items-center justify-center cursor-pointer transition-all duration-200 hover:scale-105 active:scale-95 focus-visible:outline-2 focus-visible:outline-[#0B5FD9] ${
         scrollState.visible
           ? 'opacity-100 translate-y-0 pointer-events-auto'
           : 'opacity-0 translate-y-4 pointer-events-none'

@@ -11,6 +11,7 @@ import {
   LogOut,
   MapPin,
   Menu,
+  Search,
   ShieldCheck,
   Sprout,
   Tag,
@@ -158,10 +159,11 @@ export function AppShell({ children, showServiceSidebar = false }: AppShellProps
               type="button"
               onClick={() => setLanguage(language === 'en' ? 'te' : 'en')}
               aria-label="Toggle language between English and Telugu"
-              className="min-h-[40px] px-2.5 rounded-full border border-[#DCE7F9] bg-white hover:bg-[#F1F6FF] text-xs font-semibold text-[#0A1F5C] inline-flex items-center gap-1 whitespace-nowrap shrink-0 cursor-pointer"
+              className="min-h-[36px] px-3 rounded-full border border-[#DCE7F9] bg-white hover:bg-[#F1F6FF] text-xs font-semibold text-[#0A1F5C] inline-flex items-center gap-1.5 whitespace-nowrap shrink-0 cursor-pointer shadow-sm"
             >
               <Globe className="w-3.5 h-3.5 text-[#0B5FD9]" />
               <span>{language === 'en' ? 'తెలుగు' : 'EN'}</span>
+              <ChevronDown className="w-3 h-3 text-[#5B6B8C]" />
             </button>
 
             {/* Notifications (when logged in) */}
@@ -292,10 +294,10 @@ export function AppShell({ children, showServiceSidebar = false }: AppShellProps
             ) : (
               <Link
                 to="/login"
-                className="min-h-[40px] px-4 py-2 rounded-full bg-[#0B5FD9] hover:bg-[#094FB6] text-white text-sm font-semibold whitespace-nowrap shrink-0 inline-flex items-center gap-1.5"
+                className="min-h-[36px] px-3.5 py-1.5 rounded-full bg-[#0B5FD9] hover:bg-[#094FB6] text-white text-xs font-semibold whitespace-nowrap shrink-0 inline-flex items-center gap-1.5 shadow-sm"
               >
+                <UserIcon className="w-3.5 h-3.5 text-white" />
                 <span>{t('signIn')}</span>
-                <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             )}
 
@@ -304,9 +306,9 @@ export function AppShell({ children, showServiceSidebar = false }: AppShellProps
               type="button"
               onClick={() => setMobileMenuOpen((v) => !v)}
               aria-label="Toggle menu"
-              className="md:hidden min-w-[44px] min-h-[44px] rounded-full flex items-center justify-center text-[#0A1F5C] hover:bg-[#F1F6FF] cursor-pointer"
+              className="md:hidden min-w-[36px] min-h-[36px] flex items-center justify-center text-[#0A1F5C] hover:bg-[#F1F6FF] rounded-full cursor-pointer ml-0.5"
             >
-              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6 stroke-[2.2]" />}
             </button>
           </div>
         </div>
@@ -516,21 +518,22 @@ export function AppShell({ children, showServiceSidebar = false }: AppShellProps
 
       {/* Mobile Bottom Tab Bar (Home, Bookings, Offers, Profile) */}
       {/* Mobile Bottom Navigation — 5 tabs with centre FAB search */}
+      {/* Mobile Bottom Navigation Bar matching mockup */}
       <nav
         aria-label="Mobile navigation"
-        className="md:hidden fixed bottom-0 left-0 right-0 z-40 h-16 bg-white/97 backdrop-blur-md border-t border-[#DCE7F9]"
+        className="md:hidden fixed bottom-0 left-0 right-0 z-40 h-[66px] bg-white/98 backdrop-blur-lg border-t border-[#EAEFF8] shadow-[0_-4px_20px_rgba(10,31,92,0.05)]"
         style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
       >
-        <div className="grid grid-cols-5 h-full">
+        <div className="grid grid-cols-5 h-full items-center px-1">
           {/* Home */}
           {(() => {
             const active = pathname === '/';
             return (
-              <Link to="/" className={`flex flex-col items-center justify-center gap-0.5 text-[10px] font-semibold ${active ? 'text-[#0B5FD9]' : 'text-[#94A3B8]'}`}>
-                <div className={`w-6 h-6 flex items-center justify-center rounded-lg ${active ? 'bg-[#EAF2FF]' : ''}`}>
-                  <Home className="w-5 h-5" />
+              <Link to="/" className="flex flex-col items-center justify-center gap-0.5">
+                <div className={`w-13 h-7 rounded-2xl flex items-center justify-center transition-colors ${active ? 'bg-[#EBF2FE] text-[#0B5FD9]' : 'text-[#64748B]'}`}>
+                  <Home className={`w-5 h-5 ${active ? 'fill-current' : ''}`} />
                 </div>
-                <span>Home</span>
+                <span className={`text-[10px] font-semibold ${active ? 'text-[#0B5FD9]' : 'text-[#64748B]'}`}>Home</span>
               </Link>
             );
           })()}
@@ -538,11 +541,11 @@ export function AppShell({ children, showServiceSidebar = false }: AppShellProps
           {(() => {
             const active = pathname.startsWith('/bookings');
             return (
-              <Link to="/bookings" className={`flex flex-col items-center justify-center gap-0.5 text-[10px] font-semibold ${active ? 'text-[#0B5FD9]' : 'text-[#94A3B8]'}`}>
-                <div className={`w-6 h-6 flex items-center justify-center rounded-lg ${active ? 'bg-[#EAF2FF]' : ''}`}>
-                  <LayoutGrid className="w-5 h-5" />
+              <Link to="/bookings" className="flex flex-col items-center justify-center gap-0.5">
+                <div className={`w-13 h-7 rounded-2xl flex items-center justify-center transition-colors ${active ? 'bg-[#EBF2FE] text-[#0B5FD9]' : 'text-[#64748B]'}`}>
+                  <Calendar className="w-5 h-5" />
                 </div>
-                <span>{t('navBookings')}</span>
+                <span className={`text-[10px] font-semibold ${active ? 'text-[#0B5FD9]' : 'text-[#64748B]'}`}>Bookings</span>
               </Link>
             );
           })()}
@@ -551,36 +554,35 @@ export function AppShell({ children, showServiceSidebar = false }: AppShellProps
             <Link
               to="/search"
               aria-label="Search"
-              className="absolute -top-5 w-14 h-14 rounded-full bg-[#0B5FD9] shadow-xl shadow-blue-400/40 flex items-center justify-center border-4 border-white"
+              className="absolute -top-5 w-13 h-13 rounded-full bg-[#0B5FD9] hover:bg-[#094FB6] shadow-lg shadow-blue-500/40 flex items-center justify-center border-[3.5px] border-white text-white active:scale-95 transition-transform"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2}>
-                <circle cx="11" cy="11" r="7" /><path d="M21 21l-4.35-4.35" strokeLinecap="round"/>
-              </svg>
+              <Search className="w-5 h-5 text-white" strokeWidth={2.5} />
             </Link>
           </div>
           {/* Offers */}
           {(() => {
             const active = pathname.startsWith('/offers');
             return (
-              <Link to="/offers" className={`flex flex-col items-center justify-center gap-0.5 text-[10px] font-semibold ${active ? 'text-[#0B5FD9]' : 'text-[#94A3B8]'}`}>
-                <div className={`w-6 h-6 flex items-center justify-center rounded-lg ${active ? 'bg-[#EAF2FF]' : ''}`}>
-                  <Tag className="w-5 h-5" />
+              <Link to="/offers" className="flex flex-col items-center justify-center gap-0.5">
+                <div className="relative w-13 h-7 rounded-2xl flex items-center justify-center transition-colors text-[#64748B]">
+                  <Tag className={`w-5 h-5 ${active ? 'text-[#0B5FD9]' : 'text-[#64748B]'}`} />
+                  <span className="absolute top-1 right-3.5 w-2 h-2 rounded-full bg-[#EF4444]" />
                 </div>
-                <span>{t('navOffers')}</span>
+                <span className={`text-[10px] font-semibold ${active ? 'text-[#0B5FD9]' : 'text-[#64748B]'}`}>Offers</span>
               </Link>
             );
           })()}
           {/* Sign In / Profile */}
           {(() => {
             const to = user ? '/profile' : '/login';
-            const label = user ? t('navProfile') : t('signIn');
+            const label = user ? t('navProfile') : 'Sign In';
             const active = pathname.startsWith(to);
             return (
-              <Link to={to} className={`flex flex-col items-center justify-center gap-0.5 text-[10px] font-semibold ${active ? 'text-[#0B5FD9]' : 'text-[#94A3B8]'}`}>
-                <div className={`w-6 h-6 flex items-center justify-center rounded-lg ${active ? 'bg-[#EAF2FF]' : ''}`}>
+              <Link to={to} className="flex flex-col items-center justify-center gap-0.5">
+                <div className={`w-13 h-7 rounded-2xl flex items-center justify-center transition-colors ${active ? 'bg-[#EBF2FE] text-[#0B5FD9]' : 'text-[#64748B]'}`}>
                   <UserIcon className="w-5 h-5" />
                 </div>
-                <span className="truncate max-w-[56px]">{label}</span>
+                <span className={`text-[10px] font-semibold truncate max-w-[56px] ${active ? 'text-[#0B5FD9]' : 'text-[#64748B]'}`}>{label}</span>
               </Link>
             );
           })()}
