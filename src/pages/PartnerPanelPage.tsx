@@ -17,6 +17,7 @@ import {
   FileText,
   HelpCircle,
   Lock,
+  LogOut,
   Mail,
   MapPin,
   MessageSquare,
@@ -38,6 +39,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.tsx';
 import { Link, useRouter } from '../lib/router.tsx';
+import { BrandLogo } from '../components/common/BrandLogo.tsx';
 
 /* Types for Partner Panel */
 type PanelTab = 'overview' | 'jobs' | 'wallet' | 'kyc' | 'reviews' | 'support';
@@ -281,7 +283,10 @@ interface PartnerAuthGateProps {
 
 function PartnerAuthGate({ onSignedIn }: PartnerAuthGateProps) {
   const { user, loginAsDemo } = useAuth();
-  const [tab, setTab] = useState<'signin' | 'register'>('signin');
+  const { pathname } = useRouter();
+  const [tab, setTab] = useState<'signin' | 'register'>(() => {
+    return pathname.includes('register') ? 'register' : 'signin';
+  });
 
   // Sign In State
   const [loginIdentifier, setLoginIdentifier] = useState('ramesh.partner@serva.demo');
@@ -402,33 +407,67 @@ function PartnerAuthGate({ onSignedIn }: PartnerAuthGateProps) {
   };
 
   return (
-    <div className="max-w-xl mx-auto py-8 px-4 sm:px-6">
-      {/* Brand Header */}
-      <div className="text-center mb-6">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#EBF2FE] text-[#0B5FD9] text-xs font-bold mb-3 border border-[#DCE7F9]">
-          <ShieldCheck className="w-4 h-4 text-[#0B5FD9]" />
-          <span>SERVA Partner Portal</span>
-        </div>
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-[#0A1F5C] tracking-tight">
-          Partner Access & Onboarding
-        </h1>
-        <p className="text-xs sm:text-sm text-[#5B6B8C] mt-1.5 max-w-md mx-auto">
-          Sign in to your partner dashboard or register your service business to start receiving verified doorstep bookings.
-        </p>
-
-        {/* Notice if currently signed in as Customer */}
-        {user && user.role !== 'PARTNER' && (
-          <div className="mt-4 p-3 rounded-2xl bg-amber-50 border border-amber-200 text-left text-xs text-amber-950 flex items-start gap-2.5">
-            <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-            <div className="flex-1">
-              <p className="font-bold text-amber-900">Signed in as Customer ({user.name})</p>
-              <p className="text-[11px] text-amber-800 mt-0.5">
-                The Partner Panel requires a verified Partner account. Please sign in with your partner credentials or complete the registration below.
-              </p>
-            </div>
+    <div className="min-h-screen bg-[#F6F9FD] flex flex-col text-[#0A1F5C] font-sans">
+      {/* ── Standalone Partner Portal Header ── */}
+      <header className="sticky top-0 z-40 h-16 bg-white/95 backdrop-blur-md border-b border-[#DCE7F9] px-4 sm:px-6 shadow-sm">
+        <div className="max-w-7xl mx-auto h-full flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Link to="/" aria-label="SERVA Home">
+              <BrandLogo variant="horizontal" />
+            </Link>
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#EBF2FE] text-[#0B5FD9] border border-[#DCE7F9]">
+              <ShieldCheck className="w-3.5 h-3.5 text-[#0B5FD9]" />
+              PARTNER PORTAL
+            </span>
           </div>
-        )}
-      </div>
+
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            <Link
+              to="/admin"
+              className="text-xs font-semibold px-3 py-1.5 rounded-xl border border-[#DCE7F9] bg-[#F8FAFD] hover:bg-[#EBF2FE] text-[#0A1F5C] flex items-center gap-1.5 transition-all"
+            >
+              <ShieldCheck className="w-3.5 h-3.5 text-[#0B5FD9]" />
+              <span className="hidden sm:inline">Admin Console</span>
+            </Link>
+            <Link
+              to="/"
+              className="text-xs font-semibold px-3.5 py-1.5 rounded-xl bg-[#0B5FD9] text-white hover:bg-[#094FB6] transition-all"
+            >
+              Customer Website &rarr;
+            </Link>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Container */}
+      <main className="flex-1 flex items-center justify-center py-10 px-4 sm:px-6">
+        <div className="max-w-xl w-full">
+          {/* Brand Header */}
+          <div className="text-center mb-6">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#EBF2FE] text-[#0B5FD9] text-xs font-bold mb-3 border border-[#DCE7F9]">
+              <ShieldCheck className="w-4 h-4 text-[#0B5FD9]" />
+              <span>Partner Access & Onboarding</span>
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-[#0A1F5C] tracking-tight">
+              SERVA Partner Portal
+            </h1>
+            <p className="text-xs sm:text-sm text-[#5B6B8C] mt-1.5 max-w-md mx-auto">
+              Sign in to your dedicated partner dashboard or register your service business to start receiving verified doorstep bookings.
+            </p>
+
+            {/* Notice if currently signed in as Customer */}
+            {user && user.role !== 'PARTNER' && (
+              <div className="mt-4 p-3 rounded-2xl bg-amber-50 border border-amber-200 text-left text-xs text-amber-950 flex items-start gap-2.5">
+                <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <p className="font-bold text-amber-900">Signed in as Customer ({user.name})</p>
+                  <p className="text-[11px] text-amber-800 mt-0.5">
+                    The Partner Panel is completely separate from customer accounts. Please sign in with your partner credentials or complete the registration below.
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
 
       {/* Submitted Application Confirmation View */}
       {submittedKyc ? (
@@ -922,13 +961,15 @@ function PartnerAuthGate({ onSignedIn }: PartnerAuthGateProps) {
           </div>
         </div>
       )}
+        </div>
+      </main>
     </div>
   );
 }
 
 export function PartnerPanelPage() {
-  const { user } = useAuth();
-  const { navigate } = useRouter();
+  const { user, logout } = useAuth();
+  const { navigate, pathname } = useRouter();
 
   // If not authenticated as PARTNER, ask to sign in or create account first
   const isPartner = user && user.role === 'PARTNER';
@@ -1181,30 +1222,147 @@ export function PartnerPanelPage() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6 pb-12">
-      {/* ── Top Header Banner: Partner Identity & Duty Toggle ── */}
-      <div className="bg-white rounded-3xl border border-[#DCE7F9] shadow-[0_4px_24px_rgba(11,95,217,0.06)] p-5 sm:p-6 transition-all">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          {/* Identity */}
-          <div className="flex items-start gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#0B5FD9] to-[#0A1F5C] text-white flex items-center justify-center font-bold text-xl shadow-md shrink-0">
+    <div className="min-h-screen bg-[#F4F8FE] text-[#0A1F5C] flex flex-col font-sans">
+      {/* ── Standalone Partner Portal Top Navbar ── */}
+      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#DCE7F9] shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
+          {/* Left: Brand & Partner Badge */}
+          <div className="flex items-center gap-3">
+            <Link to="/partner/panel" aria-label="SERVA Partner Portal">
+              <BrandLogo variant="horizontal" />
+            </Link>
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#EBF2FE] text-[#0B5FD9] border border-[#DCE7F9]">
+              <ShieldCheck className="w-3.5 h-3.5 text-[#0B5FD9]" />
+              PARTNER CONSOLE
+            </span>
+          </div>
+
+          {/* Center: Live Duty Toggle */}
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={toggleDuty}
+              className={`px-3 sm:px-4 py-1.5 rounded-full text-xs font-bold flex items-center gap-2 border transition-all cursor-pointer shadow-sm active:scale-95 ${
+                isOnline
+                  ? 'bg-emerald-500 text-white border-emerald-600 hover:bg-emerald-600 shadow-emerald-500/20'
+                  : 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200'
+              }`}
+            >
+              <span className={`w-2 h-2 rounded-full ${isOnline ? 'bg-white animate-pulse' : 'bg-slate-400'}`} />
+              <span className="hidden sm:inline">{isOnline ? 'On Duty · Online' : 'Off Duty · Offline'}</span>
+              <span className="sm:hidden">{isOnline ? 'Online' : 'Offline'}</span>
+            </button>
+          </div>
+
+          {/* Right: Quick Wallet, Admin Link, Customer Link & Partner Profile */}
+          <div className="flex items-center gap-2 sm:gap-3">
+            <button
+              type="button"
+              onClick={() => setActiveTab('wallet')}
+              className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#F4F8FE] border border-[#DCE7F9] hover:bg-[#EBF2FE] transition-all text-xs font-bold text-[#0A1F5C]"
+            >
+              <Wallet className="w-3.5 h-3.5 text-[#0B5FD9]" />
+              <span>{formatINR(walletBalancePaise)}</span>
+            </button>
+
+            <Link
+              to="/admin"
+              className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border border-[#DCE7F9] bg-white hover:bg-[#F1F6FF] text-[#0A1F5C] transition-all"
+            >
+              <Shield className="w-3.5 h-3.5 text-[#0B5FD9]" />
+              <span>Admin Console &rarr;</span>
+            </Link>
+
+            <Link
+              to="/"
+              className="hidden sm:flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-xl text-[#5B6B8C] hover:text-[#0A1F5C] hover:bg-slate-100 transition-all"
+            >
+              <span>Customer Site &rarr;</span>
+            </Link>
+
+            {/* Profile Avatar & Sign Out */}
+            <div className="flex items-center gap-2 pl-2 border-l border-slate-200">
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#0B5FD9] to-[#0A1F5C] text-white flex items-center justify-center font-bold text-xs shadow-sm">
+                {user?.name ? user.name.slice(0, 2).toUpperCase() : 'RK'}
+              </div>
+              <div className="hidden xl:block text-left">
+                <div className="text-xs font-bold text-[#0A1F5C] leading-none">{user?.name || 'Ramesh Kumar'}</div>
+                <div className="text-[10px] text-emerald-600 font-semibold mt-0.5">Verified Partner</div>
+              </div>
+              <button
+                type="button"
+                onClick={() => logout()}
+                title="Sign out of Partner Account"
+                className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all cursor-pointer flex items-center gap-1 text-xs font-bold"
+              >
+                <LogOut className="w-4 h-4" />
+                <span className="hidden sm:inline text-[11px] text-rose-600">Sign Out</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* ── Sub Navigation Tabs (Desktop & Tablet) ── */}
+        <div className="border-t border-[#EAF2FF] bg-[#FAFCFF] px-4 sm:px-6">
+          <div className="max-w-7xl mx-auto flex items-center gap-1.5 overflow-x-auto scrollbar-hide py-2">
+            {[
+              { id: 'overview' as const, label: 'Overview', icon: TrendingUp },
+              { id: 'jobs' as const, label: `Service Jobs (${activeJobs.length})`, icon: Clock, badge: pendingRequests.length > 0 ? pendingRequests.length : undefined },
+              { id: 'wallet' as const, label: 'Wallet & Withdrawals', icon: Wallet },
+              { id: 'kyc' as const, label: 'KYC & Profile', icon: FileCheck },
+              { id: 'reviews' as const, label: `Reviews (${reviews.length})`, icon: Star },
+              { id: 'support' as const, label: 'Support & Helpdesk', icon: HelpCircle },
+            ].map((tab) => {
+              const Icon = tab.icon;
+              const active = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`min-h-[38px] px-3.5 py-1.5 rounded-xl text-xs font-bold inline-flex items-center gap-2 whitespace-nowrap transition-all cursor-pointer ${
+                    active
+                      ? 'bg-[#0B5FD9] text-white shadow-sm shadow-blue-500/25'
+                      : 'text-[#5B6B8C] hover:text-[#0A1F5C] hover:bg-[#F1F6FF]'
+                  }`}
+                >
+                  <Icon className={`w-3.5 h-3.5 ${active ? 'text-white' : 'text-[#0B5FD9]'}`} />
+                  <span>{tab.label}</span>
+                  {tab.badge && (
+                    <span className="w-4 h-4 rounded-full bg-rose-500 text-white text-[10px] font-extrabold flex items-center justify-center">
+                      {tab.badge}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </header>
+
+      {/* ── Main Content Area ── */}
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 pb-28 md:pb-12 space-y-6">
+        {/* Partner Identity Card */}
+        <div className="bg-white rounded-2xl border border-[#DCE7F9] shadow-sm p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-start gap-3.5">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#0B5FD9] to-[#0A1F5C] text-white flex items-center justify-center font-bold text-lg shadow shrink-0">
               {user?.name ? user.name.slice(0, 2).toUpperCase() : 'RK'}
             </div>
             <div>
-              <div className="flex items-center gap-2.5 flex-wrap">
-                <h1 className="text-xl sm:text-2xl font-extrabold text-[#0A1F5C]">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="text-lg sm:text-xl font-extrabold text-[#0A1F5C]">
                   {user?.name || 'Ramesh Kumar'}
                 </h1>
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm">
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
                   <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
                   Verified Partner
                 </span>
-                <span className="text-[11px] font-semibold text-[#5B6B8C] px-2 py-0.5 rounded-md bg-[#F1F6FF] border border-[#E2EEFE]">
+                <span className="text-[10px] font-mono font-semibold text-[#5B6B8C] px-2 py-0.5 rounded-md bg-[#F1F6FF] border border-[#E2EEFE]">
                   ID: PTR-8821
                 </span>
               </div>
               <p className="text-xs text-[#5B6B8C] mt-1 flex items-center gap-2 flex-wrap">
-                <span className="font-medium text-[#0A1F5C]">Electrician & Home Services</span>
+                <span className="font-semibold text-[#0A1F5C]">Electrician & Home Services</span>
                 <span>•</span>
                 <span className="flex items-center gap-1 text-amber-600 font-bold">
                   <Star className="w-3.5 h-3.5 fill-current" /> 4.9 (142 reviews)
@@ -1217,68 +1375,20 @@ export function PartnerPanelPage() {
             </div>
           </div>
 
-          {/* Right Side: Admin Portal Link & Duty Toggle */}
-          <div className="flex items-center gap-2.5 flex-wrap self-end sm:self-center">
-            <Link
-              to="/admin"
-              className="min-h-[42px] px-3.5 rounded-full text-xs font-bold text-[#0A1F5C] bg-[#F1F6FF] hover:bg-[#E2EEFE] border border-[#DCE7F9] flex items-center gap-1.5 transition-all shadow-sm"
-            >
-              <ShieldCheck className="w-4 h-4 text-[#0B5FD9]" />
-              <span className="hidden sm:inline">Open Admin Console &rarr;</span>
-              <span className="sm:hidden">Admin &rarr;</span>
-            </Link>
-
-            {/* Duty Toggle */}
+          <div className="flex items-center gap-3 self-end sm:self-center">
+            <div className="text-right">
+              <span className="text-[11px] text-[#5B6B8C] block">Available Wallet Balance</span>
+              <span className="text-base font-extrabold text-[#0B5FD9]">{formatINR(walletBalancePaise)}</span>
+            </div>
             <button
               type="button"
-              onClick={toggleDuty}
-              className={`min-h-[42px] px-4 rounded-full text-xs font-bold flex items-center gap-2 border transition-all cursor-pointer shadow-sm active:scale-95 ${
-                isOnline
-                  ? 'bg-emerald-500 text-white border-emerald-600 hover:bg-emerald-600 shadow-emerald-500/20'
-                  : 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200'
-              }`}
+              onClick={() => setActiveTab('wallet')}
+              className="px-4 py-2 rounded-xl bg-[#0B5FD9] hover:bg-[#094FB6] text-white text-xs font-bold shadow-sm transition-all cursor-pointer"
             >
-              <span className={`w-2 h-2 rounded-full ${isOnline ? 'bg-white animate-pulse' : 'bg-slate-400'}`} />
-              <span>{isOnline ? 'On Duty · Online' : 'Off Duty · Offline'}</span>
+              Withdraw
             </button>
           </div>
         </div>
-
-        {/* ── Sub Header Navigation Tabs ── */}
-        <div className="mt-6 pt-4 border-t border-[#EAF2FF] flex items-center gap-1.5 overflow-x-auto scrollbar-hide -mx-1 px-1">
-          {[
-            { id: 'overview' as const, label: 'Overview', icon: TrendingUp },
-            { id: 'jobs' as const, label: `Service Jobs (${activeJobs.length})`, icon: Clock, badge: pendingRequests.length > 0 ? pendingRequests.length : undefined },
-            { id: 'wallet' as const, label: 'Wallet & Payouts', icon: Wallet },
-            { id: 'kyc' as const, label: 'KYC & Profile', icon: FileCheck },
-            { id: 'reviews' as const, label: `Reviews (${reviews.length})`, icon: Star },
-            { id: 'support' as const, label: 'Support & Tickets', icon: HelpCircle },
-          ].map((tab) => {
-            const Icon = tab.icon;
-            const active = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setActiveTab(tab.id)}
-                className={`min-h-[40px] px-4 rounded-full text-xs font-bold inline-flex items-center gap-2 whitespace-nowrap transition-all cursor-pointer ${
-                  active
-                    ? 'bg-[#0B5FD9] text-white shadow-md shadow-blue-500/25 scale-[1.02]'
-                    : 'bg-[#F4F8FE] text-[#0A1F5C] hover:bg-[#EBF2FE] border border-[#DCE7F9]'
-                }`}
-              >
-                <Icon className={`w-3.5 h-3.5 ${active ? 'text-white' : 'text-[#0B5FD9]'}`} />
-                <span>{tab.label}</span>
-                {tab.badge && (
-                  <span className="w-4 h-4 rounded-full bg-rose-500 text-white text-[10px] font-extrabold flex items-center justify-center">
-                    {tab.badge}
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
-      </div>
 
       {/* ═══════════════════════════════════════════════
        *  TAB 1: OVERVIEW (DASHBOARD)
@@ -2214,6 +2324,43 @@ export function PartnerPanelPage() {
           </div>
         </div>
       )}
+      </main>
+
+      {/* ── Dedicated Partner Mobile Bottom Navigation Bar (sm:hidden) ── */}
+      <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-[#DCE7F9] shadow-[0_-4px_20px_rgba(0,0,0,0.06)] px-2 py-1.5 flex items-center justify-around">
+        {[
+          { id: 'overview' as const, label: 'Overview', icon: TrendingUp },
+          { id: 'jobs' as const, label: 'Jobs', icon: Clock, badge: pendingRequests.length > 0 ? pendingRequests.length : undefined },
+          { id: 'wallet' as const, label: 'Wallet', icon: Wallet },
+          { id: 'kyc' as const, label: 'KYC', icon: FileCheck },
+          { id: 'reviews' as const, label: 'Reviews', icon: Star },
+        ].map((tab) => {
+          const Icon = tab.icon;
+          const active = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setActiveTab(tab.id)}
+              className={`relative flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-all cursor-pointer ${
+                active ? 'text-[#0B5FD9]' : 'text-[#5B6B8C] hover:text-[#0A1F5C]'
+              }`}
+            >
+              <div className="relative">
+                <Icon className={`w-5 h-5 ${active ? 'stroke-[2.5]' : 'stroke-2'}`} />
+                {tab.badge && (
+                  <span className="absolute -top-1 -right-2 w-3.5 h-3.5 bg-rose-500 text-white text-[9px] font-extrabold rounded-full flex items-center justify-center">
+                    {tab.badge}
+                  </span>
+                )}
+              </div>
+              <span className={`text-[10px] mt-0.5 ${active ? 'font-bold' : 'font-medium'}`}>
+                {tab.label}
+              </span>
+            </button>
+          );
+        })}
+      </nav>
     </div>
   );
 }

@@ -51,6 +51,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.tsx';
 import { Link, useRouter } from '../lib/router.tsx';
+import { BrandLogo } from '../components/common/BrandLogo.tsx';
 
 /* Types for Admin Panel */
 type AdminTab =
@@ -518,9 +519,151 @@ const INITIAL_TICKETS: AdminSupportTicket[] = [
   },
 ];
 
+/* ────────────────────────────────────────────────────────────
+   ADMIN AUTHENTICATION GATE
+   Displayed when visiting /admin before authenticating as Admin
+   ──────────────────────────────────────────────────────────── */
+function AdminAuthGate() {
+  const { loginAsDemo } = useAuth();
+  const [email, setEmail] = useState('admin@serva.demo');
+  const [password, setPassword] = useState('admin123');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    try {
+      await loginAsDemo('admin');
+    } catch {
+      setError('Invalid admin credentials.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-[#071330] text-white flex flex-col font-sans">
+      {/* Standalone Admin Header */}
+      <header className="sticky top-0 z-40 bg-[#0A1F5C]/90 backdrop-blur-md border-b border-blue-900/80 px-4 sm:px-6 h-16 shadow-md">
+        <div className="max-w-7xl mx-auto h-full flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Link to="/" aria-label="SERVA Home">
+              <BrandLogo variant="horizontal" />
+            </Link>
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30">
+              <Shield className="w-3.5 h-3.5 text-blue-400" />
+              ADMIN PORTAL
+            </span>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <Link
+              to="/partner/panel"
+              className="text-xs font-semibold px-3 py-1.5 rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 text-white flex items-center gap-1.5 transition-all"
+            >
+              <Building2 className="w-3.5 h-3.5 text-blue-300" />
+              <span>Partner Panel</span>
+            </Link>
+            <Link
+              to="/"
+              className="text-xs font-semibold px-3 py-1.5 rounded-xl text-blue-200 hover:text-white transition-all"
+            >
+              Customer Site &rarr;
+            </Link>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Login Card */}
+      <main className="flex-1 flex items-center justify-center py-12 px-4 sm:px-6">
+        <div className="max-w-md w-full">
+          <div className="text-center mb-6">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#0B5FD9] to-[#0A1F5C] text-white flex items-center justify-center mx-auto mb-4 shadow-xl border border-blue-400/30">
+              <Shield className="w-8 h-8 text-blue-300" />
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+              SERVA Admin Console
+            </h1>
+            <p className="text-xs sm:text-sm text-blue-200/70 mt-1.5">
+              Restricted management console for KYC approvals, commission configuration, user directories, and financial payouts.
+            </p>
+          </div>
+
+          <div className="bg-[#0D2253] rounded-3xl border border-blue-800/60 p-6 sm:p-7 shadow-2xl">
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {error && (
+                <div className="p-3 rounded-xl bg-rose-500/20 border border-rose-500/30 text-rose-200 text-xs font-semibold">
+                  {error}
+                </div>
+              )}
+
+              <div>
+                <label className="block text-xs font-bold text-blue-200 mb-1.5">Admin Email</label>
+                <div className="relative">
+                  <Mail className="w-4 h-4 text-blue-300/60 absolute left-3 top-3" />
+                  <input
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-[#09183C] border border-blue-700/60 text-xs text-white placeholder-blue-300/40 focus:outline-none focus:border-[#0B5FD9]"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-blue-200 mb-1.5">Admin Password</label>
+                <div className="relative">
+                  <Lock className="w-4 h-4 text-blue-300/60 absolute left-3 top-3" />
+                  <input
+                    type="password"
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-[#09183C] border border-blue-700/60 text-xs text-white placeholder-blue-300/40 focus:outline-none focus:border-[#0B5FD9]"
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-3 rounded-xl bg-[#0B5FD9] hover:bg-[#094FB6] text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer mt-2"
+              >
+                <ShieldCheck className="w-4 h-4" />
+                <span>{loading ? 'Authenticating...' : 'Sign In as Super Admin'}</span>
+              </button>
+
+              <div className="pt-4 border-t border-blue-900/60 text-center">
+                <p className="text-[11px] text-blue-300/70 mb-2">Evaluator / Demo Access:</p>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    await loginAsDemo('admin');
+                  }}
+                  className="w-full py-2.5 rounded-xl bg-amber-500/15 text-amber-300 hover:bg-amber-500/25 border border-amber-500/30 text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                  <span>⚡ 1-Click Sign In as Operations Super Admin</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+}
+
 export function AdminDashboardPage() {
-  const { user, loginAsDemo } = useAuth();
+  const { user, loginAsDemo, logout } = useAuth();
   const { navigate } = useRouter();
+
+  if (user?.role !== 'ADMIN') {
+    return <AdminAuthGate />;
+  }
 
   // Navigation tab
   const [activeTab, setActiveTab] = useState<AdminTab>('dashboard');
@@ -820,17 +963,23 @@ export function AdminDashboardPage() {
               <span>Partner Panel &rarr;</span>
             </Link>
 
-            {/* User Session Quick Switcher (For easy evaluator testing) */}
-            {user?.role !== 'ADMIN' && (
-              <button
-                type="button"
-                onClick={() => loginAsDemo('admin')}
-                className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/30 hover:bg-amber-500/30 flex items-center gap-1"
-              >
-                <Sparkles className="w-3 h-3 text-amber-300" />
-                <span>Simulate Super Admin</span>
-              </button>
-            )}
+            {/* Link to Customer Site */}
+            <Link
+              to="/"
+              className="text-xs font-semibold px-3 py-1.5 rounded-lg text-blue-200 hover:text-white transition-all"
+            >
+              Customer Site &rarr;
+            </Link>
+
+            {/* Sign Out Button */}
+            <button
+              type="button"
+              onClick={() => logout()}
+              className="text-xs font-semibold px-2.5 py-1.5 rounded-lg text-rose-300 hover:text-white hover:bg-rose-500/20 flex items-center gap-1 border border-rose-500/30 transition-all cursor-pointer"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span>Sign Out</span>
+            </button>
           </div>
         </div>
       </div>

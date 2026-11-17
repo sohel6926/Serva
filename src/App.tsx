@@ -93,6 +93,18 @@ function AppRoutes() {
 
   const showSidebar = SERVICE_SIDEBAR_PREFIXES.some((prefix) => pathname.startsWith(prefix));
 
+  // Dedicated, standalone portals: Never wrap Partner or Admin in the customer AppShell
+  const isPartnerRoute = pathname === '/partner' || pathname.startsWith('/partner/');
+  const isAdminRoute = pathname === '/admin' || pathname.startsWith('/admin/');
+
+  if (isPartnerRoute) {
+    return <PartnerPanelPage />;
+  }
+
+  if (isAdminRoute) {
+    return <AdminDashboardPage />;
+  }
+
   let content: React.ReactNode;
 
   if (pathname === '/') {
