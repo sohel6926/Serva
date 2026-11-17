@@ -31,7 +31,7 @@ import { LoginPage } from './pages/LoginPage.tsx';
 import { MovingFlowPage } from './pages/MovingFlowPage.tsx';
 import { MyBookingsPage } from './pages/MyBookingsPage.tsx';
 import { PartnerRegisterPage } from './pages/PartnerRegisterPage.tsx';
-import { PartnerRequestsPage } from './pages/PartnerRequestsPage.tsx';
+import { PartnerPanelPage } from './pages/PartnerPanelPage.tsx';
 import { PhasePlaceholderPage } from './pages/Phase1ShellPages.tsx';
 import { SearchPage } from './pages/SearchPage.tsx';
 import { ServicesDirectoryPage } from './pages/ServicesDirectoryPage.tsx';
@@ -169,10 +169,10 @@ function AppRoutes() {
   } else if (pathname.startsWith('/moving/')) {
     const sub = pathname.split('/')[2] || 'home-shifting';
     content = <MovingFlowPage serviceSlug={sub} />;
-  } else if (pathname.startsWith('/partner/dashboard')) {
+  } else if (pathname.startsWith('/partner/dashboard') || pathname.startsWith('/partner/panel')) {
     content = (
       <RoleGuard allowedRoles={['PARTNER', 'ADMIN']}>
-        <PartnerRequestsPage />
+        <PartnerPanelPage />
       </RoleGuard>
     );
   } else if (pathname.startsWith('/admin')) {

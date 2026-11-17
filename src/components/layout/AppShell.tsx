@@ -265,7 +265,7 @@ export function AppShell({ children, showServiceSidebar = false }: AppShellProps
                           onClick={() => setProfileOpen(false)}
                           className="px-3 py-2.5 text-sm text-[#0A1F5C] hover:bg-[#F1F6FF] rounded-xl flex items-center gap-2"
                         >
-                          <HardHat className="w-4 h-4 text-[#0B5FD9]" /> Partner Dashboard
+                          <HardHat className="w-4 h-4 text-[#0B5FD9]" /> Partner Panel
                         </Link>
                       )}
                       {user.role === 'ADMIN' && (
