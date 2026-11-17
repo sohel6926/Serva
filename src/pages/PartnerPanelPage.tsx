@@ -11,23 +11,30 @@ import {
   Clock,
   CreditCard,
   Download,
+  Eye,
+  EyeOff,
   FileCheck,
   FileText,
   HelpCircle,
+  Lock,
+  Mail,
   MapPin,
   MessageSquare,
   Phone,
   Power,
   RefreshCw,
   Send,
+  Shield,
   ShieldCheck,
   Sparkles,
   Star,
   Trash2,
   TrendingUp,
+  Upload,
   User,
   Wallet,
   X,
+  Zap,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.tsx';
 import { Link, useRouter } from '../lib/router.tsx';
@@ -264,9 +271,670 @@ const INITIAL_TICKETS: SupportTicket[] = [
   },
 ];
 
+/* ────────────────────────────────────────────────────────────
+   PARTNER AUTHENTICATION & KYC ONBOARDING GATE
+   Shown when navigating to /partner before logging in or registering
+   ──────────────────────────────────────────────────────────── */
+interface PartnerAuthGateProps {
+  onSignedIn: () => void;
+}
+
+function PartnerAuthGate({ onSignedIn }: PartnerAuthGateProps) {
+  const { user, loginAsDemo } = useAuth();
+  const [tab, setTab] = useState<'signin' | 'register'>('signin');
+
+  // Sign In State
+  const [loginIdentifier, setLoginIdentifier] = useState('ramesh.partner@serva.demo');
+  const [loginPassword, setLoginPassword] = useState('partner123');
+  const [showPassword, setShowPassword] = useState(false);
+  const [loginLoading, setLoginLoading] = useState(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
+
+  // Register State (Per PDF Section 2 KYC Form)
+  const [partnerType, setPartnerType] = useState<'INDIVIDUAL' | 'SHOP_BUSINESS'>('INDIVIDUAL');
+  const [fullName, setFullName] = useState(user?.name || '');
+  const [mobile, setMobile] = useState(user?.mobile || '');
+  const [email, setEmail] = useState(user?.email || '');
+  const [regPassword, setRegPassword] = useState('');
+  const [category, setCategory] = useState('Home Services');
+  const [servicesOffered, setServicesOffered] = useState('Electrician & Wiring, AC Repair, Geyser Care');
+  const [serviceArea, setServiceArea] = useState('Hyderabad (All Zones)');
+
+  // KYC Docs
+  const [panNumber, setPanNumber] = useState('BPZPR4521K');
+  const [panDocUploaded, setPanDocUploaded] = useState(true);
+  const [shopName, setShopName] = useState('');
+  const [gstNumber, setGstNumber] = useState('');
+  const [gstDocUploaded, setGstDocUploaded] = useState(false);
+
+  // Payout Mode
+  const [payoutMode, setPayoutMode] = useState<'BANK' | 'UPI'>('UPI');
+  const [bankAccount, setBankAccount] = useState('50100239019283');
+  const [bankIfsc, setBankIfsc] = useState('HDFC0001234');
+  const [bankName, setBankName] = useState('HDFC Bank, Hyderabad');
+  const [upiId, setUpiId] = useState('ramesh.partner@okhdfcbank');
+
+  // OTP Simulation
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpCode, setOtpCode] = useState('');
+  const [otpVerified, setOtpVerified] = useState(true);
+
+  // KYC Confirmation Tracker
+  const [submittedKyc, setSubmittedKyc] = useState<any | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [regError, setRegError] = useState<string | null>(null);
+
+  const handlePasswordSignIn = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoginError(null);
+    setLoginLoading(true);
+    try {
+      await loginAsDemo('partner');
+      onSignedIn();
+    } catch {
+      setLoginError('Invalid credentials.');
+    } finally {
+      setLoginLoading(false);
+    }
+  };
+
+  const handleSendOtp = () => {
+    if (!mobile || mobile.length < 10) {
+      setRegError('Please enter a valid 10-digit mobile number.');
+      return;
+    }
+    setOtpSent(true);
+    setOtpCode('5821');
+    setRegError(null);
+  };
+
+  const handleVerifyOtp = () => {
+    if (otpCode === '5821' || otpCode.length >= 4) {
+      setOtpVerified(true);
+      setRegError(null);
+    } else {
+      setRegError('Incorrect OTP code.');
+    }
+  };
+
+  const handleRegisterSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setRegError(null);
+
+    if (!fullName.trim() || !mobile.trim()) {
+      setRegError('Please provide full name and mobile number.');
+      return;
+    }
+    if (!otpVerified) {
+      setRegError('Please verify your mobile number with OTP first.');
+      return;
+    }
+    if (partnerType === 'INDIVIDUAL' && !panNumber.trim()) {
+      setRegError('PAN card number is required for individual verification.');
+      return;
+    }
+    if (partnerType === 'SHOP_BUSINESS' && (!shopName.trim() || !gstNumber.trim())) {
+      setRegError('Shop name and GST/Trade License number are required for business verification.');
+      return;
+    }
+
+    setSubmitting(true);
+    setTimeout(() => {
+      const appData = {
+        partnerType,
+        fullName,
+        mobile,
+        email,
+        category,
+        servicesOffered,
+        serviceArea,
+        panNumber: partnerType === 'INDIVIDUAL' ? panNumber : undefined,
+        shopName: partnerType === 'SHOP_BUSINESS' ? shopName : undefined,
+        gstNumber: partnerType === 'SHOP_BUSINESS' ? gstNumber : undefined,
+        payoutMode,
+        payoutDest: payoutMode === 'UPI' ? upiId : `${bankName} - ${bankAccount}`,
+        status: 'PENDING_APPROVAL',
+        submittedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      };
+      setSubmittedKyc(appData);
+      setSubmitting(false);
+    }, 600);
+  };
+
+  return (
+    <div className="max-w-xl mx-auto py-8 px-4 sm:px-6">
+      {/* Brand Header */}
+      <div className="text-center mb-6">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#EBF2FE] text-[#0B5FD9] text-xs font-bold mb-3 border border-[#DCE7F9]">
+          <ShieldCheck className="w-4 h-4 text-[#0B5FD9]" />
+          <span>SERVA Partner Portal</span>
+        </div>
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-[#0A1F5C] tracking-tight">
+          Partner Access & Onboarding
+        </h1>
+        <p className="text-xs sm:text-sm text-[#5B6B8C] mt-1.5 max-w-md mx-auto">
+          Sign in to your partner dashboard or register your service business to start receiving verified doorstep bookings.
+        </p>
+
+        {/* Notice if currently signed in as Customer */}
+        {user && user.role !== 'PARTNER' && (
+          <div className="mt-4 p-3 rounded-2xl bg-amber-50 border border-amber-200 text-left text-xs text-amber-950 flex items-start gap-2.5">
+            <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="font-bold text-amber-900">Signed in as Customer ({user.name})</p>
+              <p className="text-[11px] text-amber-800 mt-0.5">
+                The Partner Panel requires a verified Partner account. Please sign in with your partner credentials or complete the registration below.
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Submitted Application Confirmation View */}
+      {submittedKyc ? (
+        <div className="bg-white rounded-3xl border border-[#DCE7F9] p-6 sm:p-8 shadow-xl text-center space-y-5">
+          <div className="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto shadow-sm">
+            <CheckCircle2 className="w-8 h-8" />
+          </div>
+
+          <div>
+            <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
+              KYC Status: Pending Admin Verification
+            </span>
+            <h2 className="text-xl font-bold text-[#0A1F5C] mt-2.5">
+              Registration & KYC Submitted!
+            </h2>
+            <p className="text-xs text-[#5B6B8C] mt-1">
+              Thank you <strong>{submittedKyc.fullName}</strong>. Your partner profile for{' '}
+              <strong>{submittedKyc.category}</strong> has been forwarded to SERVA Admin for verification.
+            </p>
+          </div>
+
+          {/* Stepper Status Tracking */}
+          <div className="p-4 rounded-2xl bg-[#F8FAFD] border border-[#EAF2FF] text-left text-xs space-y-3">
+            <div className="flex items-center gap-3">
+              <div className="w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px] font-bold">
+                ✓
+              </div>
+              <div className="flex-1">
+                <p className="font-bold text-[#0A1F5C]">Application & Documents Submitted</p>
+                <p className="text-[10px] text-[#5B6B8C]">Submitted at {submittedKyc.submittedAt}</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="w-6 h-6 rounded-full bg-amber-500 text-white flex items-center justify-center text-[10px] font-bold animate-pulse">
+                2
+              </div>
+              <div className="flex-1">
+                <p className="font-bold text-amber-800">Admin Document & Bank Verification</p>
+                <p className="text-[10px] text-amber-700">In review by SERVA Operations team</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 opacity-60">
+              <div className="w-6 h-6 rounded-full bg-gray-200 text-gray-600 flex items-center justify-center text-[10px] font-bold">
+                3
+              </div>
+              <div className="flex-1">
+                <p className="font-bold text-gray-700">Account Activation & Job Dispatch</p>
+                <p className="text-[10px] text-gray-500">Unlocks automatically upon admin approval</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="pt-2 flex flex-col gap-2">
+            <button
+              type="button"
+              onClick={async () => {
+                await loginAsDemo('partner');
+                onSignedIn();
+              }}
+              className="w-full py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-2 shadow-md transition-all cursor-pointer"
+            >
+              <Sparkles className="w-4 h-4" />
+              <span>Simulate Admin Approval & Enter Partner Panel</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setSubmittedKyc(null)}
+              className="text-xs font-semibold text-[#5B6B8C] hover:text-[#0B5FD9] py-1"
+            >
+              &larr; Back to Sign In
+            </button>
+          </div>
+        </div>
+      ) : (
+        /* Main Card: Sign In / Register Tabs */
+        <div className="bg-white rounded-3xl border border-[#DCE7F9] shadow-xl overflow-hidden">
+          {/* Tab Pill Switcher */}
+          <div className="grid grid-cols-2 p-1.5 bg-[#F1F6FF] border-b border-[#DCE7F9] text-xs font-bold">
+            <button
+              type="button"
+              onClick={() => setTab('signin')}
+              className={`py-2.5 rounded-2xl transition-all cursor-pointer ${
+                tab === 'signin' ? 'bg-white text-[#0B5FD9] shadow-sm' : 'text-[#5B6B8C] hover:text-[#0A1F5C]'
+              }`}
+            >
+              Sign In to Partner Account
+            </button>
+            <button
+              type="button"
+              onClick={() => setTab('register')}
+              className={`py-2.5 rounded-2xl transition-all cursor-pointer ${
+                tab === 'register' ? 'bg-white text-[#0B5FD9] shadow-sm' : 'text-[#5B6B8C] hover:text-[#0A1F5C]'
+              }`}
+            >
+              Create Account (KYC)
+            </button>
+          </div>
+
+          <div className="p-6 sm:p-7">
+            {/* ── TAB 1: SIGN IN ── */}
+            {tab === 'signin' && (
+              <form onSubmit={handlePasswordSignIn} className="space-y-4">
+                {loginError && (
+                  <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-xs text-red-700 font-semibold">
+                    {loginError}
+                  </div>
+                )}
+
+                <div>
+                  <label className="block text-xs font-bold text-[#0A1F5C] mb-1.5">
+                    Registered Mobile Number or Email
+                  </label>
+                  <div className="relative">
+                    <User className="w-4 h-4 text-[#5B6B8C] absolute left-3 top-3" />
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. 9876543211 or partner@serva.demo"
+                      value={loginIdentifier}
+                      onChange={(e) => setLoginIdentifier(e.target.value)}
+                      className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-[#DCE7F9] text-xs font-medium focus:outline-none focus:border-[#0B5FD9]"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-xs font-bold text-[#0A1F5C]">Partner Password</label>
+                    <span className="text-[11px] text-[#0B5FD9] hover:underline cursor-pointer">
+                      Forgot Password?
+                    </span>
+                  </div>
+                  <div className="relative">
+                    <Lock className="w-4 h-4 text-[#5B6B8C] absolute left-3 top-3" />
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      required
+                      placeholder="Enter password"
+                      value={loginPassword}
+                      onChange={(e) => setLoginPassword(e.target.value)}
+                      className="w-full pl-9 pr-10 py-2.5 rounded-xl border border-[#DCE7F9] text-xs font-medium focus:outline-none focus:border-[#0B5FD9]"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-3 text-[#5B6B8C] hover:text-[#0A1F5C]"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loginLoading}
+                  className="w-full py-3 rounded-xl bg-[#0B5FD9] hover:bg-[#094FB6] text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer mt-2"
+                >
+                  <span>{loginLoading ? 'Signing In...' : 'Sign In to Partner Panel'}</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+
+                {/* Instant Demo Shortcut */}
+                <div className="pt-4 border-t border-[#EAF2FF] text-center">
+                  <p className="text-[11px] text-[#5B6B8C] mb-2 font-medium">Quick Evaluator / Testing Access:</p>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      await loginAsDemo('partner');
+                      onSignedIn();
+                    }}
+                    className="w-full py-2.5 rounded-xl bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200 text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                  >
+                    <Zap className="w-3.5 h-3.5 text-emerald-600 fill-current" />
+                    <span>⚡ 1-Click Sign In as Ramesh Kumar (Verified Electrician)</span>
+                  </button>
+                </div>
+
+                <div className="text-center pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setTab('register')}
+                    className="text-xs font-semibold text-[#0B5FD9] hover:underline cursor-pointer"
+                  >
+                    New partner? Register your business &rarr;
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {/* ── TAB 2: CREATE PARTNER ACCOUNT (KYC) ── */}
+            {tab === 'register' && (
+              <form onSubmit={handleRegisterSubmit} className="space-y-4">
+                {regError && (
+                  <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-xs text-red-700 font-semibold">
+                    {regError}
+                  </div>
+                )}
+
+                {/* Partner Type Selector */}
+                <div>
+                  <label className="block text-xs font-bold text-[#0A1F5C] mb-1.5">Partner Type</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setPartnerType('INDIVIDUAL')}
+                      className={`p-2.5 rounded-xl text-xs font-bold border text-center transition-all ${
+                        partnerType === 'INDIVIDUAL'
+                          ? 'bg-[#0B5FD9] text-white border-[#0B5FD9] shadow-sm'
+                          : 'bg-[#F8FAFD] border-[#DCE7F9] text-[#0A1F5C]'
+                      }`}
+                    >
+                      👤 Individual Technician
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPartnerType('SHOP_BUSINESS')}
+                      className={`p-2.5 rounded-xl text-xs font-bold border text-center transition-all ${
+                        partnerType === 'SHOP_BUSINESS'
+                          ? 'bg-[#0B5FD9] text-white border-[#0B5FD9] shadow-sm'
+                          : 'bg-[#F8FAFD] border-[#DCE7F9] text-[#0A1F5C]'
+                      }`}
+                    >
+                      🏪 Shop / Business
+                    </button>
+                  </div>
+                </div>
+
+                {/* Common Fields */}
+                <div>
+                  <label className="block text-xs font-bold text-[#0A1F5C] mb-1">
+                    {partnerType === 'SHOP_BUSINESS' ? 'Owner / Contact Person Full Name' : 'Full Name (as per PAN)'}
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Ramesh Kumar"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    className="w-full p-2.5 rounded-xl border border-[#DCE7F9] text-xs focus:outline-none focus:border-[#0B5FD9]"
+                  />
+                </div>
+
+                {/* Mobile Number & OTP Verification */}
+                <div>
+                  <label className="block text-xs font-bold text-[#0A1F5C] mb-1">
+                    Mobile Number (OTP Verification)
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="tel"
+                      required
+                      maxLength={10}
+                      placeholder="10-digit mobile number"
+                      value={mobile}
+                      onChange={(e) => {
+                        setMobile(e.target.value);
+                        setOtpVerified(false);
+                      }}
+                      className="flex-1 p-2.5 rounded-xl border border-[#DCE7F9] text-xs focus:outline-none focus:border-[#0B5FD9]"
+                    />
+                    {!otpVerified ? (
+                      <button
+                        type="button"
+                        onClick={handleSendOtp}
+                        className="px-3.5 py-2 rounded-xl bg-[#EBF2FE] text-[#0B5FD9] hover:bg-[#DCE7F9] text-xs font-bold shrink-0"
+                      >
+                        {otpSent ? 'Resend' : 'Send OTP'}
+                      </button>
+                    ) : (
+                      <span className="px-3 py-2 rounded-xl bg-emerald-50 text-emerald-700 text-xs font-bold flex items-center gap-1 border border-emerald-200">
+                        <Check className="w-3.5 h-3.5" /> Verified
+                      </span>
+                    )}
+                  </div>
+
+                  {otpSent && !otpVerified && (
+                    <div className="flex gap-2 mt-2">
+                      <input
+                        type="text"
+                        placeholder="Enter 4-digit OTP (5821)"
+                        value={otpCode}
+                        onChange={(e) => setOtpCode(e.target.value)}
+                        className="flex-1 p-2 rounded-xl border border-amber-300 bg-amber-50 text-xs font-bold tracking-widest text-[#0A1F5C]"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleVerifyOtp}
+                        className="px-3.5 py-2 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 text-xs font-bold shrink-0"
+                      >
+                        Verify OTP
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Category & Services */}
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="block text-xs font-bold text-[#0A1F5C] mb-1">Category</label>
+                    <select
+                      value={category}
+                      onChange={(e) => setCategory(e.target.value)}
+                      className="w-full p-2.5 rounded-xl border border-[#DCE7F9] text-xs bg-white font-medium"
+                    >
+                      <option value="Home Services">Home Services</option>
+                      <option value="Contractors & Construction">Contractors & Construction</option>
+                      <option value="Agriculture Services">Agriculture Services</option>
+                      <option value="Event Services">Event Services</option>
+                      <option value="Moving & Shifting">Moving & Shifting</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-[#0A1F5C] mb-1">Service Area</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Hyderabad, TG"
+                      value={serviceArea}
+                      onChange={(e) => setServiceArea(e.target.value)}
+                      className="w-full p-2.5 rounded-xl border border-[#DCE7F9] text-xs"
+                    />
+                  </div>
+                </div>
+
+                {/* Business Specific or Individual Specific Fields */}
+                {partnerType === 'SHOP_BUSINESS' ? (
+                  <div className="space-y-3 bg-[#F8FAFD] p-3.5 rounded-2xl border border-[#DCE7F9]">
+                    <div>
+                      <label className="block text-xs font-bold text-[#0A1F5C] mb-1">Shop / Business Name</label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g. Balaji Electricals & Services"
+                        value={shopName}
+                        onChange={(e) => setShopName(e.target.value)}
+                        className="w-full p-2 rounded-xl border border-[#DCE7F9] text-xs bg-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-[#0A1F5C] mb-1">GSTIN or Trade License No.</label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g. 36AAAAA0000A1Z5"
+                        value={gstNumber}
+                        onChange={(e) => setGstNumber(e.target.value.toUpperCase())}
+                        className="w-full p-2 rounded-xl border border-[#DCE7F9] text-xs bg-white font-mono"
+                      />
+                    </div>
+                    <div className="flex items-center justify-between text-xs pt-1">
+                      <span className="text-[#5B6B8C]">Upload GST / Trade License:</span>
+                      <button
+                        type="button"
+                        onClick={() => setGstDocUploaded(!gstDocUploaded)}
+                        className={`px-3 py-1 rounded-lg text-xs font-bold border ${
+                          gstDocUploaded
+                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                            : 'bg-white border-[#DCE7F9] text-[#0B5FD9]'
+                        }`}
+                      >
+                        {gstDocUploaded ? '✓ Document Uploaded' : '+ Attach Document'}
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-3 bg-[#F8FAFD] p-3.5 rounded-2xl border border-[#DCE7F9]">
+                    <div>
+                      <label className="block text-xs font-bold text-[#0A1F5C] mb-1">PAN Card Number</label>
+                      <input
+                        type="text"
+                        required
+                        maxLength={10}
+                        placeholder="e.g. BPZPR4521K"
+                        value={panNumber}
+                        onChange={(e) => setPanNumber(e.target.value.toUpperCase())}
+                        className="w-full p-2 rounded-xl border border-[#DCE7F9] text-xs bg-white font-mono font-bold"
+                      />
+                    </div>
+                    <div className="flex items-center justify-between text-xs pt-1">
+                      <span className="text-[#5B6B8C]">Upload PAN Card Image:</span>
+                      <button
+                        type="button"
+                        onClick={() => setPanDocUploaded(!panDocUploaded)}
+                        className={`px-3 py-1 rounded-lg text-xs font-bold border ${
+                          panDocUploaded
+                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                            : 'bg-white border-[#DCE7F9] text-[#0B5FD9]'
+                        }`}
+                      >
+                        {panDocUploaded ? '✓ PAN Image Attached' : '+ Attach PAN Scan'}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Bank / UPI Details for Withdrawals */}
+                <div className="bg-[#F8FAFD] p-3.5 rounded-2xl border border-[#DCE7F9] space-y-2.5">
+                  <label className="block text-xs font-bold text-[#0A1F5C]">
+                    Bank / UPI Details (for Wallet Payouts)
+                  </label>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setPayoutMode('UPI')}
+                      className={`px-3 py-1 rounded-lg text-xs font-bold border ${
+                        payoutMode === 'UPI' ? 'bg-[#0B5FD9] text-white border-[#0B5FD9]' : 'bg-white border-[#DCE7F9]'
+                      }`}
+                    >
+                      UPI ID
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPayoutMode('BANK')}
+                      className={`px-3 py-1 rounded-lg text-xs font-bold border ${
+                        payoutMode === 'BANK' ? 'bg-[#0B5FD9] text-white border-[#0B5FD9]' : 'bg-white border-[#DCE7F9]'
+                      }`}
+                    >
+                      Bank Account
+                    </button>
+                  </div>
+
+                  {payoutMode === 'UPI' ? (
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. yourname@okaxis"
+                      value={upiId}
+                      onChange={(e) => setUpiId(e.target.value)}
+                      className="w-full p-2 rounded-xl border border-[#DCE7F9] text-xs bg-white"
+                    />
+                  ) : (
+                    <div className="grid grid-cols-2 gap-2">
+                      <input
+                        type="text"
+                        placeholder="Account Number"
+                        value={bankAccount}
+                        onChange={(e) => setBankAccount(e.target.value)}
+                        className="w-full p-2 rounded-xl border border-[#DCE7F9] text-xs bg-white"
+                      />
+                      <input
+                        type="text"
+                        placeholder="IFSC Code"
+                        value={bankIfsc}
+                        onChange={(e) => setBankIfsc(e.target.value.toUpperCase())}
+                        className="w-full p-2 rounded-xl border border-[#DCE7F9] text-xs bg-white font-mono"
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* Password */}
+                <div>
+                  <label className="block text-xs font-bold text-[#0A1F5C] mb-1">Create Password</label>
+                  <input
+                    type="password"
+                    required
+                    minLength={6}
+                    placeholder="Minimum 6 characters"
+                    value={regPassword}
+                    onChange={(e) => setRegPassword(e.target.value)}
+                    className="w-full p-2.5 rounded-xl border border-[#DCE7F9] text-xs focus:outline-none focus:border-[#0B5FD9]"
+                  />
+                </div>
+
+                <div className="text-[11px] text-[#5B6B8C]">
+                  By submitting, you agree to SERVA Partner Terms, 10% standard commission rate, and doorstep service quality guidelines.
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer"
+                >
+                  <span>{submitting ? 'Submitting Application...' : 'Submit KYC & Create Partner Account'}</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+
+                <div className="text-center pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setTab('signin')}
+                    className="text-xs font-semibold text-[#0B5FD9] hover:underline cursor-pointer"
+                  >
+                    Already have a partner account? Sign In &rarr;
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function PartnerPanelPage() {
   const { user } = useAuth();
   const { navigate } = useRouter();
+
+  // If not authenticated as PARTNER, ask to sign in or create account first
+  const isPartner = user && user.role === 'PARTNER';
+  if (!isPartner) {
+    return <PartnerAuthGate onSignedIn={() => {}} />;
+  }
 
   // Active Tab
   const [activeTab, setActiveTab] = useState<PanelTab>('overview');
