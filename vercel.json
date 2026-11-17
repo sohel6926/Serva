@@ -3,7 +3,6 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "installCommand": "npm install --legacy-peer-deps",
-  "cleanUrls": true,
   "trailingSlash": false,
   "redirects": [
     { "source": "/home",                    "destination": "/",                            "permanent": true },
@@ -30,7 +29,7 @@
     { "source": "/events/catering",         "destination": "/events/plan",                 "permanent": true },
     { "source": "/events/dj",               "destination": "/events/plan",                 "permanent": true },
     { "source": "/events/decor",            "destination": "/events/plan",                 "permanent": true },
-    { "source": "/agri",                    "destination": "/agriculture",                 "permanent": true },
+    { "source": "/agri",                   "destination": "/agriculture",                 "permanent": true },
     { "source": "/agri-services",           "destination": "/agriculture",                 "permanent": true },
     { "source": "/agriculture/tractor",     "destination": "/agriculture/services",         "permanent": true },
     { "source": "/agriculture/drone",       "destination": "/agriculture/services",         "permanent": true },
@@ -63,15 +62,9 @@
     { "source": "/register",                "destination": "/login",                       "permanent": true }
   ],
   "rewrites": [
-    { "source": "/:path*", "destination": "/index.html" }
+    { "source": "/(.*)", "destination": "/index.html" }
   ],
   "headers": [
-    {
-      "source": "/(.*\\.(ico|png|jpg|jpeg|svg|webp|woff|woff2|js|css))",
-      "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
-      ]
-    },
     {
       "source": "/(.*)",
       "headers": [
