@@ -395,7 +395,7 @@ export function HomePage() {
         setPopular(d.popularServices ?? []);
         setOffers(d.offers ?? []);
       })
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   useEffect(() => {
@@ -496,7 +496,7 @@ export function HomePage() {
 
         {/* ── Promotional Banner Carousel ── */}
         <section className="mx-3">
-          <div className="relative rounded-2xl overflow-hidden min-h-[180px] shadow-[0_4px_20px_rgba(11,95,217,0.08)] border border-slate-100 bg-slate-900">
+          <div className="relative rounded-2xl overflow-hidden min-h-[185px] shadow-[0_4px_20px_rgba(11,95,217,0.08)] border border-slate-100 bg-slate-900">
             <img
               src={currentSlide.image}
               alt={currentSlide.title}
@@ -504,7 +504,31 @@ export function HomePage() {
             />
             {/* Elegant dark scrim for text clarity without masking the image */}
             <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/30 to-transparent" />
-            <div className="relative z-10 p-4 sm:p-5 h-full flex flex-col justify-end min-h-[180px]">
+
+            {/* On-Banner Progress Line */}
+            <div className="absolute top-2.5 left-3.5 right-3.5 z-20 flex gap-1.5">
+              {BANNER_SLIDES.map((_, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => setSlideIdx(i)}
+                  aria-label={`Go to slide ${i + 1}`}
+                  className="flex-1 h-1 rounded-full overflow-hidden bg-white/35 backdrop-blur-sm cursor-pointer relative"
+                >
+                  <div
+                    className={`h-full rounded-full transition-all duration-300 ${
+                      i === slideIdx
+                        ? 'w-full bg-white shadow-sm'
+                        : i < slideIdx
+                        ? 'w-full bg-white/70'
+                        : 'w-0 bg-white'
+                    }`}
+                  />
+                </button>
+              ))}
+            </div>
+
+            <div className="relative z-10 p-4 sm:p-5 pt-6 h-full flex flex-col justify-end min-h-[185px]">
               <div>
                 <span className="inline-block px-2.5 py-0.5 rounded-full bg-white/20 backdrop-blur-md text-white text-[10px] font-semibold border border-white/25 mb-1.5 shadow-sm">
                   Featured
@@ -532,30 +556,6 @@ export function HomePage() {
                   <MessageSquare className="w-3.5 h-3.5" />
                   <span>Enquire Now</span>
                 </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Progress Line Indicator */}
-          <div className="flex items-center justify-center mt-3">
-            <div className="w-28 h-1 bg-[#E2E8F0] rounded-full overflow-hidden relative">
-              <div
-                className="h-full bg-[#0B5FD9] rounded-full transition-transform duration-500 ease-out pointer-events-none"
-                style={{
-                  width: `${100 / BANNER_SLIDES.length}%`,
-                  transform: `translateX(${slideIdx * 100}%)`,
-                }}
-              />
-              <div className="absolute inset-0 flex">
-                {BANNER_SLIDES.map((_, i) => (
-                  <button
-                    key={i}
-                    type="button"
-                    onClick={() => setSlideIdx(i)}
-                    aria-label={`Go to slide ${i + 1}`}
-                    className="flex-1 h-full cursor-pointer focus:outline-none"
-                  />
-                ))}
               </div>
             </div>
           </div>
@@ -587,11 +587,10 @@ export function HomePage() {
                 key={cat.id}
                 type="button"
                 onClick={() => setSelectedCategory(cat.id)}
-                className={`snap-start shrink-0 min-h-[32px] px-3.5 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer ${
-                  selectedCategory === cat.id
-                    ? 'bg-[#0B5FD9] text-white shadow-sm shadow-blue-500/20'
-                    : 'bg-white border border-[#DCE7F9] text-[#0A1F5C] hover:bg-[#F1F6FF]'
-                }`}
+                className={`snap-start shrink-0 min-h-[32px] px-3.5 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer ${selectedCategory === cat.id
+                  ? 'bg-[#0B5FD9] text-white shadow-sm shadow-blue-500/20'
+                  : 'bg-white border border-[#DCE7F9] text-[#0A1F5C] hover:bg-[#F1F6FF]'
+                  }`}
               >
                 {cat.label}
               </button>
