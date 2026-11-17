@@ -198,6 +198,185 @@ const DESKTOP_TILES = [
   },
 ];
 
+const ALL_SERVICE_CARDS = [
+  {
+    id: 'hs-cleaning',
+    name: 'Home Deep Cleaning',
+    category: 'Home Services',
+    categorySlug: 'home-services',
+    to: '/home-services/cleaning',
+    image: '/src/assets/images/svc_home_cleaning_1794825493004.jpg',
+    price: '₹1,499',
+    unit: 'starts at',
+    tagline: 'Deep cleaning for rooms, kitchen & bathroom',
+  },
+  {
+    id: 'hs-electrician',
+    name: 'Electrician & Wiring',
+    category: 'Home Services',
+    categorySlug: 'home-services',
+    to: '/home-services/repairing',
+    image: '/src/assets/images/svc_electrician_1794825491346.jpg',
+    price: '₹250',
+    unit: 'per visit',
+    tagline: 'Switchboards, fans, lights & appliances',
+  },
+  {
+    id: 'hs-plumbing',
+    name: 'Plumbing & Pipe Repair',
+    category: 'Home Services',
+    categorySlug: 'home-services',
+    to: '/home-services/repairing',
+    image: '/src/assets/images/svc_plumbing_1794825491603.jpg',
+    price: '₹299',
+    unit: 'per visit',
+    tagline: 'Tap repair, leak fixes & motor installation',
+  },
+  {
+    id: 'hs-ac',
+    name: 'AC Cleaning & Service',
+    category: 'Home Services',
+    categorySlug: 'home-services',
+    to: '/home-services/repairing',
+    image: '/src/assets/images/svc_ac_appliance_1794825492024.jpg',
+    price: '₹499',
+    unit: 'starts at',
+    tagline: 'Filter wash, gas check & cooling inspection',
+  },
+  {
+    id: 'con-construction',
+    name: 'Civil & Home Construction',
+    category: 'Construction',
+    categorySlug: 'contractors',
+    to: '/contractors',
+    image: '/src/assets/images/svc_home_construction_1794825495507.jpg',
+    price: 'Free Enquiry',
+    unit: 'consultation',
+    tagline: 'Site inspection, blueprinting & turnkey builds',
+  },
+  {
+    id: 'con-machinery',
+    name: 'JCB & Earth Excavators',
+    category: 'Construction',
+    categorySlug: 'contractors',
+    to: '/contractors',
+    image: '/src/assets/images/svc_jcb_machinery_1794825496052.jpg',
+    price: '₹1,500',
+    unit: 'per hour',
+    tagline: 'Earth digging, debris clearing & ground leveling',
+  },
+  {
+    id: 'con-interior',
+    name: 'Interior Design & Modular',
+    category: 'Construction',
+    categorySlug: 'contractors',
+    to: '/contractors',
+    image: '/src/assets/images/svc_interior_design_1794825494857.jpg',
+    price: 'Custom Quote',
+    unit: 'per room',
+    tagline: 'False ceiling, modular kitchen & wardrobe 3D designs',
+  },
+  {
+    id: 'agri-tractor',
+    name: 'Tractor Rental & Rotavator',
+    category: 'Agriculture',
+    categorySlug: 'agriculture',
+    to: '/agriculture',
+    image: '/src/assets/images/svc_agri_tractor_harvest_1794825499106.jpg',
+    price: '₹1,200',
+    unit: 'per hour',
+    tagline: 'Ploughing, tilling & harvesting machinery',
+  },
+  {
+    id: 'agri-drone',
+    name: 'Drone Crop Spraying',
+    category: 'Agriculture',
+    categorySlug: 'agriculture',
+    to: '/agriculture',
+    image: '/src/assets/images/svc_agri_drone_irrigation_1794825499973.jpg',
+    price: '₹450',
+    unit: 'per acre',
+    tagline: 'Fast, uniform pesticide & fertilizer spray',
+  },
+  {
+    id: 'agri-workers',
+    name: 'Farm Labour Teams',
+    category: 'Agriculture',
+    categorySlug: 'agriculture',
+    to: '/agriculture',
+    image: '/src/assets/images/svc_agri_workers_1794825499110.jpg',
+    price: '₹500',
+    unit: 'per worker/day',
+    tagline: 'Weeding, transplanting, harvesting & loading',
+  },
+  {
+    id: 'evt-decor',
+    name: 'Wedding & Event Decoration',
+    category: 'Events',
+    categorySlug: 'events',
+    to: '/events',
+    image: '/src/assets/images/svc_event_decor_1794825496811.jpg',
+    price: 'Custom Quote',
+    unit: 'full setup',
+    tagline: 'Stage backdrop, flower decor & lighting',
+  },
+  {
+    id: 'evt-dj',
+    name: 'Live DJ & Sound System',
+    category: 'Events',
+    categorySlug: 'events',
+    to: '/events',
+    image: '/src/assets/images/svc_event_dj_1794825498947.jpg',
+    price: '₹12,000',
+    unit: 'per event',
+    tagline: 'Concert speakers, bass subwoofers & DJ setup',
+  },
+  {
+    id: 'evt-catering',
+    name: 'Party & Function Catering',
+    category: 'Events',
+    categorySlug: 'events',
+    to: '/events',
+    image: '/src/assets/images/svc_event_catering_1794825497630.jpg',
+    price: '₹250',
+    unit: 'per plate',
+    tagline: 'Veg & non-veg buffet menu with live counters',
+  },
+  {
+    id: 'mov-home',
+    name: 'Home Shifting & Packers',
+    category: 'Moving & Shifting',
+    categorySlug: 'moving',
+    to: '/moving',
+    image: '/src/assets/images/svc_moving_shifting_1794825499341.jpg',
+    price: 'Est. ₹3,500',
+    unit: 'base quote',
+    tagline: 'Safe wrapping, loading, transport & unboxing',
+  },
+  {
+    id: 'rep-vehicle',
+    name: 'Vehicle Repair & Towing',
+    category: 'Repair',
+    categorySlug: 'home-services',
+    to: '/home-services/repairing',
+    image: '/src/assets/images/svc_vehicle_repair_1794825492574.jpg',
+    price: '₹450',
+    unit: 'starts at',
+    tagline: 'Two-wheeler & car doorstep mechanic support',
+  },
+  {
+    id: 'man-workers',
+    name: 'Skilled Manpower Labour',
+    category: 'Manpower',
+    categorySlug: 'contractors',
+    to: '/contractors',
+    image: '/src/assets/images/svc_site_workers_1794825495047.jpg',
+    price: '₹750',
+    unit: 'per day',
+    tagline: 'Helpers, masons, carpenters & painters',
+  },
+];
+
 const SAMPLE_TESTIMONIALS = [
   {
     name: 'Srinivas Rao',
@@ -224,6 +403,7 @@ export function HomePage() {
   const { navigate } = useRouter();
   const [slideIdx, setSlideIdx] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('ALL');
   const [popular, setPopular] = useState<PopularService[]>([]);
   const [offers, setOffers] = useState<OfferItem[]>([]);
 
@@ -245,6 +425,10 @@ export function HomePage() {
   }, []);
 
   const currentSlide = BANNER_SLIDES[slideIdx];
+
+  const displayedServices = selectedCategory === 'ALL'
+    ? ALL_SERVICE_CARDS
+    : ALL_SERVICE_CARDS.filter((s) => s.categorySlug === selectedCategory);
 
   return (
     <div className="space-y-0 md:space-y-10">
@@ -429,6 +613,91 @@ export function HomePage() {
                     : 'w-1.5 h-1.5 bg-slate-300'
                 }`}
               />
+            ))}
+          </div>
+        </section>
+
+        {/* ── Services Cards of Each Service (below banner) ── */}
+        <section className="mx-3 space-y-3 pt-1">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-base font-bold text-[#0A1F5C]">All Doorstep Services</h2>
+              <p className="text-[11px] text-[#5B6B8C]">Verified professionals with upfront transparent pricing</p>
+            </div>
+            <Link to="/services" className="text-xs font-semibold text-[#0B5FD9] inline-flex items-center gap-0.5">
+              View All <ArrowRight className="w-3 h-3" />
+            </Link>
+          </div>
+
+          {/* Category Filter Pills */}
+          <div className="flex gap-2 overflow-x-auto pb-1 -mx-3 px-3 scrollbar-hide snap-x">
+            {[
+              { id: 'ALL', label: 'All Services' },
+              { id: 'home-services', label: 'Home Services' },
+              { id: 'contractors', label: 'Construction' },
+              { id: 'agriculture', label: 'Agriculture' },
+              { id: 'events', label: 'Events' },
+              { id: 'moving', label: 'Moving' },
+            ].map((cat) => (
+              <button
+                key={cat.id}
+                type="button"
+                onClick={() => setSelectedCategory(cat.id)}
+                className={`snap-start shrink-0 min-h-[32px] px-3.5 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer ${
+                  selectedCategory === cat.id
+                    ? 'bg-[#0B5FD9] text-white shadow-sm shadow-blue-500/20'
+                    : 'bg-white border border-[#DCE7F9] text-[#0A1F5C] hover:bg-[#F1F6FF]'
+                }`}
+              >
+                {cat.label}
+              </button>
+            ))}
+          </div>
+
+          {/* 2-Column Grid of Service Cards */}
+          <div className="grid grid-cols-2 gap-3">
+            {displayedServices.map((svc) => (
+              <Link
+                key={svc.id}
+                to={svc.to}
+                className="bg-white rounded-2xl border border-[#DCE7F9] overflow-hidden shadow-sm flex flex-col justify-between group active:scale-[0.98] transition-transform"
+              >
+                {/* Image with category badge */}
+                <div className="relative aspect-[16/11] bg-[#F1F6FF] overflow-hidden">
+                  <img
+                    src={svc.image}
+                    alt={svc.name}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    loading="lazy"
+                  />
+                  <span className="absolute top-2 left-2 bg-white/95 backdrop-blur-sm text-[#0A1F5C] text-[9px] font-bold px-2 py-0.5 rounded-full shadow-sm">
+                    {svc.category}
+                  </span>
+                </div>
+
+                {/* Details */}
+                <div className="p-2.5 flex-1 flex flex-col justify-between gap-2">
+                  <div>
+                    <h3 className="text-xs font-bold text-[#0A1F5C] leading-snug line-clamp-1 group-hover:text-[#0B5FD9] transition-colors">
+                      {svc.name}
+                    </h3>
+                    <p className="text-[10px] text-[#5B6B8C] leading-tight line-clamp-2 mt-1">
+                      {svc.tagline}
+                    </p>
+                  </div>
+
+                  {/* Price & Action Button */}
+                  <div className="pt-2 border-t border-[#F1F6FF] flex items-center justify-between gap-1">
+                    <div className="min-w-0">
+                      <p className="text-[9px] text-[#94A3B8] leading-none truncate">{svc.unit}</p>
+                      <p className="text-xs font-bold text-[#0B5FD9] leading-tight mt-0.5">{svc.price}</p>
+                    </div>
+                    <span className="shrink-0 min-h-[26px] px-2.5 rounded-full bg-[#0B5FD9] text-white text-[10px] font-bold inline-flex items-center gap-1 shadow-sm">
+                      Book <ArrowRight className="w-2.5 h-2.5" />
+                    </span>
+                  </div>
+                </div>
+              </Link>
             ))}
           </div>
         </section>
