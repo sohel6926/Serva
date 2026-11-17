@@ -333,24 +333,20 @@ export function AppShell({ children, showServiceSidebar = false }: AppShellProps
                       >
                         <UserIcon className="w-4 h-4 text-[#0B5FD9]" /> Profile & Addresses
                       </Link>
-                      {user.role === 'PARTNER' && (
-                        <Link
-                          to="/partner/dashboard"
-                          onClick={() => setProfileOpen(false)}
-                          className="px-3 py-2.5 text-sm text-[#0A1F5C] hover:bg-[#F1F6FF] rounded-xl flex items-center gap-2"
-                        >
-                          <HardHat className="w-4 h-4 text-[#0B5FD9]" /> Partner Panel
-                        </Link>
-                      )}
-                      {user.role === 'ADMIN' && (
-                        <Link
-                          to="/admin"
-                          onClick={() => setProfileOpen(false)}
-                          className="px-3 py-2.5 text-sm text-[#0A1F5C] hover:bg-[#F1F6FF] rounded-xl flex items-center gap-2"
-                        >
-                          <ShieldCheck className="w-4 h-4 text-[#0B5FD9]" /> Admin Panel
-                        </Link>
-                      )}
+                      <Link
+                        to="/partner/panel"
+                        onClick={() => setProfileOpen(false)}
+                        className="px-3 py-2.5 text-sm text-[#0A1F5C] hover:bg-[#F1F6FF] rounded-xl flex items-center gap-2 font-medium"
+                      >
+                        <HardHat className="w-4 h-4 text-[#0B5FD9]" /> Partner Panel
+                      </Link>
+                      <Link
+                        to="/admin"
+                        onClick={() => setProfileOpen(false)}
+                        className="px-3 py-2.5 text-sm text-[#0A1F5C] hover:bg-[#F1F6FF] rounded-xl flex items-center gap-2 font-medium"
+                      >
+                        <ShieldCheck className="w-4 h-4 text-[#0B5FD9]" /> Admin Panel
+                      </Link>
                       <button
                         type="button"
                         onClick={async () => {
@@ -423,23 +419,26 @@ export function AppShell({ children, showServiceSidebar = false }: AppShellProps
               </Link>
             ))}
             <div className="pt-2 border-t border-[#EAF2FF] flex flex-col gap-2">
-              {!user && (
-                <button
-                  type="button"
-                  onClick={async () => {
-                    setMobileMenuOpen(false);
-                    await loginAsDemo('customer');
-                  }}
-                  className="w-full min-h-[42px] px-4 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-sm cursor-pointer"
-                >
-                  <Zap className="w-4 h-4 fill-current" />
-                  <span>⚡ Instant Demo Login</span>
-                </button>
-              )}
+              <Link
+                to="/partner/panel"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-sm font-semibold text-[#0B5FD9] bg-[#EBF2FE]"
+              >
+                <HardHat className="w-4 h-4 text-[#0B5FD9]" />
+                <span>Partner Panel (Vendor Portal)</span>
+              </Link>
+              <Link
+                to="/admin"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-sm font-semibold text-[#0A1F5C] bg-[#F1F6FF]"
+              >
+                <ShieldCheck className="w-4 h-4 text-[#0B5FD9]" />
+                <span>Admin Panel (Console)</span>
+              </Link>
               <Link
                 to="/partner/register"
                 onClick={() => setMobileMenuOpen(false)}
-                className="w-full serva-pill-btn text-sm"
+                className="w-full serva-pill-btn text-sm mt-1"
               >
                 {t('becomePartnerTitle')} <ArrowRight className="w-4 h-4" />
               </Link>

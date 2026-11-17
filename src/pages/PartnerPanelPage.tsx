@@ -549,8 +549,17 @@ export function PartnerPanelPage() {
             </div>
           </div>
 
-          {/* Right Side: Duty Toggle & Quick Balance */}
-          <div className="flex items-center gap-3 self-end sm:self-center">
+          {/* Right Side: Admin Portal Link & Duty Toggle */}
+          <div className="flex items-center gap-2.5 flex-wrap self-end sm:self-center">
+            <Link
+              to="/admin"
+              className="min-h-[42px] px-3.5 rounded-full text-xs font-bold text-[#0A1F5C] bg-[#F1F6FF] hover:bg-[#E2EEFE] border border-[#DCE7F9] flex items-center gap-1.5 transition-all shadow-sm"
+            >
+              <ShieldCheck className="w-4 h-4 text-[#0B5FD9]" />
+              <span className="hidden sm:inline">Open Admin Console &rarr;</span>
+              <span className="sm:hidden">Admin &rarr;</span>
+            </Link>
+
             {/* Duty Toggle */}
             <button
               type="button"

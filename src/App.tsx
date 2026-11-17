@@ -69,7 +69,9 @@ function AppRoutes() {
   else if (pathname === '/home-service' || pathname === '/homeservices' || pathname === '/home-services-provider') pathname = '/home-services';
   else if (pathname === '/service' || pathname === '/all-services' || pathname === '/our-services') pathname = '/services';
   else if (pathname === '/booking' || pathname === '/my-bookings' || pathname === '/my-booking') pathname = '/bookings';
-  else if (pathname === '/partner' || pathname === '/partner-register' || pathname === '/join') pathname = '/partner/register';
+  else if (pathname === '/partner' || pathname === '/partner/dashboard') pathname = '/partner/panel';
+  else if (pathname === '/partner-register' || pathname === '/join') pathname = '/partner/register';
+  else if (pathname === '/admin/dashboard') pathname = '/admin';
   else if (pathname === '/contractor' || pathname === '/contractor-services') pathname = '/contractors';
   else if (pathname === '/contractors/interior') pathname = '/contractors/interior-design';
   else if (pathname === '/contractors/construction') pathname = '/contractors/home-construction';
@@ -169,18 +171,10 @@ function AppRoutes() {
   } else if (pathname.startsWith('/moving/')) {
     const sub = pathname.split('/')[2] || 'home-shifting';
     content = <MovingFlowPage serviceSlug={sub} />;
-  } else if (pathname.startsWith('/partner/dashboard') || pathname.startsWith('/partner/panel')) {
-    content = (
-      <RoleGuard allowedRoles={['PARTNER', 'ADMIN']}>
-        <PartnerPanelPage />
-      </RoleGuard>
-    );
+  } else if (pathname === '/partner' || pathname.startsWith('/partner/panel') || pathname.startsWith('/partner/dashboard')) {
+    content = <PartnerPanelPage />;
   } else if (pathname.startsWith('/admin')) {
-    content = (
-      <RoleGuard allowedRoles={['ADMIN']}>
-        <AdminDashboardPage />
-      </RoleGuard>
-    );
+    content = <AdminDashboardPage />;
   } else if (pathname.startsWith('/wallet')) {
     content = (
       <RoleGuard allowedRoles={['CUSTOMER', 'PARTNER', 'ADMIN']}>
