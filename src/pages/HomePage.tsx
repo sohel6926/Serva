@@ -30,9 +30,6 @@ import {
   AgricultureIllustration,
   EventIllustration,
   MovingIllustration,
-  RepairIllustration,
-  ManpowerIllustration,
-  MoreServicesIllustration,
 } from '../components/home/ServiceIllustrations.tsx';
 
 interface HomeCategory {
@@ -89,7 +86,7 @@ const BANNER_SLIDES = [
   },
 ];
 
-/* Mobile service grid tiles — 4 × 2 layout matching design mockup */
+/* Mobile service grid tiles — 5 core categories */
 const MOBILE_SERVICE_TILES = [
   {
     to: '/home-services',
@@ -120,24 +117,6 @@ const MOBILE_SERVICE_TILES = [
     label: 'Moving &\nShifting',
     Illustration: MovingIllustration,
     bg: 'bg-[#EDF5FF]',
-  },
-  {
-    to: '/home-services/repairing',
-    label: 'Repair &\nMaintenance',
-    Illustration: RepairIllustration,
-    bg: 'bg-[#F2F4FD]',
-  },
-  {
-    to: '/contractors',
-    label: 'Manpower\nServices',
-    Illustration: ManpowerIllustration,
-    bg: 'bg-[#EBF5FE]',
-  },
-  {
-    to: '/services',
-    label: 'More\nServices',
-    Illustration: MoreServicesIllustration,
-    bg: 'bg-[#EBF2FE]',
   },
 ];
 
@@ -519,7 +498,7 @@ export function HomePage() {
           </div>
         </div>
 
-        {/* ── Explore Our Services (4 × 2 grid matching mockup) ── */}
+        {/* ── Explore Our Services (5 core categories) ── */}
         <section className="mx-3">
           <div className="flex items-center justify-between mb-2.5">
             <h2 className="text-base font-bold text-[#0A1F5C]">Explore Our Services</h2>
@@ -527,7 +506,7 @@ export function HomePage() {
               View All <ArrowRight className="w-3 h-3" />
             </Link>
           </div>
-          <div className="grid grid-cols-4 gap-2.5">
+          <div className="grid grid-cols-5 gap-1.5 sm:gap-2">
             {MOBILE_SERVICE_TILES.map((tile) => (
               <Link
                 key={tile.label}
@@ -535,11 +514,11 @@ export function HomePage() {
                 className="flex flex-col items-center group active:scale-95 transition-transform"
               >
                 {/* Ultra-crisp vector illustration card */}
-                <div className={`w-full aspect-[1/0.82] rounded-2xl ${tile.bg} overflow-hidden shadow-[0_2px_8px_rgba(11,95,217,0.06)] border border-white/80 p-1 flex items-center justify-center`}>
+                <div className={`w-full aspect-[1/0.88] rounded-xl sm:rounded-2xl ${tile.bg} overflow-hidden shadow-[0_2px_8px_rgba(11,95,217,0.06)] border border-white/80 p-1 flex items-center justify-center`}>
                   <tile.Illustration />
                 </div>
                 {/* Label */}
-                <p className="text-[10px] font-semibold text-[#0A1F5C] text-center leading-tight whitespace-pre-line mt-1.5">
+                <p className="text-[9px] min-[375px]:text-[10px] font-semibold text-[#0A1F5C] text-center leading-tight whitespace-pre-line mt-1.5">
                   {tile.label}
                 </p>
               </Link>
