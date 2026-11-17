@@ -417,60 +417,85 @@ export function HomePage() {
       {/* ═══════════════════════════════════════════════
        *  MOBILE LAYOUT  (hidden on md+)
        * ═══════════════════════════════════════════════ */}
-      <div className="md:hidden -mx-3 space-y-3.5 pb-4">
+      <div className="md:hidden -mx-3 space-y-4 pb-6">
 
         {/* ── Search Bar (directly below header) ── */}
         <div className="mx-3">
           <form
             onSubmit={(e) => { e.preventDefault(); if (searchQuery.trim()) navigate(`/search?q=${encodeURIComponent(searchQuery)}`); }}
-            className="flex items-center gap-3 bg-white border border-[#DCE7F9] rounded-full px-4 py-2.5 shadow-[0_2px_12px_rgba(11,95,217,0.06)]"
+            className="flex items-center gap-2.5 bg-white/95 backdrop-blur-md border border-[#D5E3FA] hover:border-[#0B5FD9]/50 transition-colors rounded-full pl-3.5 pr-1.5 py-1.5 shadow-[0_4px_18px_rgba(11,95,217,0.08)]"
           >
-            <Search className="w-4 h-4 text-[#64748B] shrink-0" />
+            <div className="w-8 h-8 rounded-full bg-[#EBF4FE] flex items-center justify-center text-[#0B5FD9] shrink-0 shadow-inner">
+              <Search className="w-4 h-4" />
+            </div>
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search for services, e.g. Tractor Rental"
-              className="flex-1 text-xs sm:text-sm text-[#0A1F5C] placeholder-[#94A3B8] bg-transparent outline-none font-medium"
+              placeholder="Search for services, e.g. Tractor, Electrician..."
+              className="flex-1 text-xs sm:text-sm text-[#0A1F5C] placeholder-[#8A9BB8] bg-transparent outline-none font-medium"
             />
+            <button
+              type="submit"
+              className="px-3.5 py-1.5 rounded-full bg-gradient-to-r from-[#0B5FD9] to-[#1E6FE8] text-white text-xs font-bold shadow-sm shadow-blue-500/25 active:scale-95 transition-all cursor-pointer"
+            >
+              Search
+            </button>
           </form>
         </div>
 
         {/* ── Hero Card matching mockup ── */}
-        <section className="relative overflow-hidden bg-gradient-to-b from-[#EBF3FE] via-[#F4F8FE] to-white mx-3 rounded-3xl min-h-[195px] flex flex-col justify-between p-4.5 border border-[#E2EEFE]">
+        <section className="relative overflow-hidden bg-gradient-to-br from-[#E6F0FE] via-[#F2F7FE] to-[#DDEBFD] mx-3 rounded-3xl min-h-[205px] flex flex-col justify-between p-4.5 border border-white/80 shadow-[0_10px_30px_rgba(11,95,217,0.08)]">
+          {/* Subtle Ambient Decorative Glow Orbs */}
+          <div className="absolute -top-12 -left-12 w-40 h-40 bg-blue-400/15 rounded-full blur-2xl pointer-events-none" />
+          <div className="absolute -bottom-8 left-1/3 w-32 h-32 bg-indigo-300/15 rounded-full blur-2xl pointer-events-none" />
+
           {/* Badge & Text */}
-          <div className="z-10">
-            <span className="inline-flex items-center gap-1.5 bg-white/90 border border-[#DCE7F9] shadow-[0_2px_8px_rgba(11,95,217,0.06)] text-[#0B5FD9] text-[11px] font-semibold px-3 py-1 rounded-full mb-2.5">
-              <span className="text-[#0B5FD9]">✦</span> Multiple Services Provider
+          <div className="z-10 relative">
+            <span className="inline-flex items-center gap-1.5 bg-white/95 backdrop-blur-sm border border-[#D5E3FA] shadow-[0_2px_10px_rgba(11,95,217,0.06)] text-[#0B5FD9] text-[10.5px] font-bold px-3 py-1 rounded-full mb-2">
+              <span className="text-[#0B5FD9] text-xs">✦</span> Multiple Services Platform
             </span>
+
             {/* Headline */}
-            <h1 className="text-[21px] font-extrabold text-[#0A1F5C] leading-tight max-w-[62%]">
+            <h1 className="text-[21px] min-[375px]:text-[23px] font-extrabold text-[#0A1F5C] leading-[1.18] max-w-[62%] tracking-tight">
               All Your Service Needs <br />
-              in <span className="text-[#0B5FD9]">One Platform</span>
+              in <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#0B5FD9] to-[#084299]">One Platform</span>
             </h1>
+
             {/* Subtext */}
-            <p className="text-[11px] text-[#5B6B8C] mt-2 max-w-[58%] leading-relaxed">
-              Book trusted services for your Home, Construction, Events, Agriculture, Moving & Shifting and more.
+            <p className="text-[11px] text-[#55698C] mt-2 max-w-[58%] leading-relaxed font-medium">
+              Book verified experts for Home, Construction, Events, Agriculture & Shifting.
             </p>
+
+            {/* Micro Social-Proof / Trust Capsule */}
+            <div className="mt-3 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/85 backdrop-blur-md border border-white/80 shadow-sm text-[10px] font-bold text-[#0A1F5C]">
+              <span className="text-amber-500 text-xs">★</span>
+              <span>4.9</span>
+              <span className="text-[#94A3B8]">·</span>
+              <span className="text-[#55698C] font-semibold">10,000+ Happy Bookings</span>
+            </div>
           </div>
 
           {/* Serviceman with blue swoosh & verified badge — right side */}
-          <div className="absolute right-0 bottom-0 top-1 h-full w-[46%] pointer-events-none flex items-end justify-end">
+          <div className="absolute right-0 bottom-0 top-0 h-full w-[46%] pointer-events-none flex items-end justify-end">
             <img
               src="/src/assets/images/mobile_hero_serviceman.png"
               alt="SERVA Verified Professional"
-              className="h-[195px] w-auto object-contain object-bottom"
+              className="h-[205px] w-auto object-contain object-bottom drop-shadow-[0_8px_16px_rgba(11,95,217,0.15)]"
             />
           </div>
         </section>
 
-
-
         {/* ── Explore Our Services (5 core categories) ── */}
         <section className="mx-3">
           <div className="flex items-center justify-between mb-2.5">
-            <h2 className="text-base font-bold text-[#0A1F5C]">Explore Our Services</h2>
-            <Link to="/services" className="text-xs font-semibold text-[#0B5FD9] inline-flex items-center gap-0.5">
+            <div className="flex items-center gap-1.5">
+              <h2 className="text-base font-extrabold text-[#0A1F5C]">Explore Our Services</h2>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#EBF4FE] text-[#0B5FD9]">
+                5 Core
+              </span>
+            </div>
+            <Link to="/services" className="text-xs font-semibold text-[#0B5FD9] inline-flex items-center gap-0.5 hover:underline">
               View All <ArrowRight className="w-3 h-3" />
             </Link>
           </div>
@@ -479,14 +504,15 @@ export function HomePage() {
               <Link
                 key={tile.label}
                 to={tile.to}
-                className="flex flex-col items-center group active:scale-95 transition-transform"
+                className="flex flex-col items-center group active:scale-95 transition-all"
               >
-                {/* Ultra-crisp vector illustration card */}
-                <div className={`w-full aspect-[1/0.88] rounded-xl sm:rounded-2xl ${tile.bg} overflow-hidden shadow-[0_2px_8px_rgba(11,95,217,0.06)] border border-white/80 p-1 flex items-center justify-center`}>
+                {/* Ultra-crisp vector illustration card with subtle sheen and shadow */}
+                <div className={`w-full aspect-[1/0.88] rounded-2xl ${tile.bg} overflow-hidden shadow-[0_4px_12px_rgba(11,95,217,0.06)] border border-white p-1 flex items-center justify-center relative group-hover:shadow-[0_6px_18px_rgba(11,95,217,0.14)] group-hover:-translate-y-0.5 transition-all duration-200`}>
+                  <div className="absolute inset-0 bg-gradient-to-b from-white/40 via-transparent to-black/[0.02] pointer-events-none" />
                   <tile.Illustration />
                 </div>
                 {/* Label */}
-                <p className="text-[9px] min-[375px]:text-[10px] font-semibold text-[#0A1F5C] text-center leading-tight whitespace-pre-line mt-1.5">
+                <p className="text-[9.5px] min-[375px]:text-[10px] font-bold text-[#0A1F5C] text-center leading-[1.15] whitespace-pre-line mt-1.5 group-hover:text-[#0B5FD9] transition-colors">
                   {tile.label}
                 </p>
               </Link>
@@ -496,31 +522,31 @@ export function HomePage() {
 
         {/* ── Promotional Banner Carousel ── */}
         <section className="mx-3">
-          <div className="relative rounded-2xl overflow-hidden min-h-[185px] shadow-[0_4px_20px_rgba(11,95,217,0.08)] border border-slate-100 bg-slate-900">
+          <div className="relative rounded-3xl overflow-hidden min-h-[190px] shadow-[0_8px_26px_rgba(11,95,217,0.12)] border border-white bg-slate-950">
             <img
               src={currentSlide.image}
               alt={currentSlide.title}
               className="absolute inset-0 w-full h-full object-cover object-center transition-all duration-700 ease-out"
             />
             {/* Elegant dark scrim for text clarity without masking the image */}
-            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/30 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/35 to-transparent" />
 
-            {/* On-Banner Progress Line */}
-            <div className="absolute top-2.5 left-3.5 right-3.5 z-20 flex gap-1.5">
+            {/* On-Banner Stories-Style Progress Line in frosted capsule */}
+            <div className="absolute top-2.5 left-3.5 right-3.5 z-20 flex gap-1.5 p-1 rounded-full bg-black/25 backdrop-blur-md border border-white/10">
               {BANNER_SLIDES.map((_, i) => (
                 <button
                   key={i}
                   type="button"
                   onClick={() => setSlideIdx(i)}
                   aria-label={`Go to slide ${i + 1}`}
-                  className="flex-1 h-1 rounded-full overflow-hidden bg-white/35 backdrop-blur-sm cursor-pointer relative"
+                  className="flex-1 h-1 rounded-full overflow-hidden bg-white/30 cursor-pointer relative"
                 >
                   <div
                     className={`h-full rounded-full transition-all duration-300 ${
                       i === slideIdx
                         ? 'w-full bg-white shadow-sm'
                         : i < slideIdx
-                        ? 'w-full bg-white/70'
+                        ? 'w-full bg-white/60'
                         : 'w-0 bg-white'
                     }`}
                   />
@@ -528,22 +554,22 @@ export function HomePage() {
               ))}
             </div>
 
-            <div className="relative z-10 p-4 sm:p-5 pt-6 h-full flex flex-col justify-end min-h-[185px]">
+            <div className="relative z-10 p-4 sm:p-5 pt-7 h-full flex flex-col justify-end min-h-[190px]">
               <div>
-                <span className="inline-block px-2.5 py-0.5 rounded-full bg-white/20 backdrop-blur-md text-white text-[10px] font-semibold border border-white/25 mb-1.5 shadow-sm">
-                  Featured
+                <span className="inline-block px-2.5 py-0.5 rounded-full bg-white/20 backdrop-blur-md text-white text-[10px] font-bold border border-white/25 mb-1.5 shadow-sm">
+                  ★ Featured Special
                 </span>
-                <h3 className="text-base sm:text-lg font-bold text-white leading-tight drop-shadow-sm">
+                <h3 className="text-base sm:text-lg font-extrabold text-white leading-tight drop-shadow-md">
                   {currentSlide.title}
                 </h3>
-                <p className="text-white/85 text-[11px] sm:text-xs mt-1 line-clamp-2 leading-relaxed drop-shadow-sm max-w-[95%]">
+                <p className="text-white/90 text-[11px] sm:text-xs mt-1 line-clamp-2 leading-relaxed drop-shadow-sm max-w-[95%] font-medium">
                   {currentSlide.subtitle}
                 </p>
               </div>
               <div className="pt-3 flex flex-wrap items-center gap-2">
                 <Link
                   to={currentSlide.to}
-                  className="inline-flex items-center gap-1.5 bg-white text-[#0A1F5C] text-xs font-bold px-3.5 py-1.5 rounded-full shadow-md hover:bg-slate-50 active:scale-95 transition-all"
+                  className="inline-flex items-center gap-1.5 bg-white text-[#0A1F5C] text-xs font-extrabold px-4 py-2 rounded-full shadow-lg shadow-black/20 hover:bg-slate-50 active:scale-95 transition-all"
                 >
                   <span>{currentSlide.cta}</span>
                   <ArrowRight className="w-3.5 h-3.5 text-[#0A1F5C]" />
@@ -551,7 +577,7 @@ export function HomePage() {
                 <button
                   type="button"
                   onClick={() => setShowBannerEnquiry(true)}
-                  className="inline-flex items-center gap-1.5 bg-[#0B5FD9] text-white text-xs font-bold px-3.5 py-1.5 rounded-full shadow-md border border-white/20 hover:bg-blue-600 active:scale-95 transition-all cursor-pointer"
+                  className="inline-flex items-center gap-1.5 bg-gradient-to-r from-[#0B5FD9] to-[#1E6FE8] text-white text-xs font-bold px-4 py-2 rounded-full shadow-lg shadow-blue-600/30 border border-white/25 hover:from-blue-700 hover:to-blue-600 active:scale-95 transition-all cursor-pointer"
                 >
                   <MessageSquare className="w-3.5 h-3.5" />
                   <span>Enquire Now</span>
@@ -562,13 +588,13 @@ export function HomePage() {
         </section>
 
         {/* ── Services Cards of Each Service (below banner) ── */}
-        <section className="mx-3 space-y-3 pt-1">
+        <section className="mx-3 space-y-3 pt-2">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-base font-bold text-[#0A1F5C]">All Doorstep Services</h2>
-              <p className="text-[11px] text-[#5B6B8C]">Verified professionals with upfront transparent pricing</p>
+              <h2 className="text-base font-extrabold text-[#0A1F5C]">All Doorstep Services</h2>
+              <p className="text-[11px] text-[#55698C] font-medium">Verified professionals with upfront transparent pricing</p>
             </div>
-            <Link to="/services" className="text-xs font-semibold text-[#0B5FD9] inline-flex items-center gap-0.5">
+            <Link to="/services" className="text-xs font-semibold text-[#0B5FD9] inline-flex items-center gap-0.5 hover:underline">
               View All <ArrowRight className="w-3 h-3" />
             </Link>
           </div>
@@ -587,10 +613,11 @@ export function HomePage() {
                 key={cat.id}
                 type="button"
                 onClick={() => setSelectedCategory(cat.id)}
-                className={`snap-start shrink-0 min-h-[32px] px-3.5 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer ${selectedCategory === cat.id
-                  ? 'bg-[#0B5FD9] text-white shadow-sm shadow-blue-500/20'
-                  : 'bg-white border border-[#DCE7F9] text-[#0A1F5C] hover:bg-[#F1F6FF]'
-                  }`}
+                className={`snap-start shrink-0 min-h-[34px] px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                  selectedCategory === cat.id
+                    ? 'bg-gradient-to-r from-[#0B5FD9] to-[#1A6DE5] text-white shadow-md shadow-blue-500/25 scale-[1.02]'
+                    : 'bg-white border border-[#DCE7F9] text-[#475569] hover:bg-[#F1F6FF] shadow-sm'
+                }`}
               >
                 {cat.label}
               </button>
@@ -603,28 +630,31 @@ export function HomePage() {
               <Link
                 key={svc.id}
                 to={svc.to}
-                className="bg-white rounded-2xl border border-[#DCE7F9] overflow-hidden shadow-sm flex flex-col justify-between group active:scale-[0.98] transition-transform"
+                className="bg-white rounded-2xl border border-[#E4EEFC] overflow-hidden shadow-[0_4px_14px_rgba(11,95,217,0.05)] hover:shadow-[0_8px_24px_rgba(11,95,217,0.12)] hover:border-[#0B5FD9]/30 flex flex-col justify-between group active:scale-[0.98] transition-all"
               >
                 {/* Image with category badge */}
                 <div className="relative aspect-[16/11] bg-[#F1F6FF] overflow-hidden">
                   <img
                     src={svc.image}
                     alt={svc.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     loading="lazy"
                   />
-                  <span className="absolute top-2 left-2 bg-white/95 backdrop-blur-sm text-[#0A1F5C] text-[9px] font-bold px-2 py-0.5 rounded-full shadow-sm">
+                  <span className="absolute top-2 left-2 bg-white/95 backdrop-blur-md text-[#0A1F5C] text-[9px] font-extrabold px-2 py-0.5 rounded-full shadow-sm border border-white/60">
                     {svc.category}
                   </span>
+                  <div className="absolute bottom-1.5 left-2 bg-black/60 backdrop-blur-md text-white text-[8.5px] font-bold px-1.5 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
+                    <span className="text-amber-400">★</span> 4.9 · Verified
+                  </div>
                 </div>
 
                 {/* Details */}
-                <div className="p-2.5 flex-1 flex flex-col justify-between gap-2">
+                <div className="p-3 flex-1 flex flex-col justify-between gap-2.5">
                   <div>
                     <h3 className="text-xs font-bold text-[#0A1F5C] leading-snug line-clamp-1 group-hover:text-[#0B5FD9] transition-colors">
                       {svc.name}
                     </h3>
-                    <p className="text-[10px] text-[#5B6B8C] leading-tight line-clamp-2 mt-1">
+                    <p className="text-[10px] text-[#55698C] leading-tight line-clamp-2 mt-1">
                       {svc.tagline}
                     </p>
                   </div>
@@ -632,10 +662,10 @@ export function HomePage() {
                   {/* Price & Action Button */}
                   <div className="pt-2 border-t border-[#F1F6FF] flex items-center justify-between gap-1">
                     <div className="min-w-0">
-                      <p className="text-[9px] text-[#94A3B8] leading-none truncate">{svc.unit}</p>
-                      <p className="text-xs font-bold text-[#0B5FD9] leading-tight mt-0.5">{svc.price}</p>
+                      <p className="text-[9px] text-[#8A9BB8] leading-none truncate font-medium">{svc.unit}</p>
+                      <p className="text-xs font-extrabold text-[#0B5FD9] leading-tight mt-0.5">{svc.price}</p>
                     </div>
-                    <span className="shrink-0 min-h-[26px] px-2.5 rounded-full bg-[#0B5FD9] text-white text-[10px] font-bold inline-flex items-center gap-1 shadow-sm">
+                    <span className="shrink-0 min-h-[26px] px-2.5 rounded-full bg-gradient-to-r from-[#0B5FD9] to-[#1A6DE5] text-white text-[10px] font-bold inline-flex items-center gap-1 shadow-sm shadow-blue-500/20 group-hover:shadow-md transition-all">
                       Book <ArrowRight className="w-2.5 h-2.5" />
                     </span>
                   </div>
