@@ -9,7 +9,6 @@ import {
   Headphones,
   Home,
   LayoutGrid,
-  Mic,
   Search,
   ShieldCheck,
   Sprout,
@@ -441,6 +440,23 @@ export function HomePage() {
        * ═══════════════════════════════════════════════ */}
       <div className="md:hidden -mx-3 space-y-3.5 pb-4">
 
+        {/* ── Search Bar (directly below header) ── */}
+        <div className="mx-3">
+          <form
+            onSubmit={(e) => { e.preventDefault(); if (searchQuery.trim()) navigate(`/search?q=${encodeURIComponent(searchQuery)}`); }}
+            className="flex items-center gap-3 bg-white border border-[#DCE7F9] rounded-full px-4 py-2.5 shadow-[0_2px_12px_rgba(11,95,217,0.06)]"
+          >
+            <Search className="w-4 h-4 text-[#64748B] shrink-0" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search for services, e.g. Tractor Rental"
+              className="flex-1 text-xs sm:text-sm text-[#0A1F5C] placeholder-[#94A3B8] bg-transparent outline-none font-medium"
+            />
+          </form>
+        </div>
+
         {/* ── Hero Card matching mockup ── */}
         <section className="relative overflow-hidden bg-gradient-to-b from-[#EBF3FE] via-[#F4F8FE] to-white mx-3 rounded-3xl min-h-[195px] flex flex-col justify-between p-4.5 border border-[#E2EEFE]">
           {/* Badge & Text */}
@@ -468,26 +484,6 @@ export function HomePage() {
             />
           </div>
         </section>
-
-        {/* ── Search Bar ── */}
-        <div className="mx-3">
-          <form
-            onSubmit={(e) => { e.preventDefault(); if (searchQuery.trim()) navigate(`/search?q=${encodeURIComponent(searchQuery)}`); }}
-            className="flex items-center gap-3 bg-white border border-[#DCE7F9] rounded-full px-4 py-2.5 shadow-[0_2px_12px_rgba(11,95,217,0.06)]"
-          >
-            <Search className="w-4 h-4 text-[#64748B] shrink-0" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search for services, e.g. Tractor Rental"
-              className="flex-1 text-xs sm:text-sm text-[#0A1F5C] placeholder-[#94A3B8] bg-transparent outline-none font-medium"
-            />
-            <button type="button" aria-label="Voice search" className="w-8 h-8 rounded-full bg-[#F0F6FF] flex items-center justify-center text-[#0B5FD9] shrink-0 cursor-pointer">
-              <Mic className="w-4 h-4" />
-            </button>
-          </form>
-        </div>
 
         {/* ── CTA Buttons ── */}
         <div className="mx-3 grid grid-cols-2 gap-3">
