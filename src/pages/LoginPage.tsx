@@ -31,7 +31,7 @@ export function LoginPage() {
   const [regMobile, setRegMobile] = useState('');
   const [regEmail, setRegEmail] = useState('');
   const [regPassword, setRegPassword] = useState('');
-  const regRole = 'CUSTOMER';
+  const [regRole, setRegRole] = useState<'CUSTOMER' | 'PARTNER'>('CUSTOMER');
   const [regOtpSent, setRegOtpSent] = useState(false);
   const [regOtpCode, setRegOtpCode] = useState('');
 
@@ -194,7 +194,7 @@ export function LoginPage() {
         return;
       }
       await refreshUser();
-      navigate(nextPath);
+      navigate(regRole === 'PARTNER' ? '/partner/register' : nextPath);
     } catch {
       setError('Network error while creating account.');
     } finally {
@@ -313,9 +313,8 @@ export function LoginPage() {
               setTab('login');
               clearAlerts();
             }}
-            className={`min-h-[44px] rounded-xl text-sm font-semibold transition-colors cursor-pointer ${
-              tab === 'login' ? 'bg-white text-[#0A1F5C] shadow-sm' : 'text-[#5B6B8C]'
-            }`}
+            className={`min-h-[44px] rounded-xl text-sm font-semibold transition-colors cursor-pointer ${tab === 'login' ? 'bg-white text-[#0A1F5C] shadow-sm' : 'text-[#5B6B8C]'
+              }`}
           >
             Login
           </button>
@@ -327,9 +326,8 @@ export function LoginPage() {
               setTab('register');
               clearAlerts();
             }}
-            className={`min-h-[44px] rounded-xl text-sm font-semibold transition-colors cursor-pointer ${
-              tab === 'register' ? 'bg-white text-[#0A1F5C] shadow-sm' : 'text-[#5B6B8C]'
-            }`}
+            className={`min-h-[44px] rounded-xl text-sm font-semibold transition-colors cursor-pointer ${tab === 'register' ? 'bg-white text-[#0A1F5C] shadow-sm' : 'text-[#5B6B8C]'
+              }`}
           >
             Register
           </button>
@@ -367,11 +365,10 @@ export function LoginPage() {
                   setLoginMethod('password');
                   clearAlerts();
                 }}
-                className={`min-h-[40px] px-4 rounded-full text-xs font-semibold border cursor-pointer ${
-                  loginMethod === 'password'
-                    ? 'bg-[#0B5FD9] text-white border-[#0B5FD9]'
-                    : 'bg-white text-[#0A1F5C] border-[#DCE7F9]'
-                }`}
+                className={`min-h-[40px] px-4 rounded-full text-xs font-semibold border cursor-pointer ${loginMethod === 'password'
+                  ? 'bg-[#0B5FD9] text-white border-[#0B5FD9]'
+                  : 'bg-white text-[#0A1F5C] border-[#DCE7F9]'
+                  }`}
               >
                 Email / Mobile & Password
               </button>
@@ -381,11 +378,10 @@ export function LoginPage() {
                   setLoginMethod('otp');
                   clearAlerts();
                 }}
-                className={`min-h-[40px] px-4 rounded-full text-xs font-semibold border cursor-pointer ${
-                  loginMethod === 'otp'
-                    ? 'bg-[#0B5FD9] text-white border-[#0B5FD9]'
-                    : 'bg-white text-[#0A1F5C] border-[#DCE7F9]'
-                }`}
+                className={`min-h-[40px] px-4 rounded-full text-xs font-semibold border cursor-pointer ${loginMethod === 'otp'
+                  ? 'bg-[#0B5FD9] text-white border-[#0B5FD9]'
+                  : 'bg-white text-[#0A1F5C] border-[#DCE7F9]'
+                  }`}
               >
                 Mobile OTP
               </button>
@@ -649,19 +645,36 @@ export function LoginPage() {
               </div>
             </div>
 
+            <div>
+              <span className="block text-sm font-semibold text-[#0A1F5C] mb-1.5">Account Type</span>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setRegRole('CUSTOMER')}
+                  className={`min-h-[44px] px-4 rounded-xl border text-sm font-semibold cursor-pointer ${regRole === 'CUSTOMER'
+                    ? 'bg-[#EAF2FF] border-[#0B5FD9] text-[#0B5FD9]'
+                    : 'border-[#DCE7F9] text-[#0A1F5C]'
+                    }`}
+                >
+                  Customer
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setRegRole('PARTNER')}
+                  className={`min-h-[44px] px-4 rounded-xl border text-sm font-semibold cursor-pointer ${regRole === 'PARTNER'
+                    ? 'bg-[#EAF2FF] border-[#0B5FD9] text-[#0B5FD9]'
+                    : 'border-[#DCE7F9] text-[#0A1F5C]'
+                    }`}
+                >
+                  Service Partner
+                </button>
+              </div>
+            </div>
+
             <button type="submit" disabled={busy} className="w-full serva-pill-btn">
               <span>{busy ? 'Creating Account...' : 'Create Account'}</span>
               <ArrowRight className="w-4 h-4" />
             </button>
-
-            <div className="pt-2 text-center">
-              <p className="text-xs text-[#5B6B8C]">
-                Looking to offer services on SERVA?{' '}
-                <Link to="/partner/register" className="text-[#0B5FD9] font-semibold hover:underline">
-                  Register as a Service Partner →
-                </Link>
-              </p>
-            </div>
           </form>
         )}
 
