@@ -293,26 +293,13 @@ export function AppShell({ children, showServiceSidebar = false }: AppShellProps
                 )}
               </div>
             ) : (
-              <div className="flex items-center gap-1.5">
-                <button
-                  type="button"
-                  onClick={async () => {
-                    await loginAsDemo('customer');
-                  }}
-                  className="min-h-[34px] px-2.5 sm:px-3 py-1 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] sm:text-xs font-bold whitespace-nowrap shrink-0 inline-flex items-center gap-1 shadow-sm active:scale-95 transition-all cursor-pointer"
-                  title="One-click demo customer sign in"
-                >
-                  <Zap className="w-3.5 h-3.5 fill-current" />
-                  <span>Demo Login</span>
-                </button>
-                <Link
-                  to="/login"
-                  className="min-h-[34px] px-3 py-1 rounded-full bg-[#0B5FD9] hover:bg-[#094FB6] text-white text-[11px] sm:text-xs font-semibold whitespace-nowrap shrink-0 inline-flex items-center gap-1 shadow-sm active:scale-95 transition-all"
-                >
-                  <UserIcon className="w-3.5 h-3.5 text-white" />
-                  <span>{t('signIn')}</span>
-                </Link>
-              </div>
+              <Link
+                to="/login"
+                className="min-h-[36px] px-3.5 py-1.5 rounded-full bg-[#0B5FD9] hover:bg-[#094FB6] text-white text-xs font-semibold whitespace-nowrap shrink-0 inline-flex items-center gap-1.5 shadow-sm active:scale-95 transition-all"
+              >
+                <UserIcon className="w-3.5 h-3.5 text-white" />
+                <span>{t('signIn')}</span>
+              </Link>
             )}
 
             {/* Mobile drawer toggle */}
