@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   ArrowRight,
   Bell,
@@ -59,6 +59,59 @@ export function AppShell({ children, showServiceSidebar = false }: AppShellProps
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
 
+  const profileRef = useRef<HTMLDivElement>(null);
+  const notifRef = useRef<HTMLDivElement>(null);
+  const mobileMenuRef = useRef<HTMLDivElement>(null);
+  const mobileMenuButtonRef = useRef<HTMLButtonElement>(null);
+
+  // Automatically close any open menus or popups on page navigation
+  useEffect(() => {
+    setProfileOpen(false);
+    setNotifOpen(false);
+    setMobileMenuOpen(false);
+  }, [pathname]);
+
+  // Automatically close dropdowns/menus when clicking or tapping outside, or on pressing Escape
+  useEffect(() => {
+    if (!profileOpen && !notifOpen && !mobileMenuOpen) return;
+
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
+      const target = event.target as Node;
+      if (profileOpen && profileRef.current && !profileRef.current.contains(target)) {
+        setProfileOpen(false);
+      }
+      if (notifOpen && notifRef.current && !notifRef.current.contains(target)) {
+        setNotifOpen(false);
+      }
+      if (
+        mobileMenuOpen &&
+        mobileMenuRef.current &&
+        !mobileMenuRef.current.contains(target) &&
+        (!mobileMenuButtonRef.current || !mobileMenuButtonRef.current.contains(target))
+      ) {
+        setMobileMenuOpen(false);
+      }
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setProfileOpen(false);
+        setNotifOpen(false);
+        setMobileMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [profileOpen, notifOpen, mobileMenuOpen]);
+
   useEffect(() => {
     if (!user) {
       setNotifications([]);
@@ -107,7 +160,16 @@ export function AppShell({ children, showServiceSidebar = false }: AppShellProps
         <div className="max-w-7xl mx-auto h-full px-3 sm:px-6 flex items-center justify-between gap-4">
           {/* Zone 1: Brand */}
           <div className="flex items-center gap-2 shrink-0">
-            <Link to="/" aria-label="SERVA Home" className="shrink-0">
+            <Link
+              to="/"
+              onClick={() => {
+                setProfileOpen(false);
+                setNotifOpen(false);
+                setMobileMenuOpen(false);
+              }}
+              aria-label="SERVA Home"
+              className="shrink-0"
+            >
               <BrandLogo variant="horizontal" />
             </Link>
           </div>
@@ -121,6 +183,11 @@ export function AppShell({ children, showServiceSidebar = false }: AppShellProps
                 <Link
                   key={item.to}
                   to={item.to}
+                  onClick={() => {
+                    setProfileOpen(false);
+                    setNotifOpen(false);
+                    setMobileMenuOpen(false);
+                  }}
                   className={`text-sm font-medium whitespace-nowrap shrink-0 py-2 border-b-2 transition-colors ${
                     active
                       ? 'text-[#0B5FD9] border-[#0B5FD9]'
@@ -158,7 +225,12 @@ export function AppShell({ children, showServiceSidebar = false }: AppShellProps
             {/* Language Switcher EN / TE */}
             <button
               type="button"
-              onClick={() => setLanguage(language === 'en' ? 'te' : 'en')}
+              onClick={() => {
+                setProfileOpen(false);
+                setNotifOpen(false);
+                setMobileMenuOpen(false);
+                setLanguage(language === 'en' ? 'te' : 'en');
+              }}
               aria-label="Toggle language between English and Telugu"
               className="min-h-[36px] px-3 rounded-full border border-[#DCE7F9] bg-white hover:bg-[#F1F6FF] text-xs font-semibold text-[#0A1F5C] inline-flex items-center gap-1.5 whitespace-nowrap shrink-0 cursor-pointer shadow-sm"
             >
@@ -169,12 +241,13 @@ export function AppShell({ children, showServiceSidebar = false }: AppShellProps
 
             {/* Notifications (when logged in) */}
             {user && (
-              <div className="relative">
+              <div ref={notifRef} className="relative">
                 <button
                   type="button"
                   onClick={() => {
                     setNotifOpen((v) => !v);
                     setProfileOpen(false);
+                    setMobileMenuOpen(false);
                   }}
                   aria-label="Notifications"
                   className="relative min-w-[44px] min-h-[44px] rounded-full flex items-center justify-center text-[#0A1F5C] hover:bg-[#F1F6FF] cursor-pointer"
@@ -228,12 +301,13 @@ export function AppShell({ children, showServiceSidebar = false }: AppShellProps
 
             {/* Profile / Sign In */}
             {user ? (
-              <div className="relative">
+              <div ref={profileRef} className="relative">
                 <button
                   type="button"
                   onClick={() => {
                     setProfileOpen((v) => !v);
                     setNotifOpen(false);
+                    setMobileMenuOpen(false);
                   }}
                   className="min-h-[44px] pl-2.5 pr-3 rounded-full border border-[#DCE7F9] bg-white hover:bg-[#F1F6FF] flex items-center gap-2 text-sm font-semibold text-[#0A1F5C] whitespace-nowrap shrink-0 cursor-pointer"
                 >
@@ -304,8 +378,13 @@ export function AppShell({ children, showServiceSidebar = false }: AppShellProps
 
             {/* Mobile drawer toggle */}
             <button
+              ref={mobileMenuButtonRef}
               type="button"
-              onClick={() => setMobileMenuOpen((v) => !v)}
+              onClick={() => {
+                setMobileMenuOpen((v) => !v);
+                setProfileOpen(false);
+                setNotifOpen(false);
+              }}
               aria-label="Toggle menu"
               className="md:hidden min-w-[36px] min-h-[36px] flex items-center justify-center text-[#0A1F5C] hover:bg-[#F1F6FF] rounded-full cursor-pointer ml-0.5"
             >
@@ -316,7 +395,7 @@ export function AppShell({ children, showServiceSidebar = false }: AppShellProps
 
         {/* Mobile slide-down menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden bg-white border-b border-[#DCE7F9] px-4 py-4 space-y-2 shadow-lg">
+          <div ref={mobileMenuRef} className="md:hidden bg-white border-b border-[#DCE7F9] px-4 py-4 space-y-2 shadow-lg">
             <div className="flex items-center gap-2 px-3 py-2 bg-[#F1F6FF] rounded-xl text-xs text-[#0A1F5C]">
               <MapPin className="w-4 h-4 text-[#0B5FD9]" />
               <select
@@ -543,7 +622,15 @@ export function AppShell({ children, showServiceSidebar = false }: AppShellProps
           {(() => {
             const active = pathname === '/';
             return (
-              <Link to="/" className="flex flex-col items-center justify-center gap-0.5">
+              <Link
+                to="/"
+                onClick={() => {
+                  setProfileOpen(false);
+                  setNotifOpen(false);
+                  setMobileMenuOpen(false);
+                }}
+                className="flex flex-col items-center justify-center gap-0.5"
+              >
                 <div className={`w-13 h-7 rounded-2xl flex items-center justify-center transition-colors ${active ? 'bg-[#EBF2FE] text-[#0B5FD9]' : 'text-[#64748B]'}`}>
                   <Home className={`w-5 h-5 ${active ? 'fill-current' : ''}`} />
                 </div>
@@ -555,7 +642,15 @@ export function AppShell({ children, showServiceSidebar = false }: AppShellProps
           {(() => {
             const active = pathname.startsWith('/bookings');
             return (
-              <Link to="/bookings" className="flex flex-col items-center justify-center gap-0.5">
+              <Link
+                to="/bookings"
+                onClick={() => {
+                  setProfileOpen(false);
+                  setNotifOpen(false);
+                  setMobileMenuOpen(false);
+                }}
+                className="flex flex-col items-center justify-center gap-0.5"
+              >
                 <div className={`w-13 h-7 rounded-2xl flex items-center justify-center transition-colors ${active ? 'bg-[#EBF2FE] text-[#0B5FD9]' : 'text-[#64748B]'}`}>
                   <Calendar className="w-5 h-5" />
                 </div>
@@ -567,7 +662,15 @@ export function AppShell({ children, showServiceSidebar = false }: AppShellProps
           {(() => {
             const active = pathname.startsWith('/search');
             return (
-              <Link to="/search" className="flex flex-col items-center justify-center gap-0.5">
+              <Link
+                to="/search"
+                onClick={() => {
+                  setProfileOpen(false);
+                  setNotifOpen(false);
+                  setMobileMenuOpen(false);
+                }}
+                className="flex flex-col items-center justify-center gap-0.5"
+              >
                 <div className={`w-13 h-7 rounded-2xl flex items-center justify-center transition-colors ${active ? 'bg-[#EBF2FE] text-[#0B5FD9]' : 'text-[#64748B]'}`}>
                   <Search className="w-5 h-5" />
                 </div>
@@ -579,7 +682,15 @@ export function AppShell({ children, showServiceSidebar = false }: AppShellProps
           {(() => {
             const active = pathname.startsWith('/offers');
             return (
-              <Link to="/offers" className="flex flex-col items-center justify-center gap-0.5">
+              <Link
+                to="/offers"
+                onClick={() => {
+                  setProfileOpen(false);
+                  setNotifOpen(false);
+                  setMobileMenuOpen(false);
+                }}
+                className="flex flex-col items-center justify-center gap-0.5"
+              >
                 <div className="relative w-13 h-7 rounded-2xl flex items-center justify-center transition-colors text-[#64748B]">
                   <Tag className={`w-5 h-5 ${active ? 'text-[#0B5FD9]' : 'text-[#64748B]'}`} />
                   <span className="absolute top-1 right-3.5 w-2 h-2 rounded-full bg-[#EF4444]" />
@@ -594,7 +705,15 @@ export function AppShell({ children, showServiceSidebar = false }: AppShellProps
             const label = user ? t('navProfile') : 'Sign In';
             const active = pathname.startsWith(to);
             return (
-              <Link to={to} className="flex flex-col items-center justify-center gap-0.5">
+              <Link
+                to={to}
+                onClick={() => {
+                  setProfileOpen(false);
+                  setNotifOpen(false);
+                  setMobileMenuOpen(false);
+                }}
+                className="flex flex-col items-center justify-center gap-0.5"
+              >
                 <div className={`w-13 h-7 rounded-2xl flex items-center justify-center transition-colors ${active ? 'bg-[#EBF2FE] text-[#0B5FD9]' : 'text-[#64748B]'}`}>
                   <UserIcon className="w-5 h-5" />
                 </div>
