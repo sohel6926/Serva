@@ -1552,83 +1552,85 @@ Verification Portal: https://serva.in/verify/PTR-8821
 
       {/* ── Main Content Area ── */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-3.5 sm:px-6 py-3.5 sm:py-6 pb-24 md:pb-12 space-y-3.5 sm:space-y-5">
-        {/* Partner Identity Card */}
-        <div className="bg-white rounded-2xl border border-[#DCE7F9] shadow-[0_2px_12px_rgba(11,95,217,0.04)] p-3 sm:p-4.5">
-          <div className="flex items-center justify-between gap-3">
-            {/* Left: Avatar + Details */}
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="relative shrink-0">
-                <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-tr from-[#0B5FD9] to-[#0A1F5C] text-white flex items-center justify-center font-extrabold text-sm sm:text-base shadow-sm">
-                  {user?.name ? user.name.slice(0, 2).toUpperCase() : 'RK'}
+        {/* Partner Identity Card (Hidden on Profile tab to avoid duplicate banner) */}
+        {activeTab !== 'profile' && activeTab !== 'kyc' && (
+          <div className="bg-white rounded-2xl border border-[#DCE7F9] shadow-[0_2px_12px_rgba(11,95,217,0.04)] p-3 sm:p-4.5">
+            <div className="flex items-center justify-between gap-3">
+              {/* Left: Avatar + Details */}
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="relative shrink-0">
+                  <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-tr from-[#0B5FD9] to-[#0A1F5C] text-white flex items-center justify-center font-extrabold text-sm sm:text-base shadow-sm">
+                    {user?.name ? user.name.slice(0, 2).toUpperCase() : 'RK'}
+                  </div>
+                  <span
+                    className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white ${
+                      isOnline ? 'bg-emerald-500' : 'bg-slate-400'
+                    }`}
+                    title={isOnline ? 'On Duty' : 'Off Duty'}
+                  />
                 </div>
-                <span
-                  className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white ${
-                    isOnline ? 'bg-emerald-500' : 'bg-slate-400'
-                  }`}
-                  title={isOnline ? 'On Duty' : 'Off Duty'}
-                />
+
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <h1 className="text-sm sm:text-base font-extrabold text-[#0A1F5C] truncate">
+                      {user?.name || 'Ramesh Kumar'}
+                    </h1>
+                    <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                      <ShieldCheck className="w-3 h-3 text-emerald-600" />
+                      Verified
+                    </span>
+                    <span className="hidden xs:inline text-[10px] font-mono text-[#5B6B8C] bg-[#F1F6FF] px-1.5 py-0.5 rounded border border-[#E2EEFE]">
+                      ID: PTR-8821
+                    </span>
+                  </div>
+                  <p className="text-[11px] sm:text-xs text-[#5B6B8C] mt-0.5 flex items-center gap-1.5 truncate">
+                    <span className="font-medium text-[#0A1F5C]">Electrician & Home Services</span>
+                    <span>•</span>
+                    <span className="inline-flex items-center gap-0.5 text-[#5B6B8C]">
+                      <MapPin className="w-3 h-3 text-[#0B5FD9]" /> Hyderabad, TG
+                    </span>
+                  </p>
+                </div>
               </div>
 
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  <h1 className="text-sm sm:text-base font-extrabold text-[#0A1F5C] truncate">
-                    {user?.name || 'Ramesh Kumar'}
-                  </h1>
-                  <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                    <ShieldCheck className="w-3 h-3 text-emerald-600" />
-                    Verified
-                  </span>
-                  <span className="hidden xs:inline text-[10px] font-mono text-[#5B6B8C] bg-[#F1F6FF] px-1.5 py-0.5 rounded border border-[#E2EEFE]">
-                    ID: PTR-8821
-                  </span>
-                </div>
-                <p className="text-[11px] sm:text-xs text-[#5B6B8C] mt-0.5 flex items-center gap-1.5 truncate">
-                  <span className="font-medium text-[#0A1F5C]">Electrician & Home Services</span>
-                  <span>•</span>
-                  <span className="inline-flex items-center gap-0.5 text-[#5B6B8C]">
-                    <MapPin className="w-3 h-3 text-[#0B5FD9]" /> Hyderabad, TG
-                  </span>
-                </p>
+              {/* Right: Quick Action Chips (Desktop/Tablet only - Clean on mobile) */}
+              <div className="hidden sm:flex items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('reviews')}
+                  className="px-3 py-1.5 rounded-xl bg-[#F8FAFD] hover:bg-[#EBF2FE] border border-[#DCE7F9] flex items-center gap-1.5 text-xs transition-all cursor-pointer"
+                  title="View customer reviews"
+                >
+                  <Star className="w-3.5 h-3.5 text-amber-500 fill-current" />
+                  <span className="font-bold text-[#0A1F5C]">4.9</span>
+                  <span className="text-[11px] text-[#5B6B8C]">(142)</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('jobs')}
+                  className="px-3 py-1.5 rounded-xl bg-[#F8FAFD] hover:bg-[#EBF2FE] border border-[#DCE7F9] flex items-center gap-1.5 text-xs transition-all cursor-pointer"
+                  title="View service jobs"
+                >
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                  <span className="font-bold text-[#0A1F5C]">146</span>
+                  <span className="text-[11px] text-[#5B6B8C]">Jobs</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveTab('profile');
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold text-[#0B5FD9] hover:bg-blue-50 transition-all cursor-pointer"
+                >
+                  <span>Profile & KYC &rarr;</span>
+                </button>
               </div>
-            </div>
-
-            {/* Right: Quick Action Chips (Desktop/Tablet only - Clean on mobile) */}
-            <div className="hidden sm:flex items-center gap-2 shrink-0">
-              <button
-                type="button"
-                onClick={() => setActiveTab('reviews')}
-                className="px-3 py-1.5 rounded-xl bg-[#F8FAFD] hover:bg-[#EBF2FE] border border-[#DCE7F9] flex items-center gap-1.5 text-xs transition-all cursor-pointer"
-                title="View customer reviews"
-              >
-                <Star className="w-3.5 h-3.5 text-amber-500 fill-current" />
-                <span className="font-bold text-[#0A1F5C]">4.9</span>
-                <span className="text-[11px] text-[#5B6B8C]">(142)</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setActiveTab('jobs')}
-                className="px-3 py-1.5 rounded-xl bg-[#F8FAFD] hover:bg-[#EBF2FE] border border-[#DCE7F9] flex items-center gap-1.5 text-xs transition-all cursor-pointer"
-                title="View service jobs"
-              >
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                <span className="font-bold text-[#0A1F5C]">146</span>
-                <span className="text-[11px] text-[#5B6B8C]">Jobs</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setActiveTab('profile');
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                }}
-                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold text-[#0B5FD9] hover:bg-blue-50 transition-all cursor-pointer"
-              >
-                <span>Profile & KYC &rarr;</span>
-              </button>
             </div>
           </div>
-        </div>
+        )}
 
       {/* ═══════════════════════════════════════════════
        *  TAB 1: OVERVIEW (DASHBOARD)
