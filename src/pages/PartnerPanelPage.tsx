@@ -1367,8 +1367,27 @@ Verification Portal: https://serva.in/verify/PTR-8821
             </button>
           </div>
 
-          {/* Right: Quick Wallet, Admin Link, Customer Link & Partner Profile */}
+          {/* Right: Quick Wallet, Support Button, Admin Link, Customer Link & Partner Profile */}
           <div className="flex items-center gap-2 sm:gap-3">
+            {/* Mobile & Desktop Quick Support / Helpdesk Button */}
+            <button
+              type="button"
+              onClick={() => {
+                setActiveTab('support');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                activeTab === 'support'
+                  ? 'bg-[#EBF2FE] border-[#0B5FD9] text-[#0B5FD9]'
+                  : 'bg-[#F4F8FE] border-[#DCE7F9] text-[#0A1F5C] hover:bg-[#EBF2FE]'
+              }`}
+              title="24/7 Partner Support & Helpdesk"
+              aria-label="Partner Support & Helpdesk"
+            >
+              <HelpCircle className="w-4 h-4 text-[#0B5FD9]" />
+              <span className="hidden sm:inline">Support</span>
+            </button>
+
             <button
               type="button"
               onClick={() => setActiveTab('wallet')}
@@ -2494,11 +2513,24 @@ Verification Portal: https://serva.in/verify/PTR-8821
                 </p>
               </div>
 
-              <div className="p-4 rounded-2xl bg-[#F8FAFD] border border-[#E2EEFE]">
-                <span className="font-bold text-[#0A1F5C] block text-sm">Gold Support Priority</span>
-                <p className="text-[#5B6B8C] mt-1">
-                  Direct hotline access to SERVA Partner Desk (1800-123-4567) and 24x7 WhatsApp Partner Support.
-                </p>
+              <div className="p-4 rounded-2xl bg-[#F8FAFD] border border-[#E2EEFE] flex flex-col justify-between">
+                <div>
+                  <span className="font-bold text-[#0A1F5C] block text-sm">Gold Support Priority</span>
+                  <p className="text-[#5B6B8C] mt-1">
+                    Direct hotline access to SERVA Partner Desk (1800-123-4567) and 24x7 WhatsApp Partner Support.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveTab('support');
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  className="mt-3 text-xs font-bold text-[#0B5FD9] hover:text-blue-800 inline-flex items-center gap-1 self-start cursor-pointer"
+                >
+                  <HelpCircle className="w-3.5 h-3.5" />
+                  <span>Open Helpdesk & Tickets &rarr;</span>
+                </button>
               </div>
 
               <div className="p-4 rounded-2xl bg-[#F8FAFD] border border-[#E2EEFE]">
@@ -2860,13 +2892,14 @@ Verification Portal: https://serva.in/verify/PTR-8821
       </main>
 
       {/* ── Dedicated Partner Mobile Bottom Navigation Bar (md:hidden) ── */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-[#DCE7F9] shadow-[0_-4px_20px_rgba(0,0,0,0.06)] px-2 py-1.5 flex items-center justify-around">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-[#DCE7F9] shadow-[0_-4px_20px_rgba(0,0,0,0.06)] px-1 py-1.5 flex items-center justify-around">
         {[
           { id: 'overview' as const, label: 'Overview', icon: TrendingUp },
           { id: 'jobs' as const, label: 'Jobs', icon: Clock, badge: pendingRequests.length > 0 ? pendingRequests.length : undefined },
           { id: 'wallet' as const, label: 'Wallet', icon: Wallet },
-          { id: 'profile' as const, label: 'Profile', icon: UserCheck },
           { id: 'reviews' as const, label: 'Reviews', icon: Star },
+          { id: 'support' as const, label: 'Support', icon: HelpCircle },
+          { id: 'profile' as const, label: 'Profile', icon: UserCheck },
         ].map((tab) => {
           const Icon = tab.icon;
           const active = activeTab === tab.id || (tab.id === 'profile' && activeTab === 'kyc');
@@ -2878,7 +2911,7 @@ Verification Portal: https://serva.in/verify/PTR-8821
                 setActiveTab(tab.id);
                 window.scrollTo({ top: 0, behavior: 'smooth' });
               }}
-              className={`relative flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-all cursor-pointer ${
+              className={`relative flex flex-col items-center justify-center py-1 px-1.5 sm:px-2.5 rounded-xl transition-all cursor-pointer ${
                 active ? 'text-[#0B5FD9]' : 'text-[#5B6B8C] hover:text-[#0A1F5C]'
               }`}
             >
