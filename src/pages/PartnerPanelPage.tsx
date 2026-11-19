@@ -4,13 +4,18 @@ import {
   ArrowDownLeft,
   ArrowRight,
   ArrowUpRight,
+  Award,
+  Briefcase,
   Building2,
   Calendar,
   Check,
   CheckCircle2,
   Clock,
+  Copy,
   CreditCard,
   Download,
+  Edit3,
+  ExternalLink,
   Eye,
   EyeOff,
   FileCheck,
@@ -23,8 +28,10 @@ import {
   MessageSquare,
   Phone,
   Power,
+  QrCode,
   RefreshCw,
   Send,
+  Share2,
   Shield,
   ShieldCheck,
   Sparkles,
@@ -33,6 +40,7 @@ import {
   TrendingUp,
   Upload,
   User,
+  UserCheck,
   Wallet,
   X,
   Zap,
@@ -42,7 +50,7 @@ import { Link, useRouter } from '../lib/router.tsx';
 import { BrandLogo } from '../components/common/BrandLogo.tsx';
 
 /* Types for Partner Panel */
-type PanelTab = 'overview' | 'jobs' | 'wallet' | 'kyc' | 'reviews' | 'support';
+type PanelTab = 'overview' | 'jobs' | 'wallet' | 'kyc' | 'profile' | 'reviews' | 'support';
 
 interface PartnerJob {
   id: string;
@@ -1028,6 +1036,111 @@ export function PartnerPanelPage() {
   const [replyText, setReplyText] = useState<Record<string, string>>({});
   const [replyOpen, setReplyOpen] = useState<Record<string, boolean>>({});
 
+  // Profile state
+  const [profileMobile, setProfileMobile] = useState(() => {
+    return localStorage.getItem('serva_partner_mobile') || '+91 98765 43211';
+  });
+  const [profileAltMobile, setProfileAltMobile] = useState(() => {
+    return localStorage.getItem('serva_partner_altmobile') || '+91 98765 00000';
+  });
+  const [profileEmail, setProfileEmail] = useState(() => {
+    return localStorage.getItem('serva_partner_email') || 'ramesh.partner@serva.demo';
+  });
+  const [profileAddress, setProfileAddress] = useState(() => {
+    return localStorage.getItem('serva_partner_address') || 'Plot 42, Sri Rama Colony, Madhapur, Hyderabad, Telangana - 500081';
+  });
+  const [profileServiceRadius, setProfileServiceRadius] = useState(() => {
+    return localStorage.getItem('serva_partner_radius') || '15 km radius (Cyberabad & Central Hyderabad)';
+  });
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [editFormMobile, setEditFormMobile] = useState(profileMobile);
+  const [editFormAltMobile, setEditFormAltMobile] = useState(profileAltMobile);
+  const [editFormEmail, setEditFormEmail] = useState(profileEmail);
+  const [editFormAddress, setEditFormAddress] = useState(profileAddress);
+  const [editFormRadius, setEditFormRadius] = useState(profileServiceRadius);
+  const [profileNotice, setProfileNotice] = useState<string | null>(null);
+  const [copiedId, setCopiedId] = useState(false);
+
+  const handleSaveProfile = (e: React.FormEvent) => {
+    e.preventDefault();
+    setProfileMobile(editFormMobile);
+    setProfileAltMobile(editFormAltMobile);
+    setProfileEmail(editFormEmail);
+    setProfileAddress(editFormAddress);
+    setProfileServiceRadius(editFormRadius);
+    localStorage.setItem('serva_partner_mobile', editFormMobile);
+    localStorage.setItem('serva_partner_altmobile', editFormAltMobile);
+    localStorage.setItem('serva_partner_email', editFormEmail);
+    localStorage.setItem('serva_partner_address', editFormAddress);
+    localStorage.setItem('serva_partner_radius', editFormRadius);
+    setIsEditingProfile(false);
+    setProfileNotice('✓ Profile contact details updated successfully!');
+    setTimeout(() => setProfileNotice(null), 3500);
+  };
+
+  const handleCopyPartnerId = () => {
+    try {
+      navigator.clipboard.writeText('PTR-8821');
+      setCopiedId(true);
+      setTimeout(() => setCopiedId(false), 2000);
+    } catch {
+      setCopiedId(true);
+      setTimeout(() => setCopiedId(false), 2000);
+    }
+  };
+
+  const handleDownloadPartnerIdCard = () => {
+    const cardContent = `================================================================
+SERVA PARTNER DIGITAL IDENTITY CERTIFICATE & ID CARD
+================================================================
+OFFICIAL PARTNER ID : PTR-8821
+FULL NAME          : ${user?.name || 'Ramesh Kumar'}
+DESIGNATION        : Certified Doorstep Service Partner
+PARTNER TYPE       : Individual Professional Technician
+VERIFICATION STATUS: 100% FULLY VERIFIED & ACTIVE
+APPROVAL DATE      : 12 October 2026
+
+PRIMARY CATEGORY   : Home Services
+SPECIALIZATION     : Electrician, Wiring & AC Repair Specialist
+SERVICE AREA       : Hyderabad, Telangana (${profileServiceRadius})
+EXPERIENCE         : 8+ Years
+
+CONTACT DETAILS:
+- Mobile Number    : ${profileMobile} (OTP Verified)
+- Emergency Phone  : ${profileAltMobile}
+- Registered Email : ${profileEmail}
+- Operating Base   : ${profileAddress}
+
+GOVERNMENT & TAX COMPLIANCE:
+- PAN Card Number  : BPZPR4521K (Document Verified ✓)
+- Aadhaar UIDAI    : Linked & Verified (•••• •••• 6712)
+- Wireman License  : State Certified #TL-HYD-4412
+- Police Check     : Background Verification Cleared ✓
+
+PAYOUT & WALLET SETTINGS:
+- Primary Bank     : HDFC Bank Ltd. (Jubilee Hills Branch)
+- Account Number   : •••• •••• •••• 9283 (IFSC: HDFC0001234)
+- Direct UPI ID    : ramesh.partner@okhdfcbank
+- Standard Comm.   : 10% Flat (Partner keeps 90% payout)
+
+PERFORMANCE RECORD:
+- Completed Jobs   : 146 Doorstep Bookings
+- Customer Rating  : 4.9 / 5.0 (142 Customer Reviews)
+- Acceptance Rate  : 98.4%
+================================================================
+SERVA Operations Central Desk · Doorstep Verified Excellence
+Verification Portal: https://serva.in/verify/PTR-8821
+================================================================`;
+
+    const blob = new Blob([cardContent], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `SERVA-Partner-ID-Card-PTR-8821.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   // Sync to localStorage
   useEffect(() => {
     localStorage.setItem('serva_partner_jobs', JSON.stringify(jobs));
@@ -1282,13 +1395,41 @@ export function PartnerPanelPage() {
 
             {/* Profile Avatar & Sign Out */}
             <div className="flex items-center gap-2 pl-2 border-l border-slate-200">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#0B5FD9] to-[#0A1F5C] text-white flex items-center justify-center font-bold text-xs shadow-sm">
-                {user?.name ? user.name.slice(0, 2).toUpperCase() : 'RK'}
-              </div>
-              <div className="hidden xl:block text-left">
-                <div className="text-xs font-bold text-[#0A1F5C] leading-none">{user?.name || 'Ramesh Kumar'}</div>
-                <div className="text-[10px] text-emerald-600 font-semibold mt-0.5">Verified Partner</div>
-              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveTab('profile');
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                className={`flex items-center gap-2 p-1.5 rounded-xl transition-all cursor-pointer group text-left border ${
+                  activeTab === 'profile' || activeTab === 'kyc'
+                    ? 'bg-[#EBF2FE] border-[#0B5FD9] ring-2 ring-blue-500/20'
+                    : 'hover:bg-[#F1F6FF] border-transparent hover:border-[#DCE7F9]'
+                }`}
+                title="Click to view full Partner Profile & KYC details"
+              >
+                <div className="relative">
+                  <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#0B5FD9] to-[#0A1F5C] text-white flex items-center justify-center font-bold text-xs shadow-sm group-hover:scale-105 transition-transform">
+                    {user?.name ? user.name.slice(0, 2).toUpperCase() : 'RK'}
+                  </div>
+                  <span
+                    className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-white ${
+                      isOnline ? 'bg-emerald-500' : 'bg-slate-400'
+                    }`}
+                  />
+                </div>
+                <div className="hidden sm:block text-left">
+                  <div className="text-xs font-bold text-[#0A1F5C] group-hover:text-[#0B5FD9] transition-colors leading-none flex items-center gap-1">
+                    <span>{user?.name || 'Ramesh Kumar'}</span>
+                    <span className="text-[10px] text-[#0B5FD9] group-hover:translate-x-0.5 transition-transform">&rarr;</span>
+                  </div>
+                  <div className="text-[10px] text-emerald-600 font-semibold mt-0.5 flex items-center gap-0.5">
+                    <ShieldCheck className="w-3 h-3 text-emerald-600 inline" />
+                    <span>Verified Partner</span>
+                  </div>
+                </div>
+              </button>
+
               <button
                 type="button"
                 onClick={() => logout()}
@@ -1309,12 +1450,12 @@ export function PartnerPanelPage() {
               { id: 'overview' as const, label: 'Overview', icon: TrendingUp },
               { id: 'jobs' as const, label: `Service Jobs (${activeJobs.length})`, icon: Clock, badge: pendingRequests.length > 0 ? pendingRequests.length : undefined },
               { id: 'wallet' as const, label: 'Wallet & Withdrawals', icon: Wallet },
-              { id: 'kyc' as const, label: 'KYC & Profile', icon: FileCheck },
+              { id: 'profile' as const, label: 'Partner Profile & KYC', icon: UserCheck },
               { id: 'reviews' as const, label: `Reviews (${reviews.length})`, icon: Star },
               { id: 'support' as const, label: 'Support & Helpdesk', icon: HelpCircle },
             ].map((tab) => {
               const Icon = tab.icon;
-              const active = activeTab === tab.id;
+              const active = activeTab === tab.id || (tab.id === 'profile' && activeTab === 'kyc');
               return (
                 <button
                   key={tab.id}
@@ -1408,7 +1549,10 @@ export function PartnerPanelPage() {
 
               <button
                 type="button"
-                onClick={() => setActiveTab('kyc')}
+                onClick={() => {
+                  setActiveTab('profile');
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
                 className="hidden md:inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold text-[#0B5FD9] hover:bg-blue-50 transition-all cursor-pointer"
               >
                 <span>Profile & KYC &rarr;</span>
@@ -1989,117 +2133,379 @@ export function PartnerPanelPage() {
       )}
 
       {/* ═══════════════════════════════════════════════
-       *  TAB 4: KYC & PROFILE DOCUMENTS (PDF Section 2 & 3)
+       *  TAB 4: PARTNER PROFILE & KYC DETAILS
+       *  Simple, understandable, and complete
        * ═══════════════════════════════════════════════ */}
-      {activeTab === 'kyc' && (
+      {(activeTab === 'profile' || activeTab === 'kyc') && (
         <div className="space-y-6">
-          <div className="bg-white rounded-3xl border border-[#DCE7F9] p-6 shadow-sm space-y-6">
-            <div>
-              <h2 className="text-lg font-bold text-[#0A1F5C]">Partner KYC & Document Verification</h2>
-              <p className="text-xs text-[#5B6B8C]">
-                Official credentials, GST/PAN documentation, and withdrawal account settings.
-              </p>
+          {/* Notification toast if profile updated */}
+          {profileNotice && (
+            <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold flex items-center justify-between shadow-sm">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>{profileNotice}</span>
+              </div>
+              <button type="button" onClick={() => setProfileNotice(null)} className="text-emerald-700 hover:text-emerald-900 cursor-pointer">
+                <X className="w-4 h-4" />
+              </button>
             </div>
+          )}
 
-            {/* Verification Status Banner */}
-            <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
-                  <ShieldCheck className="w-6 h-6" />
+          {/* ── 1. Top Profile & ID Card Banner ── */}
+          <div className="bg-white rounded-3xl border border-[#DCE7F9] p-6 sm:p-7 shadow-sm">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-6 border-b border-[#EAF2FF]">
+              {/* Partner Identity */}
+              <div className="flex items-start sm:items-center gap-4.5">
+                <div className="relative shrink-0">
+                  <div className="w-20 h-20 rounded-2xl bg-gradient-to-tr from-[#0B5FD9] via-[#094FB6] to-[#0A1F5C] text-white flex items-center justify-center font-black text-2xl shadow-md border-2 border-white">
+                    {user?.name ? user.name.slice(0, 2).toUpperCase() : 'RK'}
+                  </div>
+                  <span
+                    className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 border-white flex items-center justify-center ${
+                      isOnline ? 'bg-emerald-500' : 'bg-slate-400'
+                    }`}
+                    title={isOnline ? 'On Duty · Online' : 'Off Duty · Offline'}
+                  >
+                    <span className={`w-2 h-2 rounded-full ${isOnline ? 'bg-white animate-pulse' : 'bg-white/60'}`} />
+                  </span>
                 </div>
+
                 <div>
-                  <h4 className="text-sm font-bold text-emerald-950">KYC Status: Fully Verified</h4>
-                  <p className="text-xs text-emerald-800">
-                    Your profile and bank credentials were approved by Admin on 12 Oct 2026.
+                  <div className="flex items-center gap-2.5 flex-wrap">
+                    <h1 className="text-xl sm:text-2xl font-black text-[#0A1F5C]">
+                      {user?.name || 'Ramesh Kumar'}
+                    </h1>
+                    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-xs">
+                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                      Verified Professional Partner
+                    </span>
+                  </div>
+
+                  <p className="text-xs sm:text-sm font-semibold text-[#0B5FD9] mt-1">
+                    Electrician, Wiring & Home Appliance Specialist
                   </p>
+
+                  <div className="flex items-center gap-3 mt-2 flex-wrap text-xs text-[#5B6B8C]">
+                    {/* Partner ID with Copy */}
+                    <button
+                      type="button"
+                      onClick={handleCopyPartnerId}
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#F1F6FF] border border-[#DCE7F9] hover:bg-[#E2EEFE] text-[#0A1F5C] font-mono font-bold transition-all cursor-pointer"
+                      title="Click to copy Partner ID"
+                    >
+                      <UserCheck className="w-3.5 h-3.5 text-[#0B5FD9]" />
+                      <span>ID: PTR-8821</span>
+                      <Copy className="w-3 h-3 text-slate-400" />
+                      {copiedId && <span className="text-[10px] text-emerald-600 font-bold ml-1">Copied!</span>}
+                    </button>
+
+                    <span className="inline-flex items-center gap-1 text-amber-600 font-bold bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200/60">
+                      <Star className="w-3.5 h-3.5 fill-current" />
+                      <span>4.9</span>
+                      <span className="text-[11px] text-[#5B6B8C] font-normal">(142 reviews)</span>
+                    </span>
+
+                    <span className="inline-flex items-center gap-1 text-[#5B6B8C]">
+                      <MapPin className="w-3.5 h-3.5 text-[#0B5FD9]" />
+                      <span>Hyderabad, Telangana</span>
+                    </span>
+
+                    <span className="inline-flex items-center gap-1 text-[#5B6B8C]">
+                      <Calendar className="w-3.5 h-3.5 text-[#5B6B8C]" />
+                      <span>Partner since Oct 2024</span>
+                    </span>
+                  </div>
                 </div>
               </div>
-              <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-600 text-white">
-                Active & Approved
-              </span>
+
+              {/* Action Buttons */}
+              <div className="flex items-center gap-2.5 flex-wrap self-start lg:self-center">
+                <button
+                  type="button"
+                  onClick={handleDownloadPartnerIdCard}
+                  className="px-4 py-2.5 rounded-xl bg-[#0B5FD9] hover:bg-[#094FB6] text-white text-xs font-bold inline-flex items-center gap-2 shadow-sm transition-all cursor-pointer"
+                  title="Download digital ID certificate"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>Download Partner ID</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setIsEditingProfile(true)}
+                  className="px-4 py-2.5 rounded-xl bg-[#F4F8FE] hover:bg-[#EBF2FE] border border-[#DCE7F9] text-[#0A1F5C] text-xs font-bold inline-flex items-center gap-2 transition-all cursor-pointer"
+                >
+                  <Edit3 className="w-3.5 h-3.5 text-[#0B5FD9]" />
+                  <span>Edit Contact Details</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={toggleDuty}
+                  className={`px-3.5 py-2.5 rounded-xl text-xs font-bold inline-flex items-center gap-2 border transition-all cursor-pointer ${
+                    isOnline
+                      ? 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100'
+                      : 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200'
+                  }`}
+                >
+                  <span className={`w-2 h-2 rounded-full ${isOnline ? 'bg-emerald-600 animate-pulse' : 'bg-slate-400'}`} />
+                  <span>{isOnline ? 'Duty: Online' : 'Duty: Offline'}</span>
+                </button>
+              </div>
             </div>
 
-            {/* Document Details Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Common Details */}
-              <div className="p-4.5 rounded-2xl bg-[#F8FAFD] border border-[#E2EEFE] space-y-3">
+            {/* 4 Summary Highlight Counters */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 pt-6">
+              <div className="p-3.5 rounded-2xl bg-[#F8FAFD] border border-[#EAF2FF]">
+                <div className="text-[11px] font-semibold text-[#5B6B8C]">Completed Doorstep Jobs</div>
+                <div className="text-xl font-black text-[#0A1F5C] mt-1">146</div>
+                <div className="text-[11px] text-emerald-600 font-bold mt-0.5">✓ 98.4% Completion Rate</div>
+              </div>
+
+              <div className="p-3.5 rounded-2xl bg-[#F8FAFD] border border-[#EAF2FF]">
+                <div className="text-[11px] font-semibold text-[#5B6B8C]">Customer Rating</div>
+                <div className="text-xl font-black text-amber-600 mt-1 flex items-center gap-1">
+                  <span>4.9</span>
+                  <Star className="w-4 h-4 fill-current inline" />
+                </div>
+                <div className="text-[11px] text-[#5B6B8C] font-medium mt-0.5">Top 5% Rated in Hyderabad</div>
+              </div>
+
+              <div className="p-3.5 rounded-2xl bg-[#F8FAFD] border border-[#EAF2FF]">
+                <div className="text-[11px] font-semibold text-[#5B6B8C]">Available Wallet Balance</div>
+                <div className="text-xl font-black text-[#0B5FD9] mt-1">{formatINR(walletBalancePaise)}</div>
+                <div className="text-[11px] text-[#0B5FD9] font-bold mt-0.5">Instant Withdrawal Ready</div>
+              </div>
+
+              <div className="p-3.5 rounded-2xl bg-[#F8FAFD] border border-[#EAF2FF]">
+                <div className="text-[11px] font-semibold text-[#5B6B8C]">Partnership Status</div>
+                <div className="text-xl font-black text-emerald-700 mt-1">Active & Approved</div>
+                <div className="text-[11px] text-emerald-600 font-bold mt-0.5">Zero Infractions / Clear</div>
+              </div>
+            </div>
+          </div>
+
+          {/* ── 2. Grid with Complete & Simple Profile Details ── */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Card A: Personal & Contact Information */}
+            <div className="bg-white rounded-3xl border border-[#DCE7F9] p-6 shadow-sm space-y-4">
+              <div className="flex items-center justify-between border-b border-[#F0F4FA] pb-3">
                 <h3 className="text-sm font-bold text-[#0A1F5C] flex items-center gap-2">
                   <User className="w-4 h-4 text-[#0B5FD9]" />
-                  <span>Personal & Contact Credentials</span>
+                  <span>Personal & Contact Information</span>
                 </h3>
-                <div className="space-y-2 text-xs">
-                  <div className="flex justify-between py-1 border-b border-slate-100">
-                    <span className="text-[#5B6B8C]">Registered Full Name:</span>
-                    <span className="font-bold text-[#0A1F5C]">Ramesh Kumar</span>
-                  </div>
-                  <div className="flex justify-between py-1 border-b border-slate-100">
-                    <span className="text-[#5B6B8C]">Mobile (OTP Verified):</span>
-                    <span className="font-bold text-[#0A1F5C]">+91 98765 00001 ✓</span>
-                  </div>
-                  <div className="flex justify-between py-1 border-b border-slate-100">
-                    <span className="text-[#5B6B8C]">Registered Email:</span>
-                    <span className="font-bold text-[#0A1F5C]">ramesh.partner@serva.demo</span>
-                  </div>
-                  <div className="flex justify-between py-1">
-                    <span className="text-[#5B6B8C]">Operational Service Area:</span>
-                    <span className="font-bold text-[#0A1F5C]">Hyderabad (15 km radius)</span>
-                  </div>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsEditingProfile(true)}
+                  className="text-xs font-bold text-[#0B5FD9] hover:underline flex items-center gap-1 cursor-pointer"
+                >
+                  <Edit3 className="w-3 h-3" />
+                  <span>Edit</span>
+                </button>
               </div>
 
-              {/* Tax & Business Identification */}
-              <div className="p-4.5 rounded-2xl bg-[#F8FAFD] border border-[#E2EEFE] space-y-3">
+              <div className="space-y-3 text-xs">
+                <div className="flex flex-col sm:flex-row sm:justify-between py-1.5 border-b border-slate-100 gap-1">
+                  <span className="text-[#5B6B8C]">Full Legal Name:</span>
+                  <span className="font-bold text-[#0A1F5C]">{user?.name || 'Ramesh Kumar'} (as per PAN)</span>
+                </div>
+                <div className="flex flex-col sm:flex-row sm:justify-between py-1.5 border-b border-slate-100 gap-1">
+                  <span className="text-[#5B6B8C]">Primary Mobile Number:</span>
+                  <span className="font-bold text-[#0A1F5C] flex items-center gap-1">
+                    <span>{profileMobile}</span>
+                    <span className="text-[10px] font-extrabold text-emerald-600 bg-emerald-50 px-1.5 py-0.2 rounded">OTP Verified ✓</span>
+                  </span>
+                </div>
+                <div className="flex flex-col sm:flex-row sm:justify-between py-1.5 border-b border-slate-100 gap-1">
+                  <span className="text-[#5B6B8C]">Secondary / Alternate Phone:</span>
+                  <span className="font-bold text-[#0A1F5C]">{profileAltMobile}</span>
+                </div>
+                <div className="flex flex-col sm:flex-row sm:justify-between py-1.5 border-b border-slate-100 gap-1">
+                  <span className="text-[#5B6B8C]">Registered Email:</span>
+                  <span className="font-bold text-[#0A1F5C] flex items-center gap-1">
+                    <span>{profileEmail}</span>
+                    <span className="text-[10px] font-extrabold text-emerald-600 bg-emerald-50 px-1.5 py-0.2 rounded">Verified ✓</span>
+                  </span>
+                </div>
+                <div className="flex flex-col sm:flex-row sm:justify-between py-1.5 border-b border-slate-100 gap-1">
+                  <span className="text-[#5B6B8C]">Communication Languages:</span>
+                  <span className="font-bold text-[#0A1F5C]">Telugu (Native), Hindi, English</span>
+                </div>
+                <div className="flex flex-col sm:flex-row sm:justify-between py-1.5 gap-1">
+                  <span className="text-[#5B6B8C]">Base Operating Address:</span>
+                  <span className="font-bold text-[#0A1F5C] text-left sm:text-right max-w-xs">{profileAddress}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Card B: Service Coverage & Skills */}
+            <div className="bg-white rounded-3xl border border-[#DCE7F9] p-6 shadow-sm space-y-4">
+              <div className="flex items-center justify-between border-b border-[#F0F4FA] pb-3">
                 <h3 className="text-sm font-bold text-[#0A1F5C] flex items-center gap-2">
-                  <FileText className="w-4 h-4 text-[#0B5FD9]" />
-                  <span>Government Identification & Tax</span>
+                  <Briefcase className="w-4 h-4 text-[#0B5FD9]" />
+                  <span>Service Coverage & Specializations</span>
                 </h3>
-                <div className="space-y-2 text-xs">
-                  <div className="flex justify-between py-1 border-b border-slate-100">
-                    <span className="text-[#5B6B8C]">Partner Type:</span>
-                    <span className="font-bold text-[#0A1F5C]">Individual Professional</span>
-                  </div>
-                  <div className="flex justify-between py-1 border-b border-slate-100">
-                    <span className="text-[#5B6B8C]">PAN Card Number:</span>
-                    <span className="font-mono-num font-bold text-[#0A1F5C]">ABCDE1234F</span>
-                  </div>
-                  <div className="flex justify-between py-1 border-b border-slate-100">
-                    <span className="text-[#5B6B8C]">PAN Document Image:</span>
-                    <span className="text-emerald-700 font-bold">Uploaded & Verified ✓</span>
-                  </div>
-                  <div className="flex justify-between py-1">
-                    <span className="text-[#5B6B8C]">Trade License / GSTIN:</span>
-                    <span className="text-[#5B6B8C] italic">Not Required (Individual)</span>
-                  </div>
-                </div>
+                <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                  Active in Hyderabad
+                </span>
               </div>
 
-              {/* Payout Bank Account */}
-              <div className="p-4.5 rounded-2xl bg-[#F8FAFD] border border-[#E2EEFE] space-y-3 md:col-span-2">
+              <div className="space-y-3 text-xs">
+                <div className="flex flex-col sm:flex-row sm:justify-between py-1.5 border-b border-slate-100 gap-1">
+                  <span className="text-[#5B6B8C]">Primary Category:</span>
+                  <span className="font-bold text-[#0A1F5C]">Home Services & Electrical Repair</span>
+                </div>
+                <div className="flex flex-col sm:flex-row sm:justify-between py-1.5 border-b border-slate-100 gap-1">
+                  <span className="text-[#5B6B8C]">Operating Radius:</span>
+                  <span className="font-bold text-[#0A1F5C]">{profileServiceRadius}</span>
+                </div>
+                <div className="py-1.5 border-b border-slate-100">
+                  <span className="text-[#5B6B8C] block mb-2">Registered Doorstep Skills:</span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {[
+                      'Switchboard & MCB Repair',
+                      'AC Installation & Gas Top-up',
+                      'Geyser Power Socket & Heating Line',
+                      'Inverter & Battery Wiring',
+                      'Chandelier & False Ceiling Lights',
+                      'Appliance Earthing & Safety Inspection',
+                    ].map((skill) => (
+                      <span key={skill} className="px-2 py-1 rounded-md bg-[#F4F8FE] text-[#0A1F5C] font-semibold text-[11px] border border-[#DCE7F9]">
+                        ✓ {skill}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+                <div className="flex flex-col sm:flex-row sm:justify-between py-1.5 border-b border-slate-100 gap-1">
+                  <span className="text-[#5B6B8C]">Field Experience:</span>
+                  <span className="font-bold text-[#0A1F5C]">8+ Years in Electrical Engineering</span>
+                </div>
+                <div className="flex flex-col sm:flex-row sm:justify-between py-1.5 gap-1">
+                  <span className="text-[#5B6B8C]">Safety Toolkit & Inspection Gear:</span>
+                  <span className="font-bold text-[#0A1F5C]">1000V Insulated Toolset, Multimeter, SERVA Uniform</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Card C: Government KYC & Compliance Details (PDF SOW Sec 2 & 3) */}
+            <div className="bg-white rounded-3xl border border-[#DCE7F9] p-6 shadow-sm space-y-4">
+              <div className="flex items-center justify-between border-b border-[#F0F4FA] pb-3">
+                <h3 className="text-sm font-bold text-[#0A1F5C] flex items-center gap-2">
+                  <FileCheck className="w-4 h-4 text-[#0B5FD9]" />
+                  <span>Government KYC & Verification Documents</span>
+                </h3>
+                <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                  100% Cleared ✓
+                </span>
+              </div>
+
+              <div className="space-y-3 text-xs">
+                <div className="flex flex-col sm:flex-row sm:justify-between py-1.5 border-b border-slate-100 gap-1">
+                  <span className="text-[#5B6B8C]">KYC Approval Status:</span>
+                  <span className="font-bold text-emerald-700">Verified by Admin Operations (12 Oct 2026)</span>
+                </div>
+                <div className="flex flex-col sm:flex-row sm:justify-between py-1.5 border-b border-slate-100 gap-1">
+                  <span className="text-[#5B6B8C]">Partner Classification:</span>
+                  <span className="font-bold text-[#0A1F5C]">Individual Professional Technician</span>
+                </div>
+                <div className="flex flex-col sm:flex-row sm:justify-between py-1.5 border-b border-slate-100 gap-1">
+                  <span className="text-[#5B6B8C]">Permanent Account Number (PAN):</span>
+                  <span className="font-bold text-[#0A1F5C] flex items-center gap-2">
+                    <span className="font-mono">BPZPR4521K</span>
+                    <span className="text-[10px] text-emerald-600 bg-emerald-50 px-1.5 py-0.2 rounded font-bold">Document Attached ✓</span>
+                  </span>
+                </div>
+                <div className="flex flex-col sm:flex-row sm:justify-between py-1.5 border-b border-slate-100 gap-1">
+                  <span className="text-[#5B6B8C]">Aadhaar / National Identity:</span>
+                  <span className="font-bold text-[#0A1F5C] flex items-center gap-2">
+                    <span className="font-mono">•••• •••• 6712</span>
+                    <span className="text-[10px] text-emerald-600 bg-emerald-50 px-1.5 py-0.2 rounded font-bold">UIDAI Linked ✓</span>
+                  </span>
+                </div>
+                <div className="flex flex-col sm:flex-row sm:justify-between py-1.5 border-b border-slate-100 gap-1">
+                  <span className="text-[#5B6B8C]">Police Verification & Criminal Check:</span>
+                  <span className="font-bold text-emerald-700">Cleared (Zero Adverse Record)</span>
+                </div>
+                <div className="flex flex-col sm:flex-row sm:justify-between py-1.5 gap-1">
+                  <span className="text-[#5B6B8C]">Wireman / Technical License:</span>
+                  <span className="font-bold text-[#0A1F5C]">State License #TL-HYD-4412</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Card D: Payout Bank & UPI Settlement (PDF SOW Sec 3) */}
+            <div className="bg-white rounded-3xl border border-[#DCE7F9] p-6 shadow-sm space-y-4">
+              <div className="flex items-center justify-between border-b border-[#F0F4FA] pb-3">
                 <h3 className="text-sm font-bold text-[#0A1F5C] flex items-center gap-2">
                   <Building2 className="w-4 h-4 text-[#0B5FD9]" />
                   <span>Withdrawal Bank Account & UPI Setup</span>
                 </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
-                  <div className="p-3 bg-white rounded-xl border border-slate-200">
-                    <span className="text-[#5B6B8C] block">Bank Name</span>
-                    <span className="font-bold text-[#0A1F5C] text-sm mt-0.5 block">HDFC Bank</span>
-                    <span className="text-[11px] text-[#5B6B8C]">Jubilee Hills Branch</span>
-                  </div>
-                  <div className="p-3 bg-white rounded-xl border border-slate-200">
-                    <span className="text-[#5B6B8C] block">Account Number & IFSC</span>
-                    <span className="font-bold text-[#0A1F5C] text-sm font-mono-num mt-0.5 block">
-                      50100482914821
-                    </span>
-                    <span className="text-[11px] text-[#5B6B8C] font-mono-num">IFSC: HDFC0001234</span>
-                  </div>
-                  <div className="p-3 bg-white rounded-xl border border-slate-200">
-                    <span className="text-[#5B6B8C] block">Primary UPI Address</span>
-                    <span className="font-bold text-[#0A1F5C] text-sm mt-0.5 block truncate">
-                      ramesh.partner@okhdfcbank
-                    </span>
-                    <span className="text-[11px] text-emerald-600 font-bold">Direct Payout Enabled ✓</span>
-                  </div>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('wallet')}
+                  className="text-xs font-bold text-[#0B5FD9] hover:underline flex items-center gap-1 cursor-pointer"
+                >
+                  <Wallet className="w-3 h-3" />
+                  <span>Open Wallet</span>
+                </button>
+              </div>
+
+              <div className="space-y-3 text-xs">
+                <div className="flex flex-col sm:flex-row sm:justify-between py-1.5 border-b border-slate-100 gap-1">
+                  <span className="text-[#5B6B8C]">Receiving Bank Name:</span>
+                  <span className="font-bold text-[#0A1F5C]">HDFC Bank Ltd. (Jubilee Hills Branch)</span>
                 </div>
+                <div className="flex flex-col sm:flex-row sm:justify-between py-1.5 border-b border-slate-100 gap-1">
+                  <span className="text-[#5B6B8C]">Account Holder Name:</span>
+                  <span className="font-bold text-[#0A1F5C]">{user?.name || 'Ramesh Kumar'}</span>
+                </div>
+                <div className="flex flex-col sm:flex-row sm:justify-between py-1.5 border-b border-slate-100 gap-1">
+                  <span className="text-[#5B6B8C]">Bank Account Number:</span>
+                  <span className="font-bold text-[#0A1F5C] font-mono">•••• •••• •••• 9283</span>
+                </div>
+                <div className="flex flex-col sm:flex-row sm:justify-between py-1.5 border-b border-slate-100 gap-1">
+                  <span className="text-[#5B6B8C]">Branch IFSC Code:</span>
+                  <span className="font-bold text-[#0A1F5C] font-mono">HDFC0001234</span>
+                </div>
+                <div className="flex flex-col sm:flex-row sm:justify-between py-1.5 border-b border-slate-100 gap-1">
+                  <span className="text-[#5B6B8C]">Instant UPI Payout ID:</span>
+                  <span className="font-bold text-[#0B5FD9] font-mono">ramesh.partner@okhdfcbank</span>
+                </div>
+                <div className="flex flex-col sm:flex-row sm:justify-between py-1.5 gap-1">
+                  <span className="text-[#5B6B8C]">Settlement Time:</span>
+                  <span className="font-bold text-emerald-700">Instant (24x7 Real-Time Payout)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* ── 3. Commercial Terms & Platform Partnership ── */}
+          <div className="bg-white rounded-3xl border border-[#DCE7F9] p-6 shadow-sm">
+            <h3 className="text-sm font-bold text-[#0A1F5C] mb-4 flex items-center gap-2">
+              <Award className="w-4 h-4 text-[#0B5FD9]" />
+              <span>Commercial Terms, Commission & Safety Agreement</span>
+            </h3>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+              <div className="p-4 rounded-2xl bg-[#F8FAFD] border border-[#E2EEFE]">
+                <span className="font-bold text-[#0A1F5C] block text-sm">10% Platform Commission</span>
+                <p className="text-[#5B6B8C] mt-1">
+                  Standard platform service fee. You retain 90% of gross order value for all completed bookings.
+                </p>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-[#F8FAFD] border border-[#E2EEFE]">
+                <span className="font-bold text-[#0A1F5C] block text-sm">Gold Support Priority</span>
+                <p className="text-[#5B6B8C] mt-1">
+                  Direct hotline access to SERVA Partner Desk (1800-123-4567) and 24x7 WhatsApp Partner Support.
+                </p>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-[#F8FAFD] border border-[#E2EEFE]">
+                <span className="font-bold text-[#0A1F5C] block text-sm">₹50,000 Doorstep Insurance</span>
+                <p className="text-[#5B6B8C] mt-1">
+                  Complimentary accidental and third-party transit protection while on active service duty.
+                </p>
               </div>
             </div>
           </div>
@@ -2351,6 +2757,106 @@ export function PartnerPanelPage() {
           </div>
         </div>
       )}
+
+      {/* ── Edit Profile Modal ── */}
+      {isEditingProfile && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl border border-[#DCE7F9] max-w-lg w-full p-6 sm:p-7 shadow-2xl space-y-5 animate-scale-up">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-blue-50 text-[#0B5FD9] flex items-center justify-center">
+                  <Edit3 className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-[#0A1F5C]">Edit Contact Information</h3>
+                  <p className="text-xs text-[#5B6B8C]">Keep your contact and operating radius up to date.</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsEditingProfile(false)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveProfile} className="space-y-4 text-xs">
+              <div>
+                <label className="block font-bold text-[#0A1F5C] mb-1">Primary Mobile Number</label>
+                <input
+                  type="text"
+                  required
+                  value={editFormMobile}
+                  onChange={(e) => setEditFormMobile(e.target.value)}
+                  className="w-full p-2.5 rounded-xl border border-[#DCE7F9] font-medium text-xs focus:outline-none focus:border-[#0B5FD9]"
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-[#0A1F5C] mb-1">Secondary / Emergency Phone</label>
+                <input
+                  type="text"
+                  value={editFormAltMobile}
+                  onChange={(e) => setEditFormAltMobile(e.target.value)}
+                  className="w-full p-2.5 rounded-xl border border-[#DCE7F9] font-medium text-xs focus:outline-none focus:border-[#0B5FD9]"
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-[#0A1F5C] mb-1">Registered Email Address</label>
+                <input
+                  type="email"
+                  required
+                  value={editFormEmail}
+                  onChange={(e) => setEditFormEmail(e.target.value)}
+                  className="w-full p-2.5 rounded-xl border border-[#DCE7F9] font-medium text-xs focus:outline-none focus:border-[#0B5FD9]"
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-[#0A1F5C] mb-1">Base Operating Address</label>
+                <textarea
+                  rows={2}
+                  required
+                  value={editFormAddress}
+                  onChange={(e) => setEditFormAddress(e.target.value)}
+                  className="w-full p-2.5 rounded-xl border border-[#DCE7F9] font-medium text-xs focus:outline-none focus:border-[#0B5FD9]"
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-[#0A1F5C] mb-1">Operating Service Area Radius</label>
+                <select
+                  value={editFormRadius}
+                  onChange={(e) => setEditFormRadius(e.target.value)}
+                  className="w-full p-2.5 rounded-xl border border-[#DCE7F9] font-medium text-xs focus:outline-none focus:border-[#0B5FD9]"
+                >
+                  <option value="10 km radius (Local area only)">10 km radius (Local area only)</option>
+                  <option value="15 km radius (Cyberabad & Central Hyderabad)">15 km radius (Cyberabad & Central Hyderabad)</option>
+                  <option value="25 km radius (All Hyderabad Zones)">25 km radius (All Hyderabad Zones)</option>
+                </select>
+              </div>
+
+              <div className="pt-2 flex items-center justify-end gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => setIsEditingProfile(false)}
+                  className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 rounded-xl bg-[#0B5FD9] hover:bg-[#094FB6] text-white text-xs font-bold shadow-sm cursor-pointer"
+                >
+                  Save Profile Changes
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
       </main>
 
       {/* ── Dedicated Partner Mobile Bottom Navigation Bar (sm:hidden) ── */}
@@ -2359,11 +2865,11 @@ export function PartnerPanelPage() {
           { id: 'overview' as const, label: 'Overview', icon: TrendingUp },
           { id: 'jobs' as const, label: 'Jobs', icon: Clock, badge: pendingRequests.length > 0 ? pendingRequests.length : undefined },
           { id: 'wallet' as const, label: 'Wallet', icon: Wallet },
-          { id: 'kyc' as const, label: 'KYC', icon: FileCheck },
+          { id: 'profile' as const, label: 'Profile', icon: UserCheck },
           { id: 'reviews' as const, label: 'Reviews', icon: Star },
         ].map((tab) => {
           const Icon = tab.icon;
-          const active = activeTab === tab.id;
+          const active = activeTab === tab.id || (tab.id === 'profile' && activeTab === 'kyc');
           return (
             <button
               key={tab.id}
