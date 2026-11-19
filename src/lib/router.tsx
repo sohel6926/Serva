@@ -61,6 +61,7 @@ export function Link({ to, onClick, children, ...rest }: LinkProps) {
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     if (onClick) onClick(e);
     if (e.defaultPrevented) return;
+    if (rest.target === '_blank') return;
     if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
     e.preventDefault();
     navigate(to);

@@ -48,6 +48,7 @@ import {
 import { useAuth } from '../context/AuthContext.tsx';
 import { Link, useRouter } from '../lib/router.tsx';
 import { BrandLogo } from '../components/common/BrandLogo.tsx';
+import { PartnerJobDetailPage } from '../components/partner/PartnerJobDetailPage.tsx';
 
 /* Types for Partner Panel */
 type PanelTab = 'overview' | 'jobs' | 'wallet' | 'kyc' | 'profile' | 'reviews' | 'support';
@@ -1334,6 +1335,55 @@ Verification Portal: https://serva.in/verify/PTR-8821
     setReplyOpen((prev) => ({ ...prev, [reviewId]: false }));
   };
 
+  // Sync state across multiple tabs (e.g. main console tab + separate job detail tabs)
+  useEffect(() => {
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === 'serva_partner_jobs' && e.newValue) {
+        try {
+          setJobs(JSON.parse(e.newValue));
+        } catch {
+          // ignore
+        }
+      }
+      if (e.key === 'serva_partner_balance' && e.newValue) {
+        setWalletBalancePaise(parseInt(e.newValue, 10));
+      }
+      if (e.key === 'serva_partner_txns' && e.newValue) {
+        try {
+          setTransactions(JSON.parse(e.newValue));
+        } catch {
+          // ignore
+        }
+      }
+    };
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, []);
+
+  // Check if current route is a dedicated single job detail page: e.g. /partner/job/SRV-9821 or /partner/jobs/SRV-9821
+  const jobParamMatch = pathname.match(/^\/partner\/jobs?\/([^/?#]+)/i);
+  const activeJobCode = jobParamMatch ? decodeURIComponent(jobParamMatch[1]) : null;
+
+  if (activeJobCode) {
+    const currentJob = jobs.find(
+      (j) =>
+        j.bookingCode.toLowerCase() === activeJobCode.toLowerCase() ||
+        j.id.toLowerCase() === activeJobCode.toLowerCase()
+    );
+
+    if (currentJob) {
+      return (
+        <PartnerJobDetailPage
+          job={currentJob}
+          onAdvanceStatus={handleAdvanceStatus}
+          onAcceptJob={handleAcceptJob}
+          onRejectJob={handleRejectJob}
+          formatINR={formatINR}
+        />
+      );
+    }
+  }
+
   return (
     <div className="min-h-screen bg-[#F4F8FE] text-[#0A1F5C] flex flex-col partner-portal">
       {/* ── Standalone Partner Portal Top Navbar ── */}
@@ -1712,13 +1762,32 @@ Verification Portal: https://serva.in/verify/PTR-8821
                 .filter((j) => j.status !== 'PENDING_ACCEPTANCE')
                 .slice(0, 1)
                 .map((job) => (
-                  <div key={job.id} className="p-4 rounded-xl bg-[#F8FAFD] border border-[#E2EEFE] space-y-3">
+                  <div
+                    key={job.id}
+                    onClick={() => {
+                      window.open(`/partner/job/${job.bookingCode}`, '_blank');
+                    }}
+                    className="p-4 rounded-xl bg-[#F8FAFD] border border-[#E2EEFE] hover:border-[#0B5FD9] hover:bg-white hover:shadow-md transition-all space-y-3 cursor-pointer group"
+                    title="Click card to open full job details & status in a new tab"
+                  >
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                       <div>
-                        <span className="text-[11px] font-mono-num font-bold text-[#0B5FD9]">
-                          #{job.bookingCode} · {job.serviceCategory}
-                        </span>
-                        <h3 className="text-sm font-bold text-[#0A1F5C] mt-0.5">{job.serviceTitle}</h3>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-[11px] font-mono-num font-bold text-[#0B5FD9]">
+                            #{job.bookingCode} · {job.serviceCategory}
+                          </span>
+                          <a
+                            href={`/partner/job/${job.bookingCode}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                            className="inline-flex items-center gap-1 text-[10px] font-bold text-[#0B5FD9] bg-blue-50 px-2 py-0.5 rounded border border-blue-200 group-hover:bg-blue-100 transition-colors"
+                          >
+                            <span>Open Details & Status</span>
+                            <ExternalLink className="w-2.5 h-2.5" />
+                          </a>
+                        </div>
+                        <h3 className="text-sm font-bold text-[#0A1F5C] mt-0.5 group-hover:text-[#0B5FD9] transition-colors">{job.serviceTitle}</h3>
                         <p className="text-xs text-[#5B6B8C] mt-0.5 flex items-center gap-1.5">
                           <MapPin className="w-3.5 h-3.5 text-[#0B5FD9]" />
                           <span>{job.address} ({job.distanceKm} km away)</span>
@@ -1740,16 +1809,24 @@ Verification Portal: https://serva.in/verify/PTR-8821
                       <span className="px-3 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-800">
                         Status: {job.status.replace(/_/g, ' ')}
                       </span>
-                      <button
-                        type="button"
-                        onClick={() => handleAdvanceStatus(job.id)}
-                        className="px-4 py-1.5 rounded-full bg-[#0B5FD9] hover:bg-blue-700 text-white text-xs font-bold inline-flex items-center gap-1.5 shadow-sm cursor-pointer"
-                      >
-                        {job.status === 'CONFIRMED' && 'Start Travel (On the Way) →'}
-                        {job.status === 'ON_THE_WAY' && 'Mark Arrived at Location →'}
-                        {job.status === 'ARRIVED' && 'Start Work →'}
-                        {job.status === 'IN_PROGRESS' && '✓ Complete Work & Collect Payout'}
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[11px] text-[#5B6B8C] hidden sm:inline">
+                          Tap card for live status tracker &rarr;
+                        </span>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleAdvanceStatus(job.id);
+                          }}
+                          className="px-4 py-1.5 rounded-full bg-[#0B5FD9] hover:bg-blue-700 text-white text-xs font-bold inline-flex items-center gap-1.5 shadow-sm cursor-pointer"
+                        >
+                          {job.status === 'CONFIRMED' && 'Start Travel (On the Way) →'}
+                          {job.status === 'ON_THE_WAY' && 'Mark Arrived at Location →'}
+                          {job.status === 'ARRIVED' && 'Start Work →'}
+                          {job.status === 'IN_PROGRESS' && '✓ Complete Work & Collect Payout'}
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -1800,7 +1877,11 @@ Verification Portal: https://serva.in/verify/PTR-8821
                 return (
                   <div
                     key={job.id}
-                    className="p-4.5 rounded-2xl border border-[#DCE7F9] bg-[#FAFCFF] hover:border-[#0B5FD9]/40 transition-colors space-y-3"
+                    onClick={() => {
+                      window.open(`/partner/job/${job.bookingCode}`, '_blank');
+                    }}
+                    className="group relative p-4.5 rounded-2xl border border-[#DCE7F9] bg-[#FAFCFF] hover:border-[#0B5FD9] hover:bg-white hover:shadow-[0_4px_20px_rgba(11,95,217,0.08)] transition-all space-y-3 cursor-pointer"
+                    title="Click card to open full job details & status in a new tab"
                   >
                     <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                       <div>
@@ -1822,9 +1903,22 @@ Verification Portal: https://serva.in/verify/PTR-8821
                           >
                             {job.status.replace(/_/g, ' ')}
                           </span>
+
+                          {/* Explicit Open in New Tab Link */}
+                          <a
+                            href={`/partner/job/${job.bookingCode}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                            className="inline-flex items-center gap-1 text-[11px] font-bold text-[#0B5FD9] bg-blue-50 hover:bg-blue-100 border border-blue-200 px-2 py-0.5 rounded-lg transition-colors group-hover:border-[#0B5FD9]"
+                            title="Open detailed job tracker in a new tab"
+                          >
+                            <span>Open Details & Status</span>
+                            <ExternalLink className="w-3 h-3 text-[#0B5FD9]" />
+                          </a>
                         </div>
 
-                        <h3 className="text-base font-bold text-[#0A1F5C] mt-1.5">{job.serviceTitle}</h3>
+                        <h3 className="text-base font-bold text-[#0A1F5C] mt-1.5 group-hover:text-[#0B5FD9] transition-colors">{job.serviceTitle}</h3>
                         <p className="text-xs text-[#5B6B8C] mt-0.5">
                           Customer: <strong className="text-[#0A1F5C]">{job.customerName}</strong> ({job.customerMobile})
                         </p>
@@ -1834,13 +1928,13 @@ Verification Portal: https://serva.in/verify/PTR-8821
                         </p>
                         {job.notes && (
                           <p className="text-[11px] text-[#475569] mt-1.5 italic bg-white p-2 rounded-lg border border-slate-200">
-                            "{job.notes}"
+                            &ldquo;{job.notes}&rdquo;
                           </p>
                         )}
                       </div>
 
                       {/* Payout Breakdown */}
-                      <div className="text-left sm:text-right bg-white sm:bg-transparent p-3 sm:p-0 rounded-xl border sm:border-0 border-[#E2EEFE]">
+                      <div className="text-left sm:text-right bg-white sm:bg-transparent p-3 sm:p-0 rounded-xl border sm:border-0 border-[#E2EEFE] shrink-0">
                         <p className="text-[11px] text-[#5B6B8C]">Your Net Payout</p>
                         <p className="text-lg font-bold text-emerald-600 font-mono-num">{formatINR(netPaise)}</p>
                         <p className="text-[10px] text-[#94A3B8]">
@@ -1865,15 +1959,21 @@ Verification Portal: https://serva.in/verify/PTR-8821
                           <>
                             <button
                               type="button"
-                              onClick={() => handleRejectJob(job.id)}
-                              className="px-3.5 py-1.5 rounded-full border border-rose-300 text-rose-700 hover:bg-rose-50 text-xs font-bold cursor-pointer"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleRejectJob(job.id);
+                              }}
+                              className="px-3.5 py-1.5 rounded-full border border-rose-300 text-rose-700 hover:bg-rose-50 text-xs font-bold cursor-pointer transition-colors"
                             >
                               Reject
                             </button>
                             <button
                               type="button"
-                              onClick={() => handleAcceptJob(job.id)}
-                              className="px-4 py-1.5 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm shadow-emerald-500/25 cursor-pointer"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleAcceptJob(job.id);
+                              }}
+                              className="px-4 py-1.5 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm shadow-emerald-500/25 cursor-pointer transition-colors"
                             >
                               ✓ Accept Request
                             </button>
@@ -1884,8 +1984,11 @@ Verification Portal: https://serva.in/verify/PTR-8821
                         {job.status !== 'PENDING_ACCEPTANCE' && job.status !== 'COMPLETED' && job.status !== 'REJECTED' && (
                           <button
                             type="button"
-                            onClick={() => handleAdvanceStatus(job.id)}
-                            className="px-4 py-1.5 rounded-full bg-[#0B5FD9] hover:bg-blue-700 text-white text-xs font-bold inline-flex items-center gap-1.5 shadow-sm cursor-pointer"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleAdvanceStatus(job.id);
+                            }}
+                            className="px-4 py-1.5 rounded-full bg-[#0B5FD9] hover:bg-blue-700 text-white text-xs font-bold inline-flex items-center gap-1.5 shadow-sm cursor-pointer transition-colors"
                           >
                             {job.status === 'CONFIRMED' && '🚗 Start Travel (On the Way)'}
                             {job.status === 'ON_THE_WAY' && '📍 Mark Arrived at Location'}
