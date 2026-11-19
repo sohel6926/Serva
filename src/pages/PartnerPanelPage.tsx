@@ -1340,11 +1340,11 @@ Verification Portal: https://serva.in/verify/PTR-8821
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#DCE7F9] shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
           {/* Left: Brand & Partner Badge */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <Link to="/partner/panel" aria-label="SERVA Partner Portal">
               <BrandLogo variant="horizontal" />
             </Link>
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#EBF2FE] text-[#0B5FD9] border border-[#DCE7F9]">
+            <span className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#EBF2FE] text-[#0B5FD9] border border-[#DCE7F9]">
               <ShieldCheck className="w-3.5 h-3.5 text-[#0B5FD9]" />
               PARTNER CONSOLE
             </span>
@@ -1443,8 +1443,8 @@ Verification Portal: https://serva.in/verify/PTR-8821
           </div>
         </div>
 
-        {/* ── Sub Navigation Tabs (Desktop & Tablet) ── */}
-        <div className="border-t border-[#EAF2FF] bg-[#FAFCFF] px-4 sm:px-6">
+        {/* ── Sub Navigation Tabs (Desktop & Tablet only - Hidden on Mobile) ── */}
+        <div className="hidden md:block border-t border-[#EAF2FF] bg-[#FAFCFF] px-4 sm:px-6">
           <div className="max-w-7xl mx-auto flex items-center gap-1.5 overflow-x-auto scrollbar-hide py-2">
             {[
               { id: 'overview' as const, label: 'Overview', icon: TrendingUp },
@@ -1482,53 +1482,53 @@ Verification Portal: https://serva.in/verify/PTR-8821
       </header>
 
       {/* ── Main Content Area ── */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 pb-28 md:pb-12 space-y-6">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-3.5 sm:px-6 py-3.5 sm:py-6 pb-24 md:pb-12 space-y-3.5 sm:space-y-5">
         {/* Partner Identity Card */}
-        <div className="bg-white rounded-2xl border border-[#DCE7F9] shadow-[0_2px_12px_rgba(11,95,217,0.04)] p-4 sm:p-5">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
+        <div className="bg-white rounded-2xl border border-[#DCE7F9] shadow-[0_2px_12px_rgba(11,95,217,0.04)] p-3 sm:p-4.5">
+          <div className="flex items-center justify-between gap-3">
             {/* Left: Avatar + Details */}
-            <div className="flex items-center gap-3.5">
+            <div className="flex items-center gap-3 min-w-0">
               <div className="relative shrink-0">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#0B5FD9] to-[#0A1F5C] text-white flex items-center justify-center font-extrabold text-base shadow-sm">
+                <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-tr from-[#0B5FD9] to-[#0A1F5C] text-white flex items-center justify-center font-extrabold text-sm sm:text-base shadow-sm">
                   {user?.name ? user.name.slice(0, 2).toUpperCase() : 'RK'}
                 </div>
                 <span
-                  className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-white ${
+                  className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white ${
                     isOnline ? 'bg-emerald-500' : 'bg-slate-400'
                   }`}
                   title={isOnline ? 'On Duty' : 'Off Duty'}
                 />
               </div>
 
-              <div className="min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h1 className="text-base sm:text-lg font-extrabold text-[#0A1F5C] truncate">
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <h1 className="text-sm sm:text-base font-extrabold text-[#0A1F5C] truncate">
                     {user?.name || 'Ramesh Kumar'}
                   </h1>
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
                     <ShieldCheck className="w-3 h-3 text-emerald-600" />
                     Verified
                   </span>
-                  <span className="text-[10px] font-mono text-[#5B6B8C] bg-[#F1F6FF] px-1.5 py-0.5 rounded border border-[#E2EEFE]">
+                  <span className="hidden xs:inline text-[10px] font-mono text-[#5B6B8C] bg-[#F1F6FF] px-1.5 py-0.5 rounded border border-[#E2EEFE]">
                     ID: PTR-8821
                   </span>
                 </div>
-                <p className="text-xs text-[#5B6B8C] mt-0.5 flex items-center gap-2 flex-wrap">
+                <p className="text-[11px] sm:text-xs text-[#5B6B8C] mt-0.5 flex items-center gap-1.5 truncate">
                   <span className="font-medium text-[#0A1F5C]">Electrician & Home Services</span>
                   <span>•</span>
-                  <span className="flex items-center gap-1 text-[#5B6B8C]">
+                  <span className="inline-flex items-center gap-0.5 text-[#5B6B8C]">
                     <MapPin className="w-3 h-3 text-[#0B5FD9]" /> Hyderabad, TG
                   </span>
                 </p>
               </div>
             </div>
 
-            {/* Right: Quick Highlights (Rating & Job Count) */}
-            <div className="flex items-center gap-2 sm:self-center border-t sm:border-t-0 border-[#F0F4FA] pt-2.5 sm:pt-0">
+            {/* Right: Quick Action Chips (Desktop/Tablet only - Clean on mobile) */}
+            <div className="hidden sm:flex items-center gap-2 shrink-0">
               <button
                 type="button"
                 onClick={() => setActiveTab('reviews')}
-                className="flex-1 sm:flex-initial px-3 py-1.5 rounded-xl bg-[#F8FAFD] hover:bg-[#EBF2FE] border border-[#DCE7F9] flex items-center justify-center gap-1.5 text-xs transition-all cursor-pointer"
+                className="px-3 py-1.5 rounded-xl bg-[#F8FAFD] hover:bg-[#EBF2FE] border border-[#DCE7F9] flex items-center gap-1.5 text-xs transition-all cursor-pointer"
                 title="View customer reviews"
               >
                 <Star className="w-3.5 h-3.5 text-amber-500 fill-current" />
@@ -1539,7 +1539,7 @@ Verification Portal: https://serva.in/verify/PTR-8821
               <button
                 type="button"
                 onClick={() => setActiveTab('jobs')}
-                className="flex-1 sm:flex-initial px-3 py-1.5 rounded-xl bg-[#F8FAFD] hover:bg-[#EBF2FE] border border-[#DCE7F9] flex items-center justify-center gap-1.5 text-xs transition-all cursor-pointer"
+                className="px-3 py-1.5 rounded-xl bg-[#F8FAFD] hover:bg-[#EBF2FE] border border-[#DCE7F9] flex items-center gap-1.5 text-xs transition-all cursor-pointer"
                 title="View service jobs"
               >
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
@@ -1553,7 +1553,7 @@ Verification Portal: https://serva.in/verify/PTR-8821
                   setActiveTab('profile');
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
-                className="hidden md:inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold text-[#0B5FD9] hover:bg-blue-50 transition-all cursor-pointer"
+                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold text-[#0B5FD9] hover:bg-blue-50 transition-all cursor-pointer"
               >
                 <span>Profile & KYC &rarr;</span>
               </button>
@@ -1565,43 +1565,43 @@ Verification Portal: https://serva.in/verify/PTR-8821
        *  TAB 1: OVERVIEW (DASHBOARD)
        * ═══════════════════════════════════════════════ */}
       {activeTab === 'overview' && (
-        <div className="space-y-6">
+        <div className="space-y-3.5 sm:space-y-5">
           {/* Top 4 KPI Metrics */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             {/* 1. Today's Earnings */}
-            <div className="bg-white p-4.5 rounded-2xl border border-[#DCE7F9] shadow-[0_2px_12px_rgba(11,95,217,0.05)] flex flex-col justify-between">
+            <div className="bg-white p-3.5 sm:p-4.5 rounded-2xl border border-[#DCE7F9] shadow-[0_2px_12px_rgba(11,95,217,0.04)] flex flex-col justify-between">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-[#5B6B8C]">Today's Earnings</span>
-                <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                  <TrendingUp className="w-4 h-4" />
+                <span className="text-[11px] sm:text-xs font-semibold text-[#5B6B8C]">Today's Earnings</span>
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                  <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 </div>
               </div>
-              <div className="mt-3">
-                <p className="text-xl sm:text-2xl font-extrabold text-[#0A1F5C] font-mono-num">
+              <div className="mt-2.5 sm:mt-3">
+                <p className="text-lg sm:text-2xl font-extrabold text-[#0A1F5C]">
                   {formatINR(todayEarningsPaise)}
                 </p>
-                <p className="text-[11px] text-emerald-600 font-semibold mt-0.5">
+                <p className="text-[10px] sm:text-[11px] text-emerald-600 font-semibold mt-0.5">
                   ✓ After 10% commission
                 </p>
               </div>
             </div>
 
             {/* 2. Available Balance */}
-            <div className="bg-white p-4.5 rounded-2xl border border-[#DCE7F9] shadow-[0_2px_12px_rgba(11,95,217,0.05)] flex flex-col justify-between">
+            <div className="bg-white p-3.5 sm:p-4.5 rounded-2xl border border-[#DCE7F9] shadow-[0_2px_12px_rgba(11,95,217,0.04)] flex flex-col justify-between">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-[#5B6B8C]">Wallet Balance</span>
-                <div className="w-8 h-8 rounded-xl bg-blue-50 text-[#0B5FD9] flex items-center justify-center">
-                  <Wallet className="w-4 h-4" />
+                <span className="text-[11px] sm:text-xs font-semibold text-[#5B6B8C]">Wallet Balance</span>
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-blue-50 text-[#0B5FD9] flex items-center justify-center">
+                  <Wallet className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 </div>
               </div>
-              <div className="mt-3">
-                <p className="text-xl sm:text-2xl font-extrabold text-[#0B5FD9] font-mono-num">
+              <div className="mt-2.5 sm:mt-3">
+                <p className="text-lg sm:text-2xl font-extrabold text-[#0B5FD9]">
                   {formatINR(walletBalancePaise)}
                 </p>
                 <button
                   type="button"
                   onClick={() => setActiveTab('wallet')}
-                  className="text-[11px] text-[#0B5FD9] font-bold hover:underline inline-flex items-center gap-0.5 mt-0.5 cursor-pointer"
+                  className="text-[10px] sm:text-[11px] text-[#0B5FD9] font-bold hover:underline inline-flex items-center gap-0.5 mt-0.5 cursor-pointer"
                 >
                   Withdraw Funds <ArrowRight className="w-3 h-3" />
                 </button>
@@ -1609,37 +1609,37 @@ Verification Portal: https://serva.in/verify/PTR-8821
             </div>
 
             {/* 3. Completed Services */}
-            <div className="bg-white p-4.5 rounded-2xl border border-[#DCE7F9] shadow-[0_2px_12px_rgba(11,95,217,0.05)] flex flex-col justify-between">
+            <div className="bg-white p-3.5 sm:p-4.5 rounded-2xl border border-[#DCE7F9] shadow-[0_2px_12px_rgba(11,95,217,0.04)] flex flex-col justify-between">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-[#5B6B8C]">Completed Jobs</span>
-                <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
-                  <CheckCircle2 className="w-4 h-4" />
+                <span className="text-[11px] sm:text-xs font-semibold text-[#5B6B8C]">Completed Jobs</span>
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                  <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 </div>
               </div>
-              <div className="mt-3">
-                <p className="text-xl sm:text-2xl font-extrabold text-[#0A1F5C]">
+              <div className="mt-2.5 sm:mt-3">
+                <p className="text-lg sm:text-2xl font-extrabold text-[#0A1F5C]">
                   {completedJobs.length + 144}
                 </p>
-                <p className="text-[11px] text-[#5B6B8C] font-semibold mt-0.5">
+                <p className="text-[10px] sm:text-[11px] text-[#5B6B8C] font-semibold mt-0.5">
                   98% Completion Rate
                 </p>
               </div>
             </div>
 
             {/* 4. Active Rating */}
-            <div className="bg-white p-4.5 rounded-2xl border border-[#DCE7F9] shadow-[0_2px_12px_rgba(11,95,217,0.05)] flex flex-col justify-between">
+            <div className="bg-white p-3.5 sm:p-4.5 rounded-2xl border border-[#DCE7F9] shadow-[0_2px_12px_rgba(11,95,217,0.04)] flex flex-col justify-between">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-[#5B6B8C]">Overall Rating</span>
-                <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
-                  <Star className="w-4 h-4 fill-current" />
+                <span className="text-[11px] sm:text-xs font-semibold text-[#5B6B8C]">Overall Rating</span>
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+                  <Star className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-current" />
                 </div>
               </div>
-              <div className="mt-3">
+              <div className="mt-2.5 sm:mt-3">
                 <div className="flex items-center gap-1.5">
-                  <p className="text-xl sm:text-2xl font-extrabold text-[#0A1F5C]">4.9</p>
-                  <span className="text-amber-500 font-bold text-sm">★★★★★</span>
+                  <p className="text-lg sm:text-2xl font-extrabold text-[#0A1F5C]">4.9</p>
+                  <span className="text-amber-500 font-bold text-xs sm:text-sm">★★★★★</span>
                 </div>
-                <p className="text-[11px] text-[#5B6B8C] font-semibold mt-0.5">
+                <p className="text-[10px] sm:text-[11px] text-[#5B6B8C] font-semibold mt-0.5">
                   Based on 142 reviews
                 </p>
               </div>
@@ -2859,8 +2859,8 @@ Verification Portal: https://serva.in/verify/PTR-8821
       )}
       </main>
 
-      {/* ── Dedicated Partner Mobile Bottom Navigation Bar (sm:hidden) ── */}
-      <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-[#DCE7F9] shadow-[0_-4px_20px_rgba(0,0,0,0.06)] px-2 py-1.5 flex items-center justify-around">
+      {/* ── Dedicated Partner Mobile Bottom Navigation Bar (md:hidden) ── */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-[#DCE7F9] shadow-[0_-4px_20px_rgba(0,0,0,0.06)] px-2 py-1.5 flex items-center justify-around">
         {[
           { id: 'overview' as const, label: 'Overview', icon: TrendingUp },
           { id: 'jobs' as const, label: 'Jobs', icon: Clock, badge: pendingRequests.length > 0 ? pendingRequests.length : undefined },
@@ -2874,7 +2874,10 @@ Verification Portal: https://serva.in/verify/PTR-8821
             <button
               key={tab.id}
               type="button"
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => {
+                setActiveTab(tab.id);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
               className={`relative flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-all cursor-pointer ${
                 active ? 'text-[#0B5FD9]' : 'text-[#5B6B8C] hover:text-[#0A1F5C]'
               }`}
