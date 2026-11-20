@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import {
   AlertCircle,
   ArrowDownLeft,
-  ArrowDownRight,
   ArrowRight,
   ArrowUpRight,
   Award,
@@ -2210,73 +2209,56 @@ Verification Portal: https://serva.in/verify/PTR-8821
             </form>
           </div>
 
-          {/* Transaction & Payout History: Responsive Cards on Mobile & Generously Spaced Table on Desktop */}
-          <div className="bg-white rounded-3xl border border-[#DCE7F9] p-4 sm:p-6 shadow-sm space-y-4">
-            <div className="flex items-center justify-between border-b border-[#EAF2FF] pb-3">
-              <div>
-                <h3 className="text-base font-bold text-[#0A1F5C]">Transaction & Payout History</h3>
-                <p className="text-xs text-[#5B6B8C] mt-0.5">Real-time ledger of job earnings, platform fees, and bank transfers</p>
-              </div>
-              <span className="text-[11px] font-bold text-[#0B5FD9] bg-[#EBF2FE] px-2.5 py-1 rounded-full border border-[#DCE7F9]">
-                {transactions.length} Records
-              </span>
+          {/* Full Transaction History Table & Responsive Mobile Cards */}
+          <div className="bg-white rounded-2xl sm:rounded-3xl border border-[#DCE7F9] p-4 sm:p-6 shadow-sm space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-base font-bold text-[#0A1F5C]">Transaction & Payout History</h3>
+              <span className="text-xs text-[#5B6B8C] font-semibold">{transactions.length} records</span>
             </div>
 
-            {/* ── Mobile View: Clean Transaction Cards (sm:hidden) ── */}
-            <div className="sm:hidden space-y-2.5">
+            {/* Mobile View (< md): Clean Modern Transaction Cards */}
+            <div className="md:hidden space-y-3">
               {transactions.map((txn) => {
-                const isCredit = txn.type === 'PAYOUT_CREDIT';
+                const isWithdrawal = txn.type === 'WITHDRAWAL';
                 return (
                   <div
                     key={txn.id}
-                    className="p-3.5 rounded-2xl border border-[#DCE7F9] bg-[#FAFCFF] hover:bg-white transition-all space-y-2.5"
+                    className="p-3.5 rounded-2xl border border-[#DCE7F9] bg-[#FAFCFF] space-y-2.5"
                   >
                     <div className="flex items-start justify-between gap-3">
-                      <div className="flex items-start gap-2.5 min-w-0">
-                        <div
-                          className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${
-                            isCredit ? 'bg-emerald-50 text-emerald-600' : 'bg-blue-50 text-blue-600'
-                          }`}
-                        >
-                          {isCredit ? (
-                            <ArrowDownRight className="w-4 h-4" />
-                          ) : (
-                            <ArrowUpRight className="w-4 h-4" />
-                          )}
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="font-mono-num text-[11px] font-bold text-[#0B5FD9] px-2 py-0.5 rounded bg-blue-50 border border-blue-200">
+                            #{txn.referenceId}
+                          </span>
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            {txn.status}
+                          </span>
                         </div>
-                        <div className="min-w-0">
-                          <h4 className="text-xs font-bold text-[#0A1F5C] leading-snug">
-                            {txn.description}
-                          </h4>
-                          <p className="text-[11px] text-[#5B6B8C] mt-0.5">{txn.date}</p>
-                        </div>
+                        <h4 className="text-xs font-bold text-[#0A1F5C] mt-1.5 leading-snug">
+                          {txn.description}
+                        </h4>
                       </div>
 
                       <div className="text-right shrink-0">
-                        <span
-                          className={`text-sm font-black font-mono-num block ${
-                            isCredit ? 'text-emerald-600' : 'text-blue-700'
-                          }`}
-                        >
-                          {isCredit ? `+${formatINR(txn.netPaise)}` : `-${formatINR(txn.netPaise)}`}
+                        <span className={`text-sm font-extrabold font-mono-num block ${
+                          isWithdrawal ? 'text-blue-700' : 'text-emerald-600'
+                        }`}>
+                          {isWithdrawal ? `-${formatINR(txn.netPaise)}` : `+${formatINR(txn.netPaise)}`}
                         </span>
-                        <span className="inline-block text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 mt-1 text-center">
-                          {txn.status}
+                        <span className="text-[10px] text-[#5B6B8C]">
+                          {isWithdrawal ? 'Withdrawn' : 'Net Credited'}
                         </span>
                       </div>
                     </div>
 
-                    {/* Breakdown Details on Mobile */}
-                    <div className="flex items-center justify-between text-[11px] text-[#5B6B8C] pt-2 border-t border-slate-100 flex-wrap gap-1">
-                      <span className="font-mono text-[10px] bg-slate-100 px-1.5 py-0.5 rounded text-slate-600 font-bold">
-                        Ref: #{txn.referenceId}
-                      </span>
-                      {txn.grossPaise ? (
+                    <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between text-[11px] text-[#5B6B8C] flex-wrap gap-1">
+                      <span>{txn.date}</span>
+                      {txn.grossPaise && (
                         <span>
-                          Gross: {formatINR(txn.grossPaise)} {txn.commissionPaise ? `(10% fee: -${formatINR(txn.commissionPaise)})` : ''}
+                          Gross: {formatINR(txn.grossPaise)}
+                          {txn.commissionPaise ? ` (10% fee: -${formatINR(txn.commissionPaise)})` : ''}
                         </span>
-                      ) : (
-                        <span>Bank / UPI Disbursement</span>
                       )}
                     </div>
                   </div>
@@ -2284,50 +2266,55 @@ Verification Portal: https://serva.in/verify/PTR-8821
               })}
             </div>
 
-            {/* ── Desktop & Tablet View: Generously Spaced Table (hidden sm:block) ── */}
-            <div className="hidden sm:block overflow-x-auto scrollbar-thin">
-              <table className="w-full text-left text-xs min-w-[760px]">
+            {/* Desktop Table View (>= md): Properly spaced columns with min-width */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full min-w-[760px] text-left text-xs border-collapse">
                 <thead>
                   <tr className="border-b border-[#EAF2FF] text-[#5B6B8C] bg-[#FAFCFF]">
-                    <th className="py-3 px-4 font-semibold whitespace-nowrap">Date & Time</th>
-                    <th className="py-3 px-4 font-semibold">Description</th>
-                    <th className="py-3 px-4 font-semibold whitespace-nowrap">Reference</th>
-                    <th className="py-3 px-4 font-semibold text-right whitespace-nowrap">Gross Amount</th>
-                    <th className="py-3 px-4 font-semibold text-right whitespace-nowrap">Commission (10%)</th>
-                    <th className="py-3 px-4 font-semibold text-right whitespace-nowrap">Net Payout</th>
-                    <th className="py-3 px-4 font-semibold text-center whitespace-nowrap">Status</th>
+                    <th className="py-3 px-4 font-bold text-[11px] uppercase tracking-wider">Date & Time</th>
+                    <th className="py-3 px-4 font-bold text-[11px] uppercase tracking-wider">Description</th>
+                    <th className="py-3 px-4 font-bold text-[11px] uppercase tracking-wider">Reference ID</th>
+                    <th className="py-3 px-4 font-bold text-[11px] uppercase tracking-wider text-right">Gross Amount</th>
+                    <th className="py-3 px-4 font-bold text-[11px] uppercase tracking-wider text-right">Platform Fee (10%)</th>
+                    <th className="py-3 px-4 font-bold text-[11px] uppercase tracking-wider text-right">Net Payout</th>
+                    <th className="py-3 px-4 font-bold text-[11px] uppercase tracking-wider text-center">Status</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 font-medium">
-                  {transactions.map((txn) => (
-                    <tr key={txn.id} className="hover:bg-[#F8FAFD] transition-colors">
-                      <td className="py-3.5 px-4 text-[#5B6B8C] whitespace-nowrap">{txn.date}</td>
-                      <td className="py-3.5 px-4 text-[#0A1F5C] font-semibold">{txn.description}</td>
-                      <td className="py-3.5 px-4 font-mono text-[#5B6B8C] whitespace-nowrap">
-                        <span className="bg-slate-50 border border-slate-200 px-2 py-0.5 rounded text-[11px] font-bold">
-                          {txn.referenceId}
-                        </span>
-                      </td>
-                      <td className="py-3.5 px-4 text-right font-mono-num text-[#5B6B8C] whitespace-nowrap">
-                        {txn.grossPaise ? formatINR(txn.grossPaise) : '—'}
-                      </td>
-                      <td className="py-3.5 px-4 text-right font-mono-num text-amber-700 whitespace-nowrap">
-                        {txn.commissionPaise ? `-${formatINR(txn.commissionPaise)}` : '—'}
-                      </td>
-                      <td
-                        className={`py-3.5 px-4 text-right font-black font-mono-num whitespace-nowrap ${
-                          txn.type === 'WITHDRAWAL' ? 'text-blue-700' : 'text-emerald-600'
-                        }`}
-                      >
-                        {txn.type === 'WITHDRAWAL' ? `-${formatINR(txn.netPaise)}` : `+${formatINR(txn.netPaise)}`}
-                      </td>
-                      <td className="py-3.5 px-4 text-center whitespace-nowrap">
-                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                          {txn.status}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
+                  {transactions.map((txn) => {
+                    const isWithdrawal = txn.type === 'WITHDRAWAL';
+                    return (
+                      <tr key={txn.id} className="hover:bg-[#F8FAFD] transition-colors">
+                        <td className="py-3.5 px-4 text-[#5B6B8C] whitespace-nowrap">
+                          {txn.date}
+                        </td>
+                        <td className="py-3.5 px-4 text-[#0A1F5C] font-semibold max-w-xs">
+                          {txn.description}
+                        </td>
+                        <td className="py-3.5 px-4 font-mono-num font-bold text-[#0B5FD9] whitespace-nowrap">
+                          <span className="px-2 py-0.5 rounded bg-blue-50 border border-blue-200">
+                            #{txn.referenceId}
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-4 text-right font-mono-num text-[#5B6B8C] whitespace-nowrap">
+                          {txn.grossPaise ? formatINR(txn.grossPaise) : '—'}
+                        </td>
+                        <td className="py-3.5 px-4 text-right font-mono-num text-amber-700 whitespace-nowrap">
+                          {txn.commissionPaise ? `-${formatINR(txn.commissionPaise)}` : '—'}
+                        </td>
+                        <td className={`py-3.5 px-4 text-right font-bold font-mono-num whitespace-nowrap ${
+                          isWithdrawal ? 'text-blue-700' : 'text-emerald-600'
+                        }`}>
+                          {isWithdrawal ? `-${formatINR(txn.netPaise)}` : `+${formatINR(txn.netPaise)}`}
+                        </td>
+                        <td className="py-3.5 px-4 text-center whitespace-nowrap">
+                          <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            {txn.status}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
