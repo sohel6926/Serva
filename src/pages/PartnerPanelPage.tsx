@@ -2277,69 +2277,69 @@ Verification Portal: https://serva.in/verify/PTR-8821
           <div className="bg-white rounded-3xl border border-[#DCE7F9] p-6 sm:p-7 shadow-sm">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-6 border-b border-[#EAF2FF]">
               {/* Partner Identity */}
-              <div className="flex items-start sm:items-center gap-4.5">
+              <div className="flex items-start sm:items-center gap-3 sm:gap-4.5">
                 <div className="relative shrink-0">
-                  <div className="w-20 h-20 rounded-2xl bg-gradient-to-tr from-[#0B5FD9] via-[#094FB6] to-[#0A1F5C] text-white flex items-center justify-center font-black text-2xl shadow-md border-2 border-white">
+                  <div className="w-14 h-14 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-tr from-[#0B5FD9] via-[#094FB6] to-[#0A1F5C] text-white flex items-center justify-center font-black text-xl sm:text-2xl shadow-md border-2 border-white">
                     {user?.name ? user.name.slice(0, 2).toUpperCase() : 'RK'}
                   </div>
                   <span
-                    className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 border-white flex items-center justify-center ${
+                    className={`absolute -bottom-1 -right-1 w-4 h-4 sm:w-5 sm:h-5 rounded-full border-2 border-white flex items-center justify-center ${
                       isOnline ? 'bg-emerald-500' : 'bg-slate-400'
                     }`}
                     title={isOnline ? 'On Duty · Online' : 'Off Duty · Offline'}
                   >
-                    <span className={`w-2 h-2 rounded-full ${isOnline ? 'bg-white animate-pulse' : 'bg-white/60'}`} />
+                    <span className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full ${isOnline ? 'bg-white animate-pulse' : 'bg-white/60'}`} />
                   </span>
                 </div>
 
-                <div>
-                  <div className="flex items-center gap-2.5 flex-wrap">
-                    <h1 className="text-xl sm:text-2xl font-black text-[#0A1F5C]">
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h1 className="text-lg sm:text-2xl font-black text-[#0A1F5C]">
                       {user?.name || 'Ramesh Kumar'}
                     </h1>
-                    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-xs">
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-xs">
                       <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
                       Verified Professional Partner
                     </span>
                   </div>
 
-                  <p className="text-xs sm:text-sm font-semibold text-[#0B5FD9] mt-1">
+                  <p className="text-xs sm:text-sm font-semibold text-[#0B5FD9] mt-0.5">
                     Electrician, Wiring & Home Appliance Specialist
                   </p>
 
-                  <div className="space-y-2 mt-2.5 text-xs text-[#5B6B8C]">
-                    {/* Pair 1: Partner ID + Star Rating aligned side by side */}
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <button
-                        type="button"
-                        onClick={handleCopyPartnerId}
-                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#F1F6FF] border border-[#DCE7F9] hover:bg-[#E2EEFE] text-[#0A1F5C] font-mono font-bold transition-all cursor-pointer text-xs"
-                        title="Click to copy Partner ID"
-                      >
-                        <UserCheck className="w-3.5 h-3.5 text-[#0B5FD9]" />
-                        <span>ID: PTR-8821</span>
-                        <Copy className="w-3 h-3 text-slate-400" />
-                        {copiedId && <span className="text-[10px] text-emerald-600 font-bold ml-1">Copied!</span>}
-                      </button>
+                  {/* Pair 1: Partner ID + Rating - STRICTLY SIDE-BY-SIDE via 2-col grid */}
+                  <div className="grid grid-cols-2 gap-2 mt-2 max-w-sm">
+                    {/* Partner ID with Copy */}
+                    <button
+                      type="button"
+                      onClick={handleCopyPartnerId}
+                      className="w-full inline-flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg bg-[#F1F6FF] border border-[#DCE7F9] hover:bg-[#E2EEFE] text-[#0A1F5C] font-mono font-bold transition-all cursor-pointer text-[11px] sm:text-xs min-w-0"
+                      title="Click to copy Partner ID"
+                    >
+                      <UserCheck className="w-3.5 h-3.5 text-[#0B5FD9] shrink-0" />
+                      <span className="truncate">ID: PTR-8821</span>
+                      <Copy className="w-3 h-3 text-slate-400 shrink-0" />
+                      {copiedId && <span className="text-[10px] text-emerald-600 font-bold">✓</span>}
+                    </button>
 
-                      <span className="inline-flex items-center gap-1 text-amber-600 font-bold bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200/60 text-xs">
-                        <Star className="w-3.5 h-3.5 fill-current" />
-                        <span>4.9</span>
-                        <span className="text-[11px] text-[#5B6B8C] font-normal">(142 reviews)</span>
-                      </span>
+                    {/* Star Rating Badge */}
+                    <div className="w-full inline-flex items-center justify-center gap-1 text-amber-600 font-bold bg-amber-50 px-2 py-1.5 rounded-lg border border-amber-200/60 text-[11px] sm:text-xs min-w-0">
+                      <Star className="w-3.5 h-3.5 fill-current shrink-0 text-amber-500" />
+                      <span>4.9</span>
+                      <span className="text-[10px] sm:text-[11px] text-[#5B6B8C] font-normal truncate">(142)</span>
+                    </div>
+                  </div>
+
+                  {/* Pair 2: Location + Member Since - STRICTLY SIDE-BY-SIDE via 2-col grid */}
+                  <div className="grid grid-cols-2 gap-2 mt-1.5 text-[11px] sm:text-xs text-[#5B6B8C] max-w-sm">
+                    <div className="inline-flex items-center gap-1 min-w-0">
+                      <MapPin className="w-3.5 h-3.5 text-[#0B5FD9] shrink-0" />
+                      <span className="truncate">Hyderabad, TG</span>
                     </div>
 
-                    {/* Pair 2: Location + Member Since aligned side by side */}
-                    <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap text-xs text-[#5B6B8C]">
-                      <span className="inline-flex items-center gap-1 text-[#5B6B8C]">
-                        <MapPin className="w-3.5 h-3.5 text-[#0B5FD9] shrink-0" />
-                        <span>Hyderabad, Telangana</span>
-                      </span>
-
-                      <span className="inline-flex items-center gap-1 text-[#5B6B8C]">
-                        <Calendar className="w-3.5 h-3.5 text-[#5B6B8C] shrink-0" />
-                        <span>Partner since Oct 2024</span>
-                      </span>
+                    <div className="inline-flex items-center gap-1 min-w-0">
+                      <Calendar className="w-3.5 h-3.5 text-[#5B6B8C] shrink-0" />
+                      <span className="truncate">Since Oct 2024</span>
                     </div>
                   </div>
                 </div>
