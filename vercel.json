@@ -17,7 +17,6 @@
     { "source": "/booking",                 "destination": "/bookings",                    "permanent": true },
     { "source": "/my-bookings",             "destination": "/bookings",                    "permanent": true },
     { "source": "/my-booking",              "destination": "/bookings",                    "permanent": true },
-    { "source": "/partner",                 "destination": "/partner/register",            "permanent": true },
     { "source": "/partner-register",        "destination": "/partner/register",            "permanent": true },
     { "source": "/join",                    "destination": "/partner/register",            "permanent": true },
     { "source": "/contractor",              "destination": "/contractors",                 "permanent": true },
