@@ -120,7 +120,7 @@ export function PartnerJobDetailPage({
   ];
 
   return (
-    <div className="min-h-screen bg-[#F4F8FE] text-[#0A1F5C] flex flex-col font-sans antialiased pb-12">
+    <div className="min-h-screen bg-[#F4F8FE] text-[#0A1F5C] flex flex-col partner-portal pb-12">
       {/* ── Sticky Top Bar ── */}
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#DCE7F9] shadow-sm">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-2">
