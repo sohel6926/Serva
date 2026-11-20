@@ -183,40 +183,48 @@ export function PartnerJobDetailPage({
         
         {/* ── CARD 1: Job Summary & Payout ── */}
         <div className="bg-white rounded-2xl border border-[#DCE7F9] shadow-[0_2px_10px_rgba(11,95,217,0.04)] p-4 sm:p-5 space-y-3">
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-[11px] font-bold text-[#0B5FD9] bg-[#EBF2FE] px-2 py-0.5 rounded-md border border-[#DCE7F9]">
-                  {job.serviceCategory}
-                </span>
-                <span className="text-[11px] text-[#5B6B8C] font-semibold flex items-center gap-1">
-                  <Clock className="w-3 h-3 text-[#0B5FD9]" />
-                  {job.scheduledDate} at {job.scheduledTime}
-                </span>
-              </div>
-              <h1 className="text-base sm:text-lg font-extrabold text-[#0A1F5C] mt-1">
-                {job.serviceTitle}
-              </h1>
+          {/* Top Row: Category, Scheduled Time & Net Payout aligned horizontally */}
+          <div className="flex items-center justify-between gap-2 flex-wrap">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="text-[11px] font-bold text-[#0B5FD9] bg-[#EBF2FE] px-2.5 py-1 rounded-lg border border-[#DCE7F9]">
+                {job.serviceCategory}
+              </span>
+              <span className="text-[11px] text-[#5B6B8C] font-semibold flex items-center gap-1 bg-[#F8FAFD] border border-[#EAF2FF] px-2.5 py-1 rounded-lg">
+                <Clock className="w-3 h-3 text-[#0B5FD9]" />
+                <span>{job.scheduledDate}, {job.scheduledTime}</span>
+              </span>
             </div>
 
-            {/* Payout Tag */}
-            <div className="text-right shrink-0 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl">
-              <span className="text-[10px] font-bold text-emerald-800 uppercase block">Your Payout</span>
-              <span className="text-lg sm:text-xl font-extrabold text-emerald-700 font-mono-num leading-tight block">
-                {formatINR(netPaise)}
+            {/* Payout Badge */}
+            <div className="inline-flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-xl shrink-0">
+              <span className="text-[10px] font-bold text-emerald-800 uppercase tracking-wide">Net Payout:</span>
+              <span className="text-base font-black text-emerald-700 font-mono-num">{formatINR(netPaise)}</span>
+            </div>
+          </div>
+
+          {/* Middle Row: Full Width Service Title & Subtitle Details */}
+          <div className="pt-0.5">
+            <h1 className="text-base sm:text-lg font-black text-[#0A1F5C] leading-snug">
+              {job.serviceTitle}
+            </h1>
+            <div className="flex items-center gap-2 mt-1 text-xs text-[#5B6B8C] flex-wrap">
+              <span className="inline-flex items-center gap-1 text-[#0A1F5C] font-medium">
+                <MapPin className="w-3.5 h-3.5 text-[#0B5FD9] shrink-0" />
+                <span>{job.address.split(',')[0]}</span>
               </span>
-              <span className="text-[9px] text-emerald-600 font-medium">
-                Net (10% comm. deducted)
-              </span>
+              <span>•</span>
+              <span className="font-semibold text-[#0B5FD9]">{job.distanceKm} km away</span>
+              <span>•</span>
+              <span className="text-[11px]">Gross: {formatINR(job.grossAmountPaise)} (10% platform fee: -{formatINR(commissionPaise)})</span>
             </div>
           </div>
 
           {/* Customer Problem Note */}
           {job.notes && (
-            <div className="p-2.5 rounded-xl bg-amber-50/80 border border-amber-200 text-xs text-amber-900 flex items-start gap-2">
+            <div className="p-2.5 sm:p-3 rounded-xl bg-amber-50/80 border border-amber-200 text-xs text-amber-900 flex items-start gap-2.5">
               <AlertCircle className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
-              <div className="leading-snug">
-                <strong className="font-bold">Customer Note:</strong> &ldquo;{job.notes}&rdquo;
+              <div className="leading-relaxed">
+                <strong className="font-bold text-amber-950">Customer Note:</strong> &ldquo;{job.notes}&rdquo;
               </div>
             </div>
           )}
