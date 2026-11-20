@@ -26,6 +26,7 @@ import {
   LogOut,
   Mail,
   MapPin,
+  Menu,
   MessageSquare,
   Percent,
   Phone,
@@ -667,6 +668,7 @@ export function AdminDashboardPage() {
 
   // Navigation tab
   const [activeTab, setActiveTab] = useState<AdminTab>('dashboard');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Role toggle: Super Admin vs Sub-Admin
   const [adminRole, setAdminRole] = useState<'SUPER_ADMIN' | 'SUB_ADMIN'>('SUPER_ADMIN');
@@ -1044,38 +1046,81 @@ export function AdminDashboardPage() {
             </div>
           </aside>
 
-          {/* ── Mobile / Tablet Horizontal Navigation Strip (lg:hidden) ── */}
-          <div className="lg:hidden w-full bg-white rounded-2xl p-2 shadow-sm border border-[#DCE7F9] mb-4 overflow-x-auto">
-            <div className="flex items-center gap-1 min-w-max">
-              {adminNavTabs.map((tab) => {
-                const Icon = tab.icon;
-                const active = activeTab === tab.id;
-                return (
-                  <button
-                    key={tab.id}
-                    type="button"
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all ${
-                      active
-                        ? 'bg-[#0B5FD9] text-white shadow-sm'
-                        : 'text-[#5B6B8C] hover:bg-[#F1F6FF] hover:text-[#0A1F5C]'
-                    }`}
-                  >
-                    <Icon className="w-4 h-4" />
-                    <span>{tab.label}</span>
-                    {typeof tab.count === 'number' && tab.count > 0 && (
-                      <span
-                        className={`text-[10px] font-bold px-1.5 py-0.2 rounded-full ${
-                          active ? 'bg-white text-[#0B5FD9]' : 'bg-[#EF4444] text-white'
-                        }`}
-                      >
-                        {tab.count}
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
+          {/* ── Mobile / Tablet Hamburger Navigation (lg:hidden) ── */}
+          <div className="lg:hidden w-full mb-4">
+            <div className="bg-white rounded-2xl p-2.5 sm:p-3 shadow-sm border border-[#DCE7F9] flex items-center justify-between">
+              <button
+                type="button"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#0B5FD9] text-white hover:bg-[#094fb6] transition-all cursor-pointer shadow-xs"
+                aria-label="Toggle navigation menu"
+              >
+                {mobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+                <span className="text-xs font-bold uppercase tracking-wider">
+                  {mobileMenuOpen ? 'Close Menu' : 'Menu'}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="flex items-center gap-2 cursor-pointer pr-1 text-left"
+              >
+                <div className="text-right">
+                  <span className="text-[10px] uppercase font-bold text-[#5B6B8C] block leading-none">Active Tab</span>
+                  <span className="text-xs font-extrabold text-[#0A1F5C]">
+                    {adminNavTabs.find((t) => t.id === activeTab)?.label || 'Dashboard'}
+                  </span>
+                </div>
+                <ChevronDown className={`w-4 h-4 text-[#5B6B8C] transition-transform duration-200 ${mobileMenuOpen ? 'rotate-180 text-[#0B5FD9]' : ''}`} />
+              </button>
             </div>
+
+            {/* Hamburger Dropdown Drawer */}
+            {mobileMenuOpen && (
+              <div className="mt-2 bg-white rounded-2xl p-2 shadow-lg border border-[#DCE7F9] space-y-1">
+                <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-[#5B6B8C] border-b border-[#EAF2FF] mb-1 flex items-center justify-between">
+                  <span>Admin Navigation</span>
+                  <span className="text-[#0B5FD9] bg-[#EBF2FE] px-2 py-0.5 rounded-full text-[10px] font-bold">
+                    {adminRole === 'SUPER_ADMIN' ? 'Super Admin' : 'Sub-Admin'}
+                  </span>
+                </div>
+                {adminNavTabs.map((tab) => {
+                  const Icon = tab.icon;
+                  const active = activeTab === tab.id;
+                  return (
+                    <button
+                      key={tab.id}
+                      type="button"
+                      onClick={() => {
+                        setActiveTab(tab.id);
+                        setMobileMenuOpen(false);
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }}
+                      className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                        active
+                          ? 'bg-[#0B5FD9] text-white shadow-sm font-bold'
+                          : 'text-[#5B6B8C] hover:bg-[#F1F6FF] hover:text-[#0A1F5C]'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <Icon className="w-4 h-4 shrink-0" />
+                        <span className="truncate">{tab.label}</span>
+                      </div>
+                      {typeof tab.count === 'number' && tab.count > 0 && (
+                        <span
+                          className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0 ${
+                            active ? 'bg-white text-[#0B5FD9]' : 'bg-[#EF4444] text-white'
+                          }`}
+                        >
+                          {tab.count}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           {/* ── Main Content Area (Right Column) ── */}
