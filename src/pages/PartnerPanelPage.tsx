@@ -2209,75 +2209,30 @@ Verification Portal: https://serva.in/verify/PTR-8821
             </form>
           </div>
 
-          {/* Full Transaction History Table & Responsive Mobile Cards */}
-          <div className="bg-white rounded-2xl sm:rounded-3xl border border-[#DCE7F9] p-4 sm:p-6 shadow-sm space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-base font-bold text-[#0A1F5C]">Transaction & Payout History</h3>
-              <span className="text-xs text-[#5B6B8C] font-semibold">{transactions.length} records</span>
+          {/* Transaction & Payout History Table */}
+          <div className="bg-white rounded-2xl sm:rounded-3xl border border-[#DCE7F9] p-4 sm:p-6 shadow-sm space-y-3">
+            <div className="flex items-center justify-between flex-wrap gap-2 pb-1 border-b border-[#EAF2FF]">
+              <div>
+                <h3 className="text-base font-bold text-[#0A1F5C]">Transaction & Payout History</h3>
+                <p className="text-xs text-[#5B6B8C] mt-0.5 sm:hidden">Swipe table horizontally to view full ledger →</p>
+              </div>
+              <span className="text-xs text-[#5B6B8C] font-semibold bg-[#FAFCFF] px-2.5 py-1 rounded-full border border-[#DCE7F9]">
+                {transactions.length} records
+              </span>
             </div>
 
-            {/* Mobile View (< md): Clean Modern Transaction Cards */}
-            <div className="md:hidden space-y-3">
-              {transactions.map((txn) => {
-                const isWithdrawal = txn.type === 'WITHDRAWAL';
-                return (
-                  <div
-                    key={txn.id}
-                    className="p-3.5 rounded-2xl border border-[#DCE7F9] bg-[#FAFCFF] space-y-2.5"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className="font-mono-num text-[11px] font-bold text-[#0B5FD9] px-2 py-0.5 rounded bg-blue-50 border border-blue-200">
-                            #{txn.referenceId}
-                          </span>
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                            {txn.status}
-                          </span>
-                        </div>
-                        <h4 className="text-xs font-bold text-[#0A1F5C] mt-1.5 leading-snug">
-                          {txn.description}
-                        </h4>
-                      </div>
-
-                      <div className="text-right shrink-0">
-                        <span className={`text-sm font-extrabold font-mono-num block ${
-                          isWithdrawal ? 'text-blue-700' : 'text-emerald-600'
-                        }`}>
-                          {isWithdrawal ? `-${formatINR(txn.netPaise)}` : `+${formatINR(txn.netPaise)}`}
-                        </span>
-                        <span className="text-[10px] text-[#5B6B8C]">
-                          {isWithdrawal ? 'Withdrawn' : 'Net Credited'}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between text-[11px] text-[#5B6B8C] flex-wrap gap-1">
-                      <span>{txn.date}</span>
-                      {txn.grossPaise && (
-                        <span>
-                          Gross: {formatINR(txn.grossPaise)}
-                          {txn.commissionPaise ? ` (10% fee: -${formatINR(txn.commissionPaise)})` : ''}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Desktop Table View (>= md): Properly spaced columns with min-width */}
-            <div className="hidden md:block overflow-x-auto">
-              <table className="w-full min-w-[760px] text-left text-xs border-collapse">
+            {/* Unified Elegant Data Table with Horizontal Scrolling & Generous Column Spacing */}
+            <div className="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
+              <table className="w-full min-w-[720px] text-left text-xs border-collapse">
                 <thead>
                   <tr className="border-b border-[#EAF2FF] text-[#5B6B8C] bg-[#FAFCFF]">
-                    <th className="py-3 px-4 font-bold text-[11px] uppercase tracking-wider">Date & Time</th>
-                    <th className="py-3 px-4 font-bold text-[11px] uppercase tracking-wider">Description</th>
-                    <th className="py-3 px-4 font-bold text-[11px] uppercase tracking-wider">Reference ID</th>
-                    <th className="py-3 px-4 font-bold text-[11px] uppercase tracking-wider text-right">Gross Amount</th>
-                    <th className="py-3 px-4 font-bold text-[11px] uppercase tracking-wider text-right">Platform Fee (10%)</th>
-                    <th className="py-3 px-4 font-bold text-[11px] uppercase tracking-wider text-right">Net Payout</th>
-                    <th className="py-3 px-4 font-bold text-[11px] uppercase tracking-wider text-center">Status</th>
+                    <th className="py-3 px-4 font-bold text-[11px] uppercase tracking-wider whitespace-nowrap min-w-[140px]">Date & Time</th>
+                    <th className="py-3 px-4 font-bold text-[11px] uppercase tracking-wider min-w-[200px]">Description</th>
+                    <th className="py-3 px-4 font-bold text-[11px] uppercase tracking-wider whitespace-nowrap min-w-[110px]">Reference</th>
+                    <th className="py-3 px-4 font-bold text-[11px] uppercase tracking-wider text-right whitespace-nowrap min-w-[95px]">Gross</th>
+                    <th className="py-3 px-4 font-bold text-[11px] uppercase tracking-wider text-right whitespace-nowrap min-w-[110px]">Commission</th>
+                    <th className="py-3 px-4 font-bold text-[11px] uppercase tracking-wider text-right whitespace-nowrap min-w-[110px]">Net Payout</th>
+                    <th className="py-3 px-4 font-bold text-[11px] uppercase tracking-wider text-center whitespace-nowrap min-w-[90px]">Status</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 font-medium">
@@ -2288,11 +2243,11 @@ Verification Portal: https://serva.in/verify/PTR-8821
                         <td className="py-3.5 px-4 text-[#5B6B8C] whitespace-nowrap">
                           {txn.date}
                         </td>
-                        <td className="py-3.5 px-4 text-[#0A1F5C] font-semibold max-w-xs">
+                        <td className="py-3.5 px-4 text-[#0A1F5C] font-semibold">
                           {txn.description}
                         </td>
                         <td className="py-3.5 px-4 font-mono-num font-bold text-[#0B5FD9] whitespace-nowrap">
-                          <span className="px-2 py-0.5 rounded bg-blue-50 border border-blue-200">
+                          <span className="px-2 py-0.5 rounded bg-blue-50 border border-blue-200 text-[11px]">
                             #{txn.referenceId}
                           </span>
                         </td>
