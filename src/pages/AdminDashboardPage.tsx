@@ -909,11 +909,24 @@ export function AdminDashboardPage() {
   const pendingPayoutCount = withdrawals.filter((w) => w.status === 'PENDING').length;
   const openTicketCount = tickets.filter((t) => t.status === 'OPEN').length;
 
+  const adminNavTabs = [
+    { id: 'dashboard' as const, label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'kyc' as const, label: 'Partner KYC', icon: FileCheck, count: pendingKycCount },
+    { id: 'commission' as const, label: 'Commission Setup', icon: Percent },
+    { id: 'coupons' as const, label: 'Coupons & Deals', icon: Tag },
+    { id: 'users' as const, label: 'Users', icon: Users },
+    { id: 'partners' as const, label: 'Partners', icon: Building2 },
+    { id: 'withdrawals' as const, label: 'Withdrawals', icon: Wallet, count: pendingPayoutCount },
+    { id: 'support' as const, label: 'Support Tickets', icon: HelpCircle, count: openTicketCount },
+    { id: 'announcements' as const, label: 'Broadcast', icon: Bell },
+    { id: 'reports' as const, label: 'Reports', icon: FileSpreadsheet },
+  ];
+
   return (
     <div className="min-h-screen bg-[#F6F9FD] text-[#0A1F5C] admin-portal pb-16">
       {/* Top Admin Bar & Role Switcher */}
       <div className="bg-[#0A1F5C] text-white border-b border-[#1E3A8A] px-4 py-2.5">
-        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+        <div className="max-w-[1600px] mx-auto flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-[#0B5FD9] flex items-center justify-center font-bold text-white shadow">
               <Shield className="w-5 h-5 text-white" />
@@ -984,168 +997,89 @@ export function AdminDashboardPage() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-6">
-        {/* Navigation Tabs Bar */}
-        <div className="bg-white rounded-2xl p-2 shadow-sm border border-[#DCE7F9] mb-6 overflow-x-auto">
-          <div className="flex items-center gap-1 min-w-max">
-            <button
-              type="button"
-              onClick={() => setActiveTab('dashboard')}
-              className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
-                activeTab === 'dashboard'
-                  ? 'bg-[#0B5FD9] text-white shadow-sm'
-                  : 'text-[#5B6B8C] hover:bg-[#F1F6FF] hover:text-[#0A1F5C]'
-              }`}
-            >
-              <LayoutDashboard className="w-4 h-4" />
-              <span>Dashboard</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setActiveTab('kyc')}
-              className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all relative ${
-                activeTab === 'kyc'
-                  ? 'bg-[#0B5FD9] text-white shadow-sm'
-                  : 'text-[#5B6B8C] hover:bg-[#F1F6FF] hover:text-[#0A1F5C]'
-              }`}
-            >
-              <FileCheck className="w-4 h-4" />
-              <span>Partner KYC</span>
-              {pendingKycCount > 0 && (
-                <span
-                  className={`text-[10px] font-bold px-1.5 py-0.2 rounded-full ${
-                    activeTab === 'kyc' ? 'bg-white text-[#0B5FD9]' : 'bg-[#EF4444] text-white'
-                  }`}
-                >
-                  {pendingKycCount}
+      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 pt-6">
+        <div className="flex flex-col lg:flex-row items-start gap-6">
+          {/* ── Left Sidebar Navigation (Desktop) ── */}
+          <aside className="hidden lg:block w-64 xl:w-72 shrink-0 sticky top-4 z-20">
+            <div className="bg-white rounded-2xl p-3 shadow-sm border border-[#DCE7F9] space-y-1">
+              <div className="px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-[#5B6B8C] border-b border-[#EAF2FF] mb-1 flex items-center justify-between">
+                <span>Admin Navigation</span>
+                <span className="text-[10px] font-bold text-[#0B5FD9] bg-[#EBF2FE] px-2 py-0.5 rounded-full">
+                  {adminRole === 'SUPER_ADMIN' ? 'Super Admin' : 'Sub-Admin'}
                 </span>
-              )}
-            </button>
+              </div>
+              {adminNavTabs.map((tab) => {
+                const Icon = tab.icon;
+                const active = activeTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => {
+                      setActiveTab(tab.id);
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                    className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+                      active
+                        ? 'bg-[#0B5FD9] text-white shadow-sm font-bold'
+                        : 'text-[#5B6B8C] hover:bg-[#F1F6FF] hover:text-[#0A1F5C]'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <Icon className="w-4 h-4 shrink-0" />
+                      <span className="truncate">{tab.label}</span>
+                    </div>
+                    {typeof tab.count === 'number' && tab.count > 0 && (
+                      <span
+                        className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0 ${
+                          active ? 'bg-white text-[#0B5FD9]' : 'bg-[#EF4444] text-white'
+                        }`}
+                      >
+                        {tab.count}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </aside>
 
-            <button
-              type="button"
-              onClick={() => setActiveTab('commission')}
-              className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
-                activeTab === 'commission'
-                  ? 'bg-[#0B5FD9] text-white shadow-sm'
-                  : 'text-[#5B6B8C] hover:bg-[#F1F6FF] hover:text-[#0A1F5C]'
-              }`}
-            >
-              <Percent className="w-4 h-4" />
-              <span>Commission Setup</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setActiveTab('coupons')}
-              className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
-                activeTab === 'coupons'
-                  ? 'bg-[#0B5FD9] text-white shadow-sm'
-                  : 'text-[#5B6B8C] hover:bg-[#F1F6FF] hover:text-[#0A1F5C]'
-              }`}
-            >
-              <Tag className="w-4 h-4" />
-              <span>Coupons & Deals</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setActiveTab('users')}
-              className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
-                activeTab === 'users'
-                  ? 'bg-[#0B5FD9] text-white shadow-sm'
-                  : 'text-[#5B6B8C] hover:bg-[#F1F6FF] hover:text-[#0A1F5C]'
-              }`}
-            >
-              <Users className="w-4 h-4" />
-              <span>Users</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setActiveTab('partners')}
-              className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
-                activeTab === 'partners'
-                  ? 'bg-[#0B5FD9] text-white shadow-sm'
-                  : 'text-[#5B6B8C] hover:bg-[#F1F6FF] hover:text-[#0A1F5C]'
-              }`}
-            >
-              <Building2 className="w-4 h-4" />
-              <span>Partners</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setActiveTab('withdrawals')}
-              className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all relative ${
-                activeTab === 'withdrawals'
-                  ? 'bg-[#0B5FD9] text-white shadow-sm'
-                  : 'text-[#5B6B8C] hover:bg-[#F1F6FF] hover:text-[#0A1F5C]'
-              }`}
-            >
-              <Wallet className="w-4 h-4" />
-              <span>Withdrawals</span>
-              {pendingPayoutCount > 0 && (
-                <span
-                  className={`text-[10px] font-bold px-1.5 py-0.2 rounded-full ${
-                    activeTab === 'withdrawals' ? 'bg-white text-[#0B5FD9]' : 'bg-[#EF4444] text-white'
-                  }`}
-                >
-                  {pendingPayoutCount}
-                </span>
-              )}
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setActiveTab('support')}
-              className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all relative ${
-                activeTab === 'support'
-                  ? 'bg-[#0B5FD9] text-white shadow-sm'
-                  : 'text-[#5B6B8C] hover:bg-[#F1F6FF] hover:text-[#0A1F5C]'
-              }`}
-            >
-              <HelpCircle className="w-4 h-4" />
-              <span>Support Tickets</span>
-              {openTicketCount > 0 && (
-                <span
-                  className={`text-[10px] font-bold px-1.5 py-0.2 rounded-full ${
-                    activeTab === 'support' ? 'bg-white text-[#0B5FD9]' : 'bg-[#EF4444] text-white'
-                  }`}
-                >
-                  {openTicketCount}
-                </span>
-              )}
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setActiveTab('announcements')}
-              className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
-                activeTab === 'announcements'
-                  ? 'bg-[#0B5FD9] text-white shadow-sm'
-                  : 'text-[#5B6B8C] hover:bg-[#F1F6FF] hover:text-[#0A1F5C]'
-              }`}
-            >
-              <Bell className="w-4 h-4" />
-              <span>Broadcast</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setActiveTab('reports')}
-              className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
-                activeTab === 'reports'
-                  ? 'bg-[#0B5FD9] text-white shadow-sm'
-                  : 'text-[#5B6B8C] hover:bg-[#F1F6FF] hover:text-[#0A1F5C]'
-              }`}
-            >
-              <FileSpreadsheet className="w-4 h-4" />
-              <span>Reports</span>
-            </button>
+          {/* ── Mobile / Tablet Horizontal Navigation Strip (lg:hidden) ── */}
+          <div className="lg:hidden w-full bg-white rounded-2xl p-2 shadow-sm border border-[#DCE7F9] mb-4 overflow-x-auto">
+            <div className="flex items-center gap-1 min-w-max">
+              {adminNavTabs.map((tab) => {
+                const Icon = tab.icon;
+                const active = activeTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all ${
+                      active
+                        ? 'bg-[#0B5FD9] text-white shadow-sm'
+                        : 'text-[#5B6B8C] hover:bg-[#F1F6FF] hover:text-[#0A1F5C]'
+                    }`}
+                  >
+                    <Icon className="w-4 h-4" />
+                    <span>{tab.label}</span>
+                    {typeof tab.count === 'number' && tab.count > 0 && (
+                      <span
+                        className={`text-[10px] font-bold px-1.5 py-0.2 rounded-full ${
+                          active ? 'bg-white text-[#0B5FD9]' : 'bg-[#EF4444] text-white'
+                        }`}
+                      >
+                        {tab.count}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
           </div>
-        </div>
+
+          {/* ── Main Content Area (Right Column) ── */}
+          <main className="flex-1 min-w-0 w-full space-y-6">
 
         {/* ===================== TAB 1: DASHBOARD ===================== */}
         {activeTab === 'dashboard' && (
@@ -2291,6 +2225,8 @@ export function AdminDashboardPage() {
             </div>
           </div>
         )}
+          </main>
+        </div>
       </div>
 
       {/* ===================== MODAL 1: VIEW KYC DOCUMENTS ===================== */}
