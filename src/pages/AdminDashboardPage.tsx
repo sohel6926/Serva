@@ -668,7 +668,7 @@ export function AdminDashboardPage() {
 
   // Navigation tab
   const [activeTab, setActiveTab] = useState<AdminTab>('dashboard');
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
 
   // Role toggle: Super Admin vs Sub-Admin
   const [adminRole, setAdminRole] = useState<'SUPER_ADMIN' | 'SUB_ADMIN'>('SUPER_ADMIN');
@@ -995,6 +995,17 @@ export function AdminDashboardPage() {
               <LogOut className="w-3.5 h-3.5" />
               <span>Sign Out</span>
             </button>
+
+            {/* Mobile Hamburger Menu Toggle Button */}
+            <button
+              type="button"
+              onClick={() => setIsMobileNavOpen(!isMobileNavOpen)}
+              className="lg:hidden p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white border border-white/20 transition-all cursor-pointer flex items-center justify-center"
+              title="Toggle Navigation Menu"
+              aria-label="Toggle Navigation Menu"
+            >
+              {isMobileNavOpen ? <X className="w-4 h-4 text-white" /> : <Menu className="w-4 h-4 text-white" />}
+            </button>
           </div>
         </div>
       </div>
@@ -1046,45 +1057,63 @@ export function AdminDashboardPage() {
             </div>
           </aside>
 
-          {/* ── Mobile / Tablet Hamburger Navigation (lg:hidden) ── */}
-          <div className="lg:hidden w-full mb-4">
-            <div className="bg-white rounded-2xl p-2.5 sm:p-3 shadow-sm border border-[#DCE7F9] flex items-center justify-between">
+          {/* ── Mobile / Tablet Navigation via Hamburger Accordion (lg:hidden) ── */}
+          <div className="lg:hidden w-full bg-white rounded-2xl p-3 shadow-sm border border-[#DCE7F9] mb-4">
+            <div className="flex items-center justify-between gap-3">
               <button
                 type="button"
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#0B5FD9] text-white hover:bg-[#094fb6] transition-all cursor-pointer shadow-xs"
-                aria-label="Toggle navigation menu"
+                onClick={() => setIsMobileNavOpen(!isMobileNavOpen)}
+                className="flex items-center gap-2.5 min-w-0 text-left cursor-pointer flex-1"
+                aria-expanded={isMobileNavOpen}
               >
-                {mobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
-                <span className="text-xs font-bold uppercase tracking-wider">
-                  {mobileMenuOpen ? 'Close Menu' : 'Menu'}
-                </span>
+                <div className="w-9 h-9 rounded-xl bg-blue-50 text-[#0B5FD9] flex items-center justify-center shrink-0">
+                  {React.createElement(
+                    adminNavTabs.find((t) => t.id === activeTab)?.icon || LayoutDashboard,
+                    { className: 'w-4.5 h-4.5' }
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#5B6B8C]">
+                      Admin Section
+                    </span>
+                    <span className="text-[10px] font-bold text-[#0B5FD9] bg-[#EBF2FE] px-1.5 py-0.2 rounded">
+                      {adminRole === 'SUPER_ADMIN' ? 'Super Admin' : 'Sub-Admin'}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className="text-sm font-black text-[#0A1F5C] truncate">
+                      {adminNavTabs.find((t) => t.id === activeTab)?.label || 'Dashboard'}
+                    </span>
+                    {(() => {
+                      const currentTab = adminNavTabs.find((t) => t.id === activeTab);
+                      return typeof currentTab?.count === 'number' && currentTab.count > 0 ? (
+                        <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-[#EF4444] text-white">
+                          {currentTab.count}
+                        </span>
+                      ) : null;
+                    })()}
+                  </div>
+                </div>
               </button>
 
               <button
                 type="button"
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="flex items-center gap-2 cursor-pointer pr-1 text-left"
+                onClick={() => setIsMobileNavOpen(!isMobileNavOpen)}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#F1F6FF] text-[#0B5FD9] hover:bg-[#E1EDFF] font-bold text-xs border border-[#DCE7F9] transition-all cursor-pointer shrink-0"
+                aria-label="Toggle navigation menu"
               >
-                <div className="text-right">
-                  <span className="text-[10px] uppercase font-bold text-[#5B6B8C] block leading-none">Active Tab</span>
-                  <span className="text-xs font-extrabold text-[#0A1F5C]">
-                    {adminNavTabs.find((t) => t.id === activeTab)?.label || 'Dashboard'}
-                  </span>
-                </div>
-                <ChevronDown className={`w-4 h-4 text-[#5B6B8C] transition-transform duration-200 ${mobileMenuOpen ? 'rotate-180 text-[#0B5FD9]' : ''}`} />
+                {isMobileNavOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+                <span>{isMobileNavOpen ? 'Close' : 'Menu'}</span>
               </button>
             </div>
 
-            {/* Hamburger Dropdown Drawer */}
-            {mobileMenuOpen && (
-              <div className="mt-2 bg-white rounded-2xl p-2 shadow-lg border border-[#DCE7F9] space-y-1">
-                <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-[#5B6B8C] border-b border-[#EAF2FF] mb-1 flex items-center justify-between">
-                  <span>Admin Navigation</span>
-                  <span className="text-[#0B5FD9] bg-[#EBF2FE] px-2 py-0.5 rounded-full text-[10px] font-bold">
-                    {adminRole === 'SUPER_ADMIN' ? 'Super Admin' : 'Sub-Admin'}
-                  </span>
-                </div>
+            {/* Collapsible Mobile Menu List */}
+            {isMobileNavOpen && (
+              <div className="mt-3 pt-3 border-t border-[#EAF2FF] space-y-1 animate-in fade-in slide-in-from-top-1 duration-150">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-[#5B6B8C] px-2 pb-1">
+                  Select Console Tab
+                </p>
                 {adminNavTabs.map((tab) => {
                   const Icon = tab.icon;
                   const active = activeTab === tab.id;
@@ -1094,10 +1123,10 @@ export function AdminDashboardPage() {
                       type="button"
                       onClick={() => {
                         setActiveTab(tab.id);
-                        setMobileMenuOpen(false);
+                        setIsMobileNavOpen(false);
                         window.scrollTo({ top: 0, behavior: 'smooth' });
                       }}
-                      className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                      className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
                         active
                           ? 'bg-[#0B5FD9] text-white shadow-sm font-bold'
                           : 'text-[#5B6B8C] hover:bg-[#F1F6FF] hover:text-[#0A1F5C]'
