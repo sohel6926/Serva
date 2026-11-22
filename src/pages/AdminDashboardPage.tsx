@@ -932,8 +932,8 @@ export function AdminDashboardPage() {
   const [activeTab, setActiveTab] = useState<AdminTab>('dashboard');
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
 
-  // Role toggle: Super Admin vs Sub-Admin
-  const [adminRole, setAdminRole] = useState<'SUPER_ADMIN' | 'SUB_ADMIN'>('SUPER_ADMIN');
+  // Role: Super Admin
+  const adminRole = 'SUPER_ADMIN';
 
   // Search filter
   const [searchQuery, setSearchQuery] = useState('');
@@ -1263,35 +1263,6 @@ export function AdminDashboardPage() {
 
           {/* Desktop Top Admin Actions (hidden on mobile, moved into hamburger menu) */}
           <div className="hidden lg:flex items-center gap-4">
-            {/* Super Admin vs Sub-Admin Switcher */}
-            <div className="flex items-center bg-[#152B6B] rounded-lg p-0.5 border border-[#23429B] text-xs">
-              <button
-                type="button"
-                onClick={() => setAdminRole('SUPER_ADMIN')}
-                className={`px-2.5 py-1 rounded-md font-semibold transition-all ${adminRole === 'SUPER_ADMIN' ? 'bg-[#0B5FD9] text-white shadow-sm' : 'text-blue-200 hover:text-white'
-                  }`}
-              >
-                Super Admin
-              </button>
-              <button
-                type="button"
-                onClick={() => setAdminRole('SUB_ADMIN')}
-                className={`px-2.5 py-1 rounded-md font-semibold transition-all ${adminRole === 'SUB_ADMIN' ? 'bg-[#0B5FD9] text-white shadow-sm' : 'text-blue-200 hover:text-white'
-                  }`}
-              >
-                Sub-Admin
-              </button>
-            </div>
-
-            {/* Quick Link to Partner Panel */}
-            <Link
-              to="/partner/panel"
-              className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center gap-1.5 border border-white/15 transition-all"
-            >
-              <Building2 className="w-3.5 h-3.5 text-blue-300" />
-              <span>Partner Panel &rarr;</span>
-            </Link>
-
             {/* Link to Customer Site */}
             <Link
               to="/"
@@ -1452,47 +1423,13 @@ export function AdminDashboardPage() {
 
                 {/* Mobile Admin Actions & Sign Out inside Hamburger */}
                 <div className="pt-3 mt-2 border-t border-[#EAF2FF] space-y-2">
-                  <div className="flex items-center justify-between px-1 text-xs text-[#5B6B8C]">
-                    <span className="font-semibold text-[11px] uppercase tracking-wider">Console Mode</span>
-                    <div className="flex items-center bg-[#F1F6FF] rounded-lg p-0.5 border border-[#DCE7F9] text-xs">
-                      <button
-                        type="button"
-                        onClick={() => setAdminRole('SUPER_ADMIN')}
-                        className={`px-2.5 py-1 rounded-md font-semibold transition-all ${
-                          adminRole === 'SUPER_ADMIN' ? 'bg-[#0B5FD9] text-white shadow-xs' : 'text-[#5B6B8C]'
-                        }`}
-                      >
-                        Super Admin
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setAdminRole('SUB_ADMIN')}
-                        className={`px-2.5 py-1 rounded-md font-semibold transition-all ${
-                          adminRole === 'SUB_ADMIN' ? 'bg-[#0B5FD9] text-white shadow-xs' : 'text-[#5B6B8C]'
-                        }`}
-                      >
-                        Sub-Admin
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-2 pt-1">
-                    <Link
-                      to="/partner/panel"
-                      onClick={() => setIsMobileNavOpen(false)}
-                      className="text-xs font-semibold px-3 py-2 rounded-xl bg-[#F8FAFD] hover:bg-[#F1F6FF] text-[#0A1F5C] flex items-center justify-center gap-1.5 border border-[#DCE7F9]"
-                    >
-                      <Building2 className="w-3.5 h-3.5 text-[#0B5FD9]" />
-                      <span>Partner Panel</span>
-                    </Link>
-                    <Link
-                      to="/"
-                      onClick={() => setIsMobileNavOpen(false)}
-                      className="text-xs font-semibold px-3 py-2 rounded-xl bg-[#F8FAFD] hover:bg-[#F1F6FF] text-[#0A1F5C] flex items-center justify-center gap-1 border border-[#DCE7F9]"
-                    >
-                      <span>Customer Site &rarr;</span>
-                    </Link>
-                  </div>
+                  <Link
+                    to="/"
+                    onClick={() => setIsMobileNavOpen(false)}
+                    className="w-full text-xs font-semibold px-3 py-2.5 rounded-xl bg-[#F8FAFD] hover:bg-[#F1F6FF] text-[#0A1F5C] flex items-center justify-center gap-1 border border-[#DCE7F9]"
+                  >
+                    <span>Customer Site &rarr;</span>
+                  </Link>
 
                   {/* Sign Out Button in Hamburger Menu */}
                   <button
