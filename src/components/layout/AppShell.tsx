@@ -418,31 +418,6 @@ export function AppShell({ children, showServiceSidebar = false }: AppShellProps
                 {item.label}
               </Link>
             ))}
-            <div className="pt-2 border-t border-[#EAF2FF] flex flex-col gap-2">
-              <Link
-                to="/partner/panel"
-                onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-sm font-semibold text-[#0B5FD9] bg-[#EBF2FE]"
-              >
-                <HardHat className="w-4 h-4 text-[#0B5FD9]" />
-                <span>Partner Panel (Vendor Portal)</span>
-              </Link>
-              <Link
-                to="/admin"
-                onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-sm font-semibold text-[#0A1F5C] bg-[#F1F6FF]"
-              >
-                <ShieldCheck className="w-4 h-4 text-[#0B5FD9]" />
-                <span>Admin Panel (Console)</span>
-              </Link>
-              <Link
-                to="/partner/register"
-                onClick={() => setMobileMenuOpen(false)}
-                className="w-full serva-pill-btn text-sm mt-1"
-              >
-                {t('becomePartnerTitle')} <ArrowRight className="w-4 h-4" />
-              </Link>
-            </div>
           </div>
         )}
       </header>
