@@ -10,6 +10,7 @@ import {
   Check,
   CheckCircle2,
   ChevronDown,
+  ClipboardList,
   Clock,
   CreditCard,
   DollarSign,
@@ -57,6 +58,7 @@ import { BrandLogo } from '../components/common/BrandLogo.tsx';
 /* Types for Admin Panel */
 type AdminTab =
   | 'dashboard'
+  | 'orders'
   | 'kyc'
   | 'commission'
   | 'coupons'
@@ -165,6 +167,28 @@ interface AdminSupportTicket {
   status: 'OPEN' | 'IN_PROGRESS' | 'RESOLVED';
   createdAt: string;
   adminReply?: string;
+}
+
+export interface AdminOrder {
+  id: string;
+  serviceName: string;
+  category: string;
+  customerName: string;
+  customerMobile: string;
+  customerAddress: string;
+  customerNote?: string;
+  scheduledTime: string;
+  amountPaise: number;
+  commissionPaise: number;
+  partnerPayoutPaise: number;
+  status: 'PENDING_ASSIGNMENT' | 'ASSIGNED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
+  assignedPartnerId: string;
+  assignedPartnerName: string;
+  assignedPartnerBusiness: string;
+  assignedPartnerMobile: string;
+  otpCode: string;
+  isOtpVerified: boolean;
+  createdAt: string;
 }
 
 /* Sample Initial Data for Admin Panel */
@@ -482,6 +506,244 @@ const INITIAL_WITHDRAWALS: WithdrawalRequest[] = [
   },
 ];
 
+const AVAILABLE_PARTNERS_POOL = [
+  {
+    id: 'PTR-8821',
+    ownerName: 'Ramesh Kumar',
+    businessName: 'Electrician & Home Appliance Specialist',
+    mobile: '9876543210',
+    category: 'Home Services',
+    rating: 4.9,
+  },
+  {
+    id: 'PTR-8840',
+    ownerName: 'Suresh Varma',
+    businessName: 'Varma Plumbing & Sanitary Solutions',
+    mobile: '9848099887',
+    category: 'Home Services',
+    rating: 4.8,
+  },
+  {
+    id: 'PTR-501',
+    ownerName: 'Ramesh Reddy',
+    businessName: 'Sri Balaji Deep Cleaning & Painting',
+    mobile: '9876543210',
+    category: 'Home Services',
+    rating: 4.9,
+  },
+  {
+    id: 'PTR-502',
+    ownerName: 'Venkatesh Rao',
+    businessName: 'Deccan Heavy Machinery & Tractor Hire',
+    mobile: '9849112233',
+    category: 'Agriculture Services',
+    rating: 4.8,
+  },
+  {
+    id: 'PTR-503',
+    ownerName: 'Mirza Baig',
+    businessName: 'Classic Event Sound & DJ Works',
+    mobile: '9900112244',
+    category: 'Event Services',
+    rating: 4.7,
+  },
+  {
+    id: 'PTR-504',
+    ownerName: 'Sunil Kumar',
+    businessName: 'QuickRelocate Movers',
+    mobile: '9888771122',
+    category: 'Moving & Shifting',
+    rating: 4.6,
+  },
+  {
+    id: 'PTR-505',
+    ownerName: 'G. Naresh',
+    businessName: 'FastMove Packers & Movers',
+    mobile: '9652011223',
+    category: 'Moving & Shifting',
+    rating: 4.7,
+  },
+  {
+    id: 'PTR-506',
+    ownerName: 'Arvind Sharma',
+    businessName: 'Arvind Infra & Civil Contractors',
+    mobile: '9811223344',
+    category: 'Contractors & Construction',
+    rating: 4.8,
+  },
+];
+
+const INITIAL_ORDERS: AdminOrder[] = [
+  {
+    id: 'SRV-9821',
+    serviceName: 'Electrician & Switchboard Repair',
+    category: 'Home Services',
+    customerName: 'Ananya Reddy',
+    customerMobile: '9876543210',
+    customerAddress: 'Plot 42, Jubilee Hills, Road No. 36, Hyderabad (2.4 km away)',
+    customerNote: '2 switchboards sparking and 1 ceiling fan speed regulator replacement.',
+    scheduledTime: 'Today at 11:30 AM',
+    amountPaise: 45000,
+    commissionPaise: 4500,
+    partnerPayoutPaise: 40500,
+    status: 'IN_PROGRESS',
+    assignedPartnerId: 'PTR-8821',
+    assignedPartnerName: 'Ramesh Kumar',
+    assignedPartnerBusiness: 'Electrician & Home Appliance Specialist',
+    assignedPartnerMobile: '9876543210',
+    otpCode: '4821',
+    isOtpVerified: true,
+    createdAt: '22 Nov 2026, 10:15 AM',
+  },
+  {
+    id: 'SRV-9844',
+    serviceName: 'Kitchen & Bathroom Plumbing Leakage Fix',
+    category: 'Home Services',
+    customerName: 'Vikram Joshi',
+    customerMobile: '9848011223',
+    customerAddress: 'Flat 304, Rainbow Towers, Madhapur, Hyderabad (4.1 km away)',
+    customerNote: 'Kitchen sink drain pipe blocked and bathroom tap leaking continuously.',
+    scheduledTime: 'Today at 02:00 PM',
+    amountPaise: 65000,
+    commissionPaise: 6500,
+    partnerPayoutPaise: 58500,
+    status: 'ASSIGNED',
+    assignedPartnerId: 'PTR-8840',
+    assignedPartnerName: 'Suresh Varma',
+    assignedPartnerBusiness: 'Varma Plumbing & Sanitary Solutions',
+    assignedPartnerMobile: '9848099887',
+    otpCode: '7192',
+    isOtpVerified: false,
+    createdAt: '22 Nov 2026, 11:30 AM',
+  },
+  {
+    id: 'SRV-9850',
+    serviceName: 'Full House Deep Cleaning & Sanitization',
+    category: 'Home Services',
+    customerName: 'Sneha Kapoor',
+    customerMobile: '9876543299',
+    customerAddress: 'Villa 12, Palm Meadows, Gachibowli, Hyderabad (5.8 km away)',
+    customerNote: 'Pre-move deep cleaning: 3 bathrooms, kitchen chimneys and balcony wash.',
+    scheduledTime: 'Tomorrow at 09:30 AM',
+    amountPaise: 280000,
+    commissionPaise: 28000,
+    partnerPayoutPaise: 252000,
+    status: 'ASSIGNED',
+    assignedPartnerId: 'PTR-501',
+    assignedPartnerName: 'Ramesh Reddy',
+    assignedPartnerBusiness: 'Sri Balaji Deep Cleaning & Painting',
+    assignedPartnerMobile: '9876543210',
+    otpCode: '5531',
+    isOtpVerified: false,
+    createdAt: '22 Nov 2026, 12:45 PM',
+  },
+  {
+    id: 'SRV-9875',
+    serviceName: 'Tractor Rental & Rotary Tiller Field Prep',
+    category: 'Agriculture Services',
+    customerName: 'K. Srinivas Rao',
+    customerMobile: '9944556677',
+    customerAddress: 'Survey 142, Peddashapur Village, Shamshabad, Hyderabad',
+    customerNote: 'Require 45HP tractor with rotavator for 3 acres soil plowing.',
+    scheduledTime: 'Tomorrow at 07:00 AM',
+    amountPaise: 420000,
+    commissionPaise: 25200,
+    partnerPayoutPaise: 394800,
+    status: 'ASSIGNED',
+    assignedPartnerId: 'PTR-502',
+    assignedPartnerName: 'Venkatesh Rao',
+    assignedPartnerBusiness: 'Deccan Heavy Machinery & Tractor Hire',
+    assignedPartnerMobile: '9849112233',
+    otpCode: '8840',
+    isOtpVerified: false,
+    createdAt: '22 Nov 2026, 01:20 PM',
+  },
+  {
+    id: 'SRV-9889',
+    serviceName: 'Wedding Reception Sound, DJ & Ambient Lighting',
+    category: 'Event Services',
+    customerName: 'Meera Nair',
+    customerMobile: '9789012345',
+    customerAddress: 'Taj Krishna Banquets, Banjara Hills, Road No. 1, Hyderabad',
+    customerNote: '4 top speakers, wireless mics, subwoofers and stage spotlight setup.',
+    scheduledTime: '24 Nov 2026, 05:00 PM',
+    amountPaise: 1250000,
+    commissionPaise: 150000,
+    partnerPayoutPaise: 1100000,
+    status: 'IN_PROGRESS',
+    assignedPartnerId: 'PTR-503',
+    assignedPartnerName: 'Mirza Baig',
+    assignedPartnerBusiness: 'Classic Event Sound & DJ Works',
+    assignedPartnerMobile: '9900112244',
+    otpCode: '3419',
+    isOtpVerified: true,
+    createdAt: '22 Nov 2026, 02:10 PM',
+  },
+  {
+    id: 'SRV-9894',
+    serviceName: '3BHK Complete Home Shifting & Packing Crew',
+    category: 'Moving & Shifting',
+    customerName: 'Harish Patel',
+    customerMobile: '9654321098',
+    customerAddress: 'B-402, Aparna Sarovar, Nallagandla, Hyderabad',
+    customerNote: 'Household goods packing, heavy furniture dismantling and fragile item bubble wrapping.',
+    scheduledTime: '25 Nov 2026, 08:00 AM',
+    amountPaise: 850000,
+    commissionPaise: 76500,
+    partnerPayoutPaise: 773500,
+    status: 'ASSIGNED',
+    assignedPartnerId: 'PTR-504',
+    assignedPartnerName: 'Sunil Kumar',
+    assignedPartnerBusiness: 'QuickRelocate Movers',
+    assignedPartnerMobile: '9888771122',
+    otpCode: '9023',
+    isOtpVerified: false,
+    createdAt: '22 Nov 2026, 03:00 PM',
+  },
+  {
+    id: 'SRV-9712',
+    serviceName: 'Main MCB & Inverter Backup Setup',
+    category: 'Home Services',
+    customerName: 'Dr. K. Pradeep',
+    customerMobile: '9849023456',
+    customerAddress: 'House 8-2-293, Jubilee Hills, Hyderabad',
+    customerNote: 'New Luminous inverter installation and MCB box rewiring.',
+    scheduledTime: '16 Nov 2026, 11:45 AM',
+    amountPaise: 120000,
+    commissionPaise: 12000,
+    partnerPayoutPaise: 108000,
+    status: 'COMPLETED',
+    assignedPartnerId: 'PTR-8821',
+    assignedPartnerName: 'Ramesh Kumar',
+    assignedPartnerBusiness: 'Electrician & Home Appliance Specialist',
+    assignedPartnerMobile: '9876543210',
+    otpCode: '2914',
+    isOtpVerified: true,
+    createdAt: '16 Nov 2026, 09:30 AM',
+  },
+  {
+    id: 'SRV-9905',
+    serviceName: 'Emergency Water Motor Replacement',
+    category: 'Home Services',
+    customerName: 'Farhan Ahmed',
+    customerMobile: '9700112233',
+    customerAddress: 'Mehdipatnam, Pillar 48, Hyderabad',
+    customerNote: 'Overhead tank not filling, motor burning smell.',
+    scheduledTime: 'Immediate Dispatch',
+    amountPaise: 80000,
+    commissionPaise: 8000,
+    partnerPayoutPaise: 72000,
+    status: 'PENDING_ASSIGNMENT',
+    assignedPartnerId: '',
+    assignedPartnerName: '',
+    assignedPartnerBusiness: '',
+    assignedPartnerMobile: '',
+    otpCode: '6149',
+    isOtpVerified: false,
+    createdAt: 'Today, 04:15 PM',
+  },
+];
+
 const INITIAL_TICKETS: AdminSupportTicket[] = [
   {
     id: 'TKT-701',
@@ -707,6 +969,18 @@ export function AdminDashboardPage() {
     return saved ? JSON.parse(saved) : INITIAL_TICKETS;
   });
 
+  // Orders & Partner Assignment State
+  const [ordersList, setOrdersList] = useState<AdminOrder[]>(() => {
+    const saved = localStorage.getItem('serva_admin_orders');
+    return saved ? JSON.parse(saved) : INITIAL_ORDERS;
+  });
+  const [orderSearch, setOrderSearch] = useState('');
+  const [orderStatusFilter, setOrderStatusFilter] = useState<'ALL' | 'PENDING_ASSIGNMENT' | 'ASSIGNED' | 'IN_PROGRESS' | 'COMPLETED'>('ALL');
+  const [orderCategoryFilter, setOrderCategoryFilter] = useState<string>('ALL');
+  const [selectedOrderForDetail, setSelectedOrderForDetail] = useState<AdminOrder | null>(null);
+  const [reassignModalOrder, setReassignModalOrder] = useState<AdminOrder | null>(null);
+  const [selectedNewPartnerId, setSelectedNewPartnerId] = useState<string>('');
+
   // Commission Setup State
   const [globalCommissionPercent, setGlobalCommissionPercent] = useState<number>(10);
   const [categoryCommissions, setCategoryCommissions] = useState<Record<string, number>>({
@@ -771,6 +1045,45 @@ export function AdminDashboardPage() {
   const saveTickets = (updated: AdminSupportTicket[]) => {
     setTickets(updated);
     localStorage.setItem('serva_admin_tickets', JSON.stringify(updated));
+  };
+  const saveOrders = (updated: AdminOrder[]) => {
+    setOrdersList(updated);
+    localStorage.setItem('serva_admin_orders', JSON.stringify(updated));
+  };
+
+  const handleAssignPartner = (orderId: string, partnerId: string) => {
+    const partner = AVAILABLE_PARTNERS_POOL.find((p) => p.id === partnerId);
+    if (!partner) return;
+    const updated = ordersList.map((order) => {
+      if (order.id === orderId) {
+        return {
+          ...order,
+          assignedPartnerId: partner.id,
+          assignedPartnerName: partner.ownerName,
+          assignedPartnerBusiness: partner.businessName,
+          assignedPartnerMobile: partner.mobile,
+          status: (order.status === 'PENDING_ASSIGNMENT' ? 'ASSIGNED' : order.status) as AdminOrder['status'],
+        };
+      }
+      return order;
+    });
+    saveOrders(updated);
+    setReassignModalOrder(null);
+    setSelectedNewPartnerId('');
+  };
+
+  const handleUpdateOrderStatus = (orderId: string, newStatus: AdminOrder['status']) => {
+    const updated = ordersList.map((order) => {
+      if (order.id === orderId) {
+        return {
+          ...order,
+          status: newStatus,
+          isOtpVerified: newStatus === 'COMPLETED' ? true : order.isOtpVerified,
+        };
+      }
+      return order;
+    });
+    saveOrders(updated);
   };
 
   /* Helper Functions */
@@ -910,9 +1223,11 @@ export function AdminDashboardPage() {
   const pendingKycCount = kycRequests.filter((k) => k.status === 'PENDING').length;
   const pendingPayoutCount = withdrawals.filter((w) => w.status === 'PENDING').length;
   const openTicketCount = tickets.filter((t) => t.status === 'OPEN').length;
+  const pendingAssignmentOrdersCount = ordersList.filter((o) => o.status === 'PENDING_ASSIGNMENT').length;
 
   const adminNavTabs = [
     { id: 'dashboard' as const, label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'orders' as const, label: 'Orders & Dispatch', icon: ClipboardList, count: pendingAssignmentOrdersCount },
     { id: 'kyc' as const, label: 'Partner KYC', icon: FileCheck, count: pendingKycCount },
     { id: 'commission' as const, label: 'Commission Setup', icon: Percent },
     { id: 'coupons' as const, label: 'Coupons & Deals', icon: Tag },
@@ -1436,6 +1751,577 @@ export function AdminDashboardPage() {
                     </div>
                   </div>
                 </div>
+              </div>
+            )}
+
+            {/* ===================== TAB: ORDERS & PARTNER ASSIGNMENT ===================== */}
+            {activeTab === 'orders' && (
+              <div className="space-y-6">
+                {/* Header & Quick Stats */}
+                <div className="bg-white rounded-2xl p-6 border border-[#DCE7F9] shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="p-2 rounded-xl bg-blue-50 text-[#0B5FD9]">
+                        <ClipboardList className="w-5 h-5" />
+                      </span>
+                      <div>
+                        <h2 className="text-lg font-bold text-[#0A1F5C]">Orders & Partner Assignment</h2>
+                        <p className="text-xs text-[#5B6B8C]">
+                          Monitor customer service bookings, track assigned execution partners, and reassign dispatch in real-time.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const csvRows = [
+                          ['Order ID', 'Service', 'Category', 'Customer', 'Phone', 'Address', 'Status', 'Partner ID', 'Partner Name', 'Partner Business', 'Partner Mobile', 'Amount (Rs)', 'Admin Commission (Rs)', 'Partner Payout (Rs)'],
+                          ...ordersList.map((o) => [
+                            o.id,
+                            `"${o.serviceName.replace(/"/g, '""')}"`,
+                            `"${o.category}"`,
+                            `"${o.customerName}"`,
+                            o.customerMobile,
+                            `"${o.customerAddress.replace(/"/g, '""')}"`,
+                            o.status,
+                            o.assignedPartnerId || 'UNASSIGNED',
+                            `"${o.assignedPartnerName || 'N/A'}"`,
+                            `"${o.assignedPartnerBusiness || 'N/A'}"`,
+                            o.assignedPartnerMobile || 'N/A',
+                            (o.amountPaise / 100).toFixed(2),
+                            (o.commissionPaise / 100).toFixed(2),
+                            (o.partnerPayoutPaise / 100).toFixed(2),
+                          ]),
+                        ];
+                        exportCsv('SERVA_Orders_Partner_Dispatch_Ledger.csv', csvRows.map((r) => r.join(',')).join('\n'));
+                      }}
+                      className="px-3.5 py-2 rounded-xl border border-[#DCE7F9] bg-white text-[#0A1F5C] text-xs font-semibold hover:bg-[#F9FBFF] flex items-center gap-1.5 transition-all cursor-pointer shadow-xs"
+                    >
+                      <Download className="w-3.5 h-3.5 text-[#0B5FD9]" />
+                      <span>Export Dispatch CSV</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Orders KPI Quick Strip */}
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                  <div className="bg-white rounded-2xl p-4 border border-[#DCE7F9] shadow-xs">
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-[#5B6B8C]">Total Bookings</p>
+                    <p className="text-2xl font-black text-[#0A1F5C] mt-1">{ordersList.length}</p>
+                    <p className="text-[11px] text-[#5B6B8C] mt-0.5">Across all categories</p>
+                  </div>
+
+                  <div className={`bg-white rounded-2xl p-4 border shadow-xs ${pendingAssignmentOrdersCount > 0 ? 'border-amber-300 bg-amber-50/30' : 'border-[#DCE7F9]'}`}>
+                    <div className="flex items-center justify-between">
+                      <p className="text-[11px] font-bold uppercase tracking-wider text-amber-700">Needs Partner</p>
+                      {pendingAssignmentOrdersCount > 0 && (
+                        <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-ping" />
+                      )}
+                    </div>
+                    <p className="text-2xl font-black text-amber-600 mt-1">{pendingAssignmentOrdersCount}</p>
+                    <p className="text-[11px] text-amber-700/80 mt-0.5">Awaiting partner dispatch</p>
+                  </div>
+
+                  <div className="bg-white rounded-2xl p-4 border border-[#DCE7F9] shadow-xs">
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-blue-700">Active / In Progress</p>
+                    <p className="text-2xl font-black text-[#0B5FD9] mt-1">
+                      {ordersList.filter((o) => o.status === 'ASSIGNED' || o.status === 'IN_PROGRESS').length}
+                    </p>
+                    <p className="text-[11px] text-blue-600 mt-0.5">Currently on field</p>
+                  </div>
+
+                  <div className="bg-white rounded-2xl p-4 border border-[#DCE7F9] shadow-xs">
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-emerald-700">Completed Orders</p>
+                    <p className="text-2xl font-black text-emerald-600 mt-1">
+                      {ordersList.filter((o) => o.status === 'COMPLETED').length}
+                    </p>
+                    <p className="text-[11px] text-emerald-600 mt-0.5">OTP verified & settled</p>
+                  </div>
+                </div>
+
+                {/* Filter & Search Bar */}
+                <div className="bg-white rounded-2xl p-4 border border-[#DCE7F9] shadow-sm space-y-3">
+                  <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+                    {/* Search Input */}
+                    <div className="relative flex-1">
+                      <Search className="w-4 h-4 text-[#5B6B8C] absolute left-3 top-3" />
+                      <input
+                        type="text"
+                        placeholder="Search by Order ID (#SRV-9821), Customer, Partner, Service or Mobile..."
+                        value={orderSearch}
+                        onChange={(e) => setOrderSearch(e.target.value)}
+                        className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-[#DCE7F9] text-xs text-[#0A1F5C] placeholder-[#5B6B8C]/60 bg-[#F9FBFF] focus:outline-none focus:border-[#0B5FD9]"
+                      />
+                    </div>
+
+                    {/* Category Dropdown */}
+                    <div className="flex items-center gap-2">
+                      <select
+                        value={orderCategoryFilter}
+                        onChange={(e) => setOrderCategoryFilter(e.target.value)}
+                        className="px-3 py-2.5 rounded-xl border border-[#DCE7F9] bg-[#F9FBFF] text-xs font-semibold text-[#0A1F5C] focus:outline-none focus:border-[#0B5FD9]"
+                      >
+                        <option value="ALL">All Categories</option>
+                        <option value="Home Services">Home Services</option>
+                        <option value="Agriculture Services">Agriculture Services</option>
+                        <option value="Event Services">Event Services</option>
+                        <option value="Moving & Shifting">Moving & Shifting</option>
+                        <option value="Contractors & Construction">Contractors & Construction</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Status Filter Chips */}
+                  <div className="flex flex-wrap items-center gap-1.5 pt-2 border-t border-[#EAF2FF]">
+                    <span className="text-[11px] font-bold text-[#5B6B8C] mr-1">Status:</span>
+                    {[
+                      { id: 'ALL', label: `All (${ordersList.length})` },
+                      { id: 'PENDING_ASSIGNMENT', label: `Unassigned (${pendingAssignmentOrdersCount})` },
+                      { id: 'ASSIGNED', label: `Assigned (${ordersList.filter((o) => o.status === 'ASSIGNED').length})` },
+                      { id: 'IN_PROGRESS', label: `In Progress (${ordersList.filter((o) => o.status === 'IN_PROGRESS').length})` },
+                      { id: 'COMPLETED', label: `Completed (${ordersList.filter((o) => o.status === 'COMPLETED').length})` },
+                    ].map((tab) => (
+                      <button
+                        key={tab.id}
+                        type="button"
+                        onClick={() => setOrderStatusFilter(tab.id as typeof orderStatusFilter)}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                          orderStatusFilter === tab.id
+                            ? 'bg-[#0B5FD9] text-white shadow-xs'
+                            : 'bg-[#F1F6FF] text-[#5B6B8C] hover:text-[#0A1F5C] hover:bg-[#E5EFFE]'
+                        }`}
+                      >
+                        {tab.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Orders List Container */}
+                {(() => {
+                  const filtered = ordersList.filter((order) => {
+                    const q = orderSearch.trim().toLowerCase();
+                    const matchesSearch = q
+                      ? order.id.toLowerCase().includes(q) ||
+                        order.serviceName.toLowerCase().includes(q) ||
+                        order.customerName.toLowerCase().includes(q) ||
+                        order.customerMobile.includes(q) ||
+                        order.assignedPartnerName.toLowerCase().includes(q) ||
+                        order.assignedPartnerBusiness.toLowerCase().includes(q) ||
+                        order.assignedPartnerId.toLowerCase().includes(q)
+                      : true;
+                    const matchesStatus = orderStatusFilter === 'ALL' ? true : order.status === orderStatusFilter;
+                    const matchesCategory = orderCategoryFilter === 'ALL' ? true : order.category === orderCategoryFilter;
+                    return matchesSearch && matchesStatus && matchesCategory;
+                  });
+
+                  if (filtered.length === 0) {
+                    return (
+                      <div className="bg-white rounded-2xl p-12 text-center border border-[#DCE7F9] shadow-sm">
+                        <ClipboardList className="w-12 h-12 text-blue-300 mx-auto mb-3 opacity-60" />
+                        <h3 className="text-base font-bold text-[#0A1F5C]">No Orders Found</h3>
+                        <p className="text-xs text-[#5B6B8C] mt-1">
+                          No service bookings matched your search or status filter. Try clearing filters.
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setOrderSearch('');
+                            setOrderStatusFilter('ALL');
+                            setOrderCategoryFilter('ALL');
+                          }}
+                          className="mt-4 px-4 py-2 rounded-xl bg-[#0B5FD9] text-white text-xs font-semibold hover:bg-[#094FB6]"
+                        >
+                          Reset Filters
+                        </button>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <div className="space-y-4">
+                      {/* Desktop Table View (lg:block) */}
+                      <div className="hidden lg:block bg-white rounded-2xl border border-[#DCE7F9] shadow-sm overflow-hidden">
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-left border-collapse min-w-[1100px]">
+                            <thead>
+                              <tr className="bg-[#F8FAFD] border-b border-[#DCE7F9] text-[11px] font-bold text-[#5B6B8C] uppercase tracking-wider">
+                                <th className="py-3.5 px-4">Order ID & Service</th>
+                                <th className="py-3.5 px-4">Customer Details</th>
+                                <th className="py-3.5 px-4 bg-blue-50/40 text-[#0B5FD9]">
+                                  Assigned Partner (Dispatch)
+                                </th>
+                                <th className="py-3.5 px-4">Schedule & OTP</th>
+                                <th className="py-3.5 px-4">Payout Math</th>
+                                <th className="py-3.5 px-4">Status</th>
+                                <th className="py-3.5 px-4 text-right">Actions</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-[#EAF2FF] text-xs">
+                              {filtered.map((order) => {
+                                const isAssigned = Boolean(order.assignedPartnerId);
+                                return (
+                                  <tr key={order.id} className="hover:bg-[#F9FBFF] transition-colors">
+                                    {/* Order & Service */}
+                                    <td className="py-4 px-4 align-top">
+                                      <div className="flex items-center gap-1.5 mb-1">
+                                        <span className="font-extrabold text-[#0B5FD9] bg-[#EBF2FE] px-2 py-0.5 rounded-md font-mono text-[11px]">
+                                          #{order.id}
+                                        </span>
+                                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-[#5B6B8C]">
+                                          {order.category}
+                                        </span>
+                                      </div>
+                                      <p className="font-bold text-[#0A1F5C] leading-snug line-clamp-2">
+                                        {order.serviceName}
+                                      </p>
+                                      <p className="text-[11px] text-[#5B6B8C] mt-1 flex items-center gap-1">
+                                        <Clock className="w-3 h-3 text-[#5B6B8C]" />
+                                        <span>Booked: {order.createdAt}</span>
+                                      </p>
+                                    </td>
+
+                                    {/* Customer Details */}
+                                    <td className="py-4 px-4 align-top max-w-[220px]">
+                                      <p className="font-bold text-[#0A1F5C]">{order.customerName}</p>
+                                      <a
+                                        href={`tel:${order.customerMobile}`}
+                                        className="text-[11px] font-semibold text-[#0B5FD9] hover:underline flex items-center gap-1 mt-0.5"
+                                      >
+                                        <Phone className="w-3 h-3 text-[#0B5FD9]" />
+                                        <span>+91 {order.customerMobile}</span>
+                                      </a>
+                                      <p className="text-[11px] text-[#5B6B8C] mt-1 line-clamp-2 leading-relaxed flex items-start gap-1">
+                                        <MapPin className="w-3 h-3 text-[#5B6B8C] shrink-0 mt-0.5" />
+                                        <span>{order.customerAddress}</span>
+                                      </p>
+                                      {order.customerNote && (
+                                        <div className="mt-1.5 p-1.5 rounded-lg bg-amber-50/70 border border-amber-200/60 text-[10px] text-amber-800 line-clamp-2">
+                                          &ldquo;{order.customerNote}&rdquo;
+                                        </div>
+                                      )}
+                                    </td>
+
+                                    {/* Assigned Partner (Dispatch) - Highlighted Column */}
+                                    <td className="py-4 px-4 align-top bg-blue-50/20 border-x border-blue-100/50">
+                                      {isAssigned ? (
+                                        <div className="space-y-1.5">
+                                          <div className="flex items-center justify-between gap-1">
+                                            <span className="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-100 text-[#0B5FD9]">
+                                              #{order.assignedPartnerId}
+                                            </span>
+                                            <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                                              <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                                              <span>Assigned</span>
+                                            </span>
+                                          </div>
+                                          <p className="font-extrabold text-[#0A1F5C] text-xs">
+                                            {order.assignedPartnerName}
+                                          </p>
+                                          <p className="text-[11px] text-[#5B6B8C] line-clamp-1">
+                                            {order.assignedPartnerBusiness}
+                                          </p>
+                                          <a
+                                            href={`tel:${order.assignedPartnerMobile}`}
+                                            className="text-[11px] font-semibold text-emerald-700 hover:underline flex items-center gap-1"
+                                          >
+                                            <Phone className="w-3 h-3 text-emerald-600" />
+                                            <span>+91 {order.assignedPartnerMobile}</span>
+                                          </a>
+                                          <button
+                                            type="button"
+                                            onClick={() => {
+                                              setReassignModalOrder(order);
+                                              setSelectedNewPartnerId(order.assignedPartnerId);
+                                            }}
+                                            className="mt-1 w-full py-1 px-2 rounded-lg bg-white border border-[#DCE7F9] hover:border-[#0B5FD9] text-[#0B5FD9] text-[11px] font-bold shadow-2xs hover:bg-[#F1F6FF] transition-all flex items-center justify-center gap-1 cursor-pointer"
+                                          >
+                                            <RefreshCw className="w-3 h-3 text-[#0B5FD9]" />
+                                            <span>Change Partner</span>
+                                          </button>
+                                        </div>
+                                      ) : (
+                                        <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-center space-y-2">
+                                          <div className="flex items-center justify-center gap-1 text-amber-800 text-[11px] font-bold">
+                                            <AlertCircle className="w-3.5 h-3.5 text-amber-600" />
+                                            <span>Not Assigned Yet</span>
+                                          </div>
+                                          <p className="text-[10px] text-amber-700/80">
+                                            Order is awaiting dispatch to an authorized partner.
+                                          </p>
+                                          <button
+                                            type="button"
+                                            onClick={() => {
+                                              setReassignModalOrder(order);
+                                              setSelectedNewPartnerId(AVAILABLE_PARTNERS_POOL[0]?.id || '');
+                                            }}
+                                            className="w-full py-1.5 px-3 rounded-lg bg-[#0B5FD9] hover:bg-[#094FB6] text-white text-xs font-bold shadow-xs transition-all flex items-center justify-center gap-1 cursor-pointer"
+                                          >
+                                            <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                                            <span>Assign Partner Now</span>
+                                          </button>
+                                        </div>
+                                      )}
+                                    </td>
+
+                                    {/* Schedule & OTP */}
+                                    <td className="py-4 px-4 align-top">
+                                      <p className="font-bold text-[#0A1F5C] flex items-center gap-1">
+                                        <Calendar className="w-3.5 h-3.5 text-[#0B5FD9]" />
+                                        <span>{order.scheduledTime}</span>
+                                      </p>
+                                      <div className="mt-2 p-2 rounded-xl bg-[#F8FAFD] border border-[#DCE7F9] space-y-1">
+                                        <div className="flex items-center justify-between text-[11px]">
+                                          <span className="text-[#5B6B8C]">Completion OTP:</span>
+                                          <span className="font-mono font-bold text-[#0A1F5C] tracking-wider bg-white px-1.5 py-0.2 rounded border">
+                                            {order.otpCode}
+                                          </span>
+                                        </div>
+                                        <div className="text-[10px] font-semibold flex items-center gap-1">
+                                          {order.isOtpVerified ? (
+                                            <span className="text-emerald-700 flex items-center gap-1">
+                                              <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                                              <span>Verified & Complete</span>
+                                            </span>
+                                          ) : (
+                                            <span className="text-amber-700 flex items-center gap-1">
+                                              <Clock className="w-3 h-3 text-amber-600" />
+                                              <span>Awaiting field entry</span>
+                                            </span>
+                                          )}
+                                        </div>
+                                      </div>
+                                    </td>
+
+                                    {/* Payout Math */}
+                                    <td className="py-4 px-4 align-top">
+                                      <div className="space-y-1">
+                                        <div className="flex items-center justify-between text-xs">
+                                          <span className="text-[#5B6B8C]">Gross:</span>
+                                          <span className="font-bold text-[#0A1F5C]">{formatInr(order.amountPaise)}</span>
+                                        </div>
+                                        <div className="flex items-center justify-between text-[11px] text-blue-700">
+                                          <span>SERVA (10%):</span>
+                                          <span className="font-semibold">+{formatInr(order.commissionPaise)}</span>
+                                        </div>
+                                        <div className="flex items-center justify-between text-[11px] font-bold text-emerald-700 pt-1 border-t border-[#EAF2FF]">
+                                          <span>Partner Net:</span>
+                                          <span>{formatInr(order.partnerPayoutPaise)}</span>
+                                        </div>
+                                      </div>
+                                    </td>
+
+                                    {/* Status */}
+                                    <td className="py-4 px-4 align-top">
+                                      <span
+                                        className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold ${
+                                          order.status === 'COMPLETED'
+                                            ? 'bg-emerald-100 text-emerald-800'
+                                            : order.status === 'IN_PROGRESS'
+                                            ? 'bg-indigo-100 text-indigo-800'
+                                            : order.status === 'ASSIGNED'
+                                            ? 'bg-blue-100 text-[#0B5FD9]'
+                                            : 'bg-amber-100 text-amber-800'
+                                        }`}
+                                      >
+                                        <span className="w-1.5 h-1.5 rounded-full bg-current" />
+                                        <span>
+                                          {order.status === 'PENDING_ASSIGNMENT'
+                                            ? 'Unassigned'
+                                            : order.status.replace('_', ' ')}
+                                        </span>
+                                      </span>
+
+                                      {/* Quick Status Dropdown */}
+                                      <div className="mt-2">
+                                        <select
+                                          value={order.status}
+                                          onChange={(e) => handleUpdateOrderStatus(order.id, e.target.value as AdminOrder['status'])}
+                                          className="text-[11px] font-semibold text-[#5B6B8C] bg-white border border-[#DCE7F9] rounded-lg px-2 py-1 focus:outline-none focus:border-[#0B5FD9]"
+                                        >
+                                          <option value="PENDING_ASSIGNMENT">Unassigned</option>
+                                          <option value="ASSIGNED">Assigned</option>
+                                          <option value="IN_PROGRESS">In Progress</option>
+                                          <option value="COMPLETED">Completed</option>
+                                        </select>
+                                      </div>
+                                    </td>
+
+                                    {/* Action Button */}
+                                    <td className="py-4 px-4 align-top text-right">
+                                      <button
+                                        type="button"
+                                        onClick={() => setSelectedOrderForDetail(order)}
+                                        className="px-3 py-1.5 rounded-xl border border-[#DCE7F9] bg-white text-[#0A1F5C] hover:bg-[#F1F6FF] text-xs font-bold shadow-2xs transition-all flex items-center gap-1.5 ml-auto cursor-pointer"
+                                      >
+                                        <Eye className="w-3.5 h-3.5 text-[#0B5FD9]" />
+                                        <span>Details</span>
+                                      </button>
+                                    </td>
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+
+                      {/* Mobile & Tablet Card View (lg:hidden) */}
+                      <div className="lg:hidden space-y-3.5">
+                        {filtered.map((order) => {
+                          const isAssigned = Boolean(order.assignedPartnerId);
+                          return (
+                            <div
+                              key={order.id}
+                              className="bg-white rounded-2xl p-4 border border-[#DCE7F9] shadow-sm space-y-3"
+                            >
+                              {/* Top Bar: Order ID & Status */}
+                              <div className="flex items-center justify-between gap-2">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-extrabold text-[#0B5FD9] bg-[#EBF2FE] px-2.5 py-0.5 rounded-md font-mono text-xs">
+                                    #{order.id}
+                                  </span>
+                                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-[#5B6B8C]">
+                                    {order.category}
+                                  </span>
+                                </div>
+                                <span
+                                  className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                                    order.status === 'COMPLETED'
+                                      ? 'bg-emerald-100 text-emerald-800'
+                                      : order.status === 'IN_PROGRESS'
+                                      ? 'bg-indigo-100 text-indigo-800'
+                                      : order.status === 'ASSIGNED'
+                                      ? 'bg-blue-100 text-[#0B5FD9]'
+                                      : 'bg-amber-100 text-amber-800'
+                                  }`}
+                                >
+                                  <span className="w-1.5 h-1.5 rounded-full bg-current" />
+                                  <span>
+                                    {order.status === 'PENDING_ASSIGNMENT' ? 'Unassigned' : order.status.replace('_', ' ')}
+                                  </span>
+                                </span>
+                              </div>
+
+                              {/* Service Name */}
+                              <div>
+                                <h3 className="text-sm font-bold text-[#0A1F5C] leading-snug">{order.serviceName}</h3>
+                                <p className="text-xs text-[#5B6B8C] mt-1 flex items-center gap-1">
+                                  <Calendar className="w-3.5 h-3.5 text-[#0B5FD9]" />
+                                  <span>{order.scheduledTime}</span>
+                                </p>
+                              </div>
+
+                              {/* Customer Box */}
+                              <div className="p-3 rounded-xl bg-[#F8FAFD] border border-[#DCE7F9] text-xs space-y-1">
+                                <div className="flex items-center justify-between">
+                                  <span className="font-bold text-[#0A1F5C]">{order.customerName}</span>
+                                  <a
+                                    href={`tel:${order.customerMobile}`}
+                                    className="text-[11px] font-bold text-[#0B5FD9] flex items-center gap-1"
+                                  >
+                                    <Phone className="w-3 h-3" />
+                                    <span>{order.customerMobile}</span>
+                                  </a>
+                                </div>
+                                <p className="text-[11px] text-[#5B6B8C] leading-relaxed flex items-start gap-1">
+                                  <MapPin className="w-3 h-3 text-[#5B6B8C] shrink-0 mt-0.5" />
+                                  <span>{order.customerAddress}</span>
+                                </p>
+                              </div>
+
+                              {/* ASSIGNED PARTNER SECTION (Primary user requirement) */}
+                              <div className="p-3.5 rounded-xl border border-blue-200 bg-blue-50/40 space-y-2">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#0B5FD9]">
+                                    Assigned Partner
+                                  </span>
+                                  {isAssigned ? (
+                                    <span className="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-100 text-[#0B5FD9]">
+                                      #{order.assignedPartnerId}
+                                    </span>
+                                  ) : (
+                                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">
+                                      Pending Dispatch
+                                    </span>
+                                  )}
+                                </div>
+
+                                {isAssigned ? (
+                                  <div className="space-y-1">
+                                    <p className="text-xs font-black text-[#0A1F5C]">{order.assignedPartnerName}</p>
+                                    <p className="text-[11px] text-[#5B6B8C]">{order.assignedPartnerBusiness}</p>
+                                    <div className="flex items-center justify-between pt-1">
+                                      <a
+                                        href={`tel:${order.assignedPartnerMobile}`}
+                                        className="text-xs font-bold text-emerald-700 flex items-center gap-1"
+                                      >
+                                        <Phone className="w-3 h-3 text-emerald-600" />
+                                        <span>+91 {order.assignedPartnerMobile}</span>
+                                      </a>
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          setReassignModalOrder(order);
+                                          setSelectedNewPartnerId(order.assignedPartnerId);
+                                        }}
+                                        className="px-2.5 py-1 rounded-lg bg-white border border-[#DCE7F9] text-[#0B5FD9] font-bold text-xs shadow-2xs hover:bg-[#F1F6FF] flex items-center gap-1 cursor-pointer"
+                                      >
+                                        <RefreshCw className="w-3 h-3 text-[#0B5FD9]" />
+                                        <span>Change</span>
+                                      </button>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div className="space-y-2">
+                                    <p className="text-xs text-amber-800 font-semibold">
+                                      No partner is currently assigned to this order.
+                                    </p>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setReassignModalOrder(order);
+                                        setSelectedNewPartnerId(AVAILABLE_PARTNERS_POOL[0]?.id || '');
+                                      }}
+                                      className="w-full py-2 rounded-xl bg-[#0B5FD9] hover:bg-[#094FB6] text-white text-xs font-bold shadow-sm flex items-center justify-center gap-1.5 cursor-pointer"
+                                    >
+                                      <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                                      <span>Assign to a Partner</span>
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Price Math & OTP Strip */}
+                              <div className="flex items-center justify-between pt-2 border-t border-[#EAF2FF] text-xs">
+                                <div>
+                                  <span className="text-[#5B6B8C] text-[11px]">Gross Total: </span>
+                                  <strong className="text-[#0A1F5C] font-extrabold">{formatInr(order.amountPaise)}</strong>
+                                </div>
+                                <div className="text-[11px]">
+                                  <span className="text-[#5B6B8C]">OTP: </span>
+                                  <span className="font-mono font-bold text-[#0A1F5C] bg-[#F1F6FF] px-1.5 py-0.5 rounded border border-[#DCE7F9]">
+                                    {order.otpCode}
+                                  </span>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => setSelectedOrderForDetail(order)}
+                                  className="text-xs font-bold text-[#0B5FD9] hover:underline"
+                                >
+                                  View Dossier &rarr;
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
             )}
 
@@ -2658,6 +3544,341 @@ export function AdminDashboardPage() {
                 className="px-4 py-2 rounded-xl bg-emerald-600 text-white text-xs font-semibold hover:bg-emerald-700 shadow-sm"
               >
                 Confirm Payout Complete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ===================== MODAL 5: ASSIGN / REASSIGN PARTNER MODAL ===================== */}
+      {reassignModalOrder && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-xl w-full p-6 shadow-2xl border border-[#DCE7F9] max-h-[90vh] flex flex-col">
+            <div className="flex items-start justify-between gap-3 pb-3 border-b border-[#EAF2FF]">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="font-mono text-xs font-extrabold bg-[#EBF2FE] text-[#0B5FD9] px-2 py-0.5 rounded">
+                    #{reassignModalOrder.id}
+                  </span>
+                  <span className="text-[11px] font-bold px-2 py-0.5 rounded bg-slate-100 text-[#5B6B8C]">
+                    {reassignModalOrder.category}
+                  </span>
+                </div>
+                <h3 className="font-bold text-base text-[#0A1F5C] mt-1">
+                  Assign / Reassign Execution Partner
+                </h3>
+                <p className="text-xs text-[#5B6B8C] mt-0.5">
+                  Select a registered, verified SERVA partner to handle this booking.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setReassignModalOrder(null)}
+                className="p-1.5 rounded-lg text-[#5B6B8C] hover:bg-[#F1F6FF] transition-all cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Order Brief */}
+            <div className="my-3 p-3 rounded-2xl bg-[#F8FAFD] border border-[#DCE7F9] text-xs space-y-1 shrink-0">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-[#0A1F5C]">{reassignModalOrder.serviceName}</span>
+                <span className="font-extrabold text-[#0B5FD9]">{formatInr(reassignModalOrder.amountPaise)}</span>
+              </div>
+              <div className="text-[11px] text-[#5B6B8C]">
+                Customer: <strong>{reassignModalOrder.customerName}</strong> &bull; {reassignModalOrder.customerAddress}
+              </div>
+              <div className="text-[11px] text-[#5B6B8C] pt-1 border-t border-[#EAF2FF]">
+                Current Assignment:{' '}
+                {reassignModalOrder.assignedPartnerId ? (
+                  <strong className="text-[#0B5FD9]">
+                    {reassignModalOrder.assignedPartnerName} (#{reassignModalOrder.assignedPartnerId})
+                  </strong>
+                ) : (
+                  <strong className="text-amber-600">None (Pending Dispatch)</strong>
+                )}
+              </div>
+            </div>
+
+            {/* Partner Selection List */}
+            <div className="flex-1 overflow-y-auto space-y-2 pr-1 my-1">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-[#5B6B8C]">
+                Available Verified Partners ({AVAILABLE_PARTNERS_POOL.length})
+              </p>
+              {AVAILABLE_PARTNERS_POOL.map((partner) => {
+                const isSelected = selectedNewPartnerId === partner.id;
+                const isCurrent = reassignModalOrder.assignedPartnerId === partner.id;
+                return (
+                  <div
+                    key={partner.id}
+                    onClick={() => setSelectedNewPartnerId(partner.id)}
+                    className={`p-3 rounded-xl border text-xs cursor-pointer transition-all flex items-center justify-between gap-3 ${
+                      isSelected
+                        ? 'border-[#0B5FD9] bg-[#EBF2FE]/60 ring-1 ring-[#0B5FD9]'
+                        : 'border-[#DCE7F9] bg-white hover:bg-[#F9FBFF]'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div
+                        className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 ${
+                          isSelected ? 'bg-[#0B5FD9] text-white' : 'bg-blue-50 text-[#0B5FD9]'
+                        }`}
+                      >
+                        {partner.ownerName.slice(0, 2).toUpperCase()}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="font-bold text-[#0A1F5C]">{partner.ownerName}</span>
+                          <span className="font-mono text-[10px] text-[#0B5FD9] bg-blue-100/70 px-1.5 py-0.2 rounded font-bold">
+                            #{partner.id}
+                          </span>
+                          {isCurrent && (
+                            <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800">
+                              CURRENT
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-[11px] text-[#5B6B8C] truncate">{partner.businessName}</p>
+                        <div className="flex items-center gap-2 text-[10px] text-[#5B6B8C] mt-0.5">
+                          <span>{partner.category}</span>
+                          <span>&bull;</span>
+                          <span className="flex items-center gap-0.5 text-amber-600 font-bold">
+                            <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                            {partner.rating}
+                          </span>
+                          <span>&bull;</span>
+                          <span className="font-semibold">+91 {partner.mobile}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="shrink-0">
+                      <div
+                        className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
+                          isSelected
+                            ? 'border-[#0B5FD9] bg-[#0B5FD9] text-white'
+                            : 'border-[#CBD5E1] bg-white'
+                        }`}
+                      >
+                        {isSelected && <Check className="w-3 h-3" />}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Modal Actions */}
+            <div className="flex items-center justify-between gap-2 pt-3 border-t border-[#EAF2FF] shrink-0">
+              <button
+                type="button"
+                onClick={() => setReassignModalOrder(null)}
+                className="px-4 py-2 rounded-xl border border-[#DCE7F9] text-xs font-semibold text-[#5B6B8C] hover:bg-gray-50 cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={!selectedNewPartnerId}
+                onClick={() => handleAssignPartner(reassignModalOrder.id, selectedNewPartnerId)}
+                className="px-4 py-2 rounded-xl bg-[#0B5FD9] hover:bg-[#094FB6] disabled:opacity-50 text-white text-xs font-bold shadow-sm transition-all flex items-center gap-1.5 cursor-pointer"
+              >
+                <CheckCircle2 className="w-4 h-4" />
+                <span>Confirm Assignment</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ===================== MODAL 6: ORDER DOSSIER & DETAILS MODAL ===================== */}
+      {selectedOrderForDetail && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-2xl w-full p-6 shadow-2xl border border-[#DCE7F9] max-h-[90vh] overflow-y-auto space-y-4">
+            <div className="flex items-start justify-between gap-3 pb-3 border-b border-[#EAF2FF]">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="font-mono text-xs font-extrabold bg-[#EBF2FE] text-[#0B5FD9] px-2.5 py-0.5 rounded">
+                    #{selectedOrderForDetail.id}
+                  </span>
+                  <span className="text-[11px] font-bold px-2 py-0.5 rounded bg-slate-100 text-[#5B6B8C]">
+                    {selectedOrderForDetail.category}
+                  </span>
+                  <span
+                    className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                      selectedOrderForDetail.status === 'COMPLETED'
+                        ? 'bg-emerald-100 text-emerald-800'
+                        : selectedOrderForDetail.status === 'IN_PROGRESS'
+                        ? 'bg-indigo-100 text-indigo-800'
+                        : selectedOrderForDetail.status === 'ASSIGNED'
+                        ? 'bg-blue-100 text-[#0B5FD9]'
+                        : 'bg-amber-100 text-amber-800'
+                    }`}
+                  >
+                    {selectedOrderForDetail.status.replace('_', ' ')}
+                  </span>
+                </div>
+                <h3 className="font-bold text-lg text-[#0A1F5C] mt-1.5">
+                  {selectedOrderForDetail.serviceName}
+                </h3>
+                <p className="text-xs text-[#5B6B8C]">
+                  Booked on {selectedOrderForDetail.createdAt} &bull; Scheduled for{' '}
+                  <strong className="text-[#0A1F5C]">{selectedOrderForDetail.scheduledTime}</strong>
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedOrderForDetail(null)}
+                className="p-1.5 rounded-lg text-[#5B6B8C] hover:bg-[#F1F6FF] transition-all cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Customer Details Dossier Card */}
+            <div className="p-4 rounded-2xl bg-[#F8FAFD] border border-[#DCE7F9] space-y-2">
+              <h4 className="text-xs font-extrabold uppercase tracking-wider text-[#0B5FD9]">
+                Customer Information
+              </h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                <div>
+                  <span className="text-[#5B6B8C]">Customer Name:</span>
+                  <p className="font-bold text-[#0A1F5C]">{selectedOrderForDetail.customerName}</p>
+                </div>
+                <div>
+                  <span className="text-[#5B6B8C]">Contact Phone:</span>
+                  <p className="font-bold text-[#0B5FD9] flex items-center gap-1">
+                    <Phone className="w-3.5 h-3.5" />
+                    <span>+91 {selectedOrderForDetail.customerMobile}</span>
+                  </p>
+                </div>
+                <div className="sm:col-span-2">
+                  <span className="text-[#5B6B8C]">Service Address:</span>
+                  <p className="font-semibold text-[#0A1F5C] flex items-start gap-1 mt-0.5">
+                    <MapPin className="w-3.5 h-3.5 text-[#5B6B8C] shrink-0 mt-0.5" />
+                    <span>{selectedOrderForDetail.customerAddress}</span>
+                  </p>
+                </div>
+                {selectedOrderForDetail.customerNote && (
+                  <div className="sm:col-span-2 p-2.5 rounded-xl bg-amber-50/70 border border-amber-200/60 text-amber-900 text-xs">
+                    <strong>Customer Instructions:</strong> &ldquo;{selectedOrderForDetail.customerNote}&rdquo;
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Assigned Partner Dossier Card (Crucial for the user request) */}
+            <div className="p-4 rounded-2xl bg-blue-50/30 border border-blue-200/80 space-y-2">
+              <div className="flex items-center justify-between">
+                <h4 className="text-xs font-extrabold uppercase tracking-wider text-[#0B5FD9]">
+                  Assigned Execution Partner
+                </h4>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setReassignModalOrder(selectedOrderForDetail);
+                    setSelectedNewPartnerId(selectedOrderForDetail.assignedPartnerId);
+                    setSelectedOrderForDetail(null);
+                  }}
+                  className="text-xs font-bold text-[#0B5FD9] hover:underline flex items-center gap-1 cursor-pointer"
+                >
+                  <RefreshCw className="w-3 h-3" />
+                  <span>Reassign Partner</span>
+                </button>
+              </div>
+
+              {selectedOrderForDetail.assignedPartnerId ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs pt-1">
+                  <div>
+                    <span className="text-[#5B6B8C]">Partner Name & ID:</span>
+                    <p className="font-bold text-[#0A1F5C]">
+                      {selectedOrderForDetail.assignedPartnerName}{' '}
+                      <span className="font-mono text-[10px] text-[#0B5FD9] bg-blue-100 px-1.5 py-0.2 rounded">
+                        #{selectedOrderForDetail.assignedPartnerId}
+                      </span>
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-[#5B6B8C]">Business Unit:</span>
+                    <p className="font-semibold text-[#0A1F5C]">{selectedOrderForDetail.assignedPartnerBusiness}</p>
+                  </div>
+                  <div>
+                    <span className="text-[#5B6B8C]">Partner Phone:</span>
+                    <p className="font-bold text-emerald-700 flex items-center gap-1">
+                      <Phone className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>+91 {selectedOrderForDetail.assignedPartnerMobile}</span>
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-[#5B6B8C]">Dispatch Status:</span>
+                    <p className="font-bold text-blue-700 flex items-center gap-1">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-blue-600" />
+                      <span>Assigned & Dispatched</span>
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-center space-y-1">
+                  <p className="text-xs font-bold text-amber-800">No Partner Assigned Yet</p>
+                  <p className="text-[11px] text-amber-700">
+                    This order needs to be dispatched to an available registered partner.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Payout & Financial Settlement Breakdown */}
+            <div className="p-4 rounded-2xl bg-[#F8FAFD] border border-[#DCE7F9] space-y-2">
+              <h4 className="text-xs font-extrabold uppercase tracking-wider text-[#0B5FD9]">
+                Financial Commission Breakdown
+              </h4>
+              <div className="space-y-1.5 text-xs">
+                <div className="flex items-center justify-between">
+                  <span className="text-[#5B6B8C]">Customer Gross Amount:</span>
+                  <span className="font-extrabold text-[#0A1F5C]">
+                    {formatInr(selectedOrderForDetail.amountPaise)}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-blue-700">
+                  <span>SERVA Platform Commission (10%):</span>
+                  <span className="font-bold">+{formatInr(selectedOrderForDetail.commissionPaise)}</span>
+                </div>
+                <div className="flex items-center justify-between text-emerald-700 font-bold pt-1.5 border-t border-[#EAF2FF]">
+                  <span>Partner Net Payout (90%):</span>
+                  <span className="text-sm">{formatInr(selectedOrderForDetail.partnerPayoutPaise)}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* OTP Verification & Field Completion */}
+            <div className="p-4 rounded-2xl bg-[#F8FAFD] border border-[#DCE7F9] flex items-center justify-between">
+              <div>
+                <p className="text-xs font-bold text-[#0A1F5C]">Job Completion Security OTP</p>
+                <p className="text-[11px] text-[#5B6B8C]">
+                  {selectedOrderForDetail.isOtpVerified
+                    ? 'OTP has been verified by the partner on-site.'
+                    : 'Customer must provide this 4-digit code to partner upon service completion.'}
+                </p>
+              </div>
+              <div className="text-right">
+                <span className="font-mono text-base font-black text-[#0B5FD9] tracking-widest bg-blue-100/70 px-3 py-1 rounded-xl border border-blue-200">
+                  {selectedOrderForDetail.otpCode}
+                </span>
+                <p className="text-[10px] font-bold text-emerald-700 mt-1">
+                  {selectedOrderForDetail.isOtpVerified ? 'Verified ✓' : 'Pending Verification'}
+                </p>
+              </div>
+            </div>
+
+            {/* Modal Bottom Actions */}
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#EAF2FF]">
+              <button
+                type="button"
+                onClick={() => setSelectedOrderForDetail(null)}
+                className="px-4 py-2 rounded-xl bg-[#0B5FD9] text-white text-xs font-semibold hover:bg-[#094FB6] cursor-pointer"
+              >
+                Close Dossier
               </button>
             </div>
           </div>
