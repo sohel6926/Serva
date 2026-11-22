@@ -1398,11 +1398,10 @@ export function AdminDashboardPage() {
                         setIsMobileNavOpen(false);
                         window.scrollTo({ top: 0, behavior: 'smooth' });
                       }}
-                      className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
-                        active
-                          ? 'bg-[#0B5FD9] text-white shadow-sm font-bold'
-                          : 'text-[#5B6B8C] hover:bg-[#F1F6FF] hover:text-[#0A1F5C]'
-                      }`}
+                      className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${active
+                        ? 'bg-[#0B5FD9] text-white shadow-sm font-bold'
+                        : 'text-[#5B6B8C] hover:bg-[#F1F6FF] hover:text-[#0A1F5C]'
+                        }`}
                     >
                       <div className="flex items-center gap-2.5 min-w-0">
                         <Icon className="w-4 h-4 shrink-0" />
@@ -1410,9 +1409,8 @@ export function AdminDashboardPage() {
                       </div>
                       {typeof tab.count === 'number' && tab.count > 0 && (
                         <span
-                          className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0 ${
-                            active ? 'bg-white text-[#0B5FD9]' : 'bg-[#EF4444] text-white'
-                          }`}
+                          className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0 ${active ? 'bg-white text-[#0B5FD9]' : 'bg-[#EF4444] text-white'
+                            }`}
                         >
                           {tab.count}
                         </span>
@@ -1825,11 +1823,10 @@ export function AdminDashboardPage() {
                         key={tab.id}
                         type="button"
                         onClick={() => setOrderStatusFilter(tab.id as typeof orderStatusFilter)}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                          orderStatusFilter === tab.id
-                            ? 'bg-[#0B5FD9] text-white shadow-xs'
-                            : 'bg-[#F1F6FF] text-[#5B6B8C] hover:text-[#0A1F5C] hover:bg-[#E5EFFE]'
-                        }`}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${orderStatusFilter === tab.id
+                          ? 'bg-[#0B5FD9] text-white shadow-xs'
+                          : 'bg-[#F1F6FF] text-[#5B6B8C] hover:text-[#0A1F5C] hover:bg-[#E5EFFE]'
+                          }`}
                       >
                         {tab.label}
                       </button>
@@ -1843,12 +1840,12 @@ export function AdminDashboardPage() {
                     const q = orderSearch.trim().toLowerCase();
                     const matchesSearch = q
                       ? order.id.toLowerCase().includes(q) ||
-                        order.serviceName.toLowerCase().includes(q) ||
-                        order.customerName.toLowerCase().includes(q) ||
-                        order.customerMobile.includes(q) ||
-                        order.assignedPartnerName.toLowerCase().includes(q) ||
-                        order.assignedPartnerBusiness.toLowerCase().includes(q) ||
-                        order.assignedPartnerId.toLowerCase().includes(q)
+                      order.serviceName.toLowerCase().includes(q) ||
+                      order.customerName.toLowerCase().includes(q) ||
+                      order.customerMobile.includes(q) ||
+                      order.assignedPartnerName.toLowerCase().includes(q) ||
+                      order.assignedPartnerBusiness.toLowerCase().includes(q) ||
+                      order.assignedPartnerId.toLowerCase().includes(q)
                       : true;
                     const matchesStatus = orderStatusFilter === 'ALL' ? true : order.status === orderStatusFilter;
                     const matchesCategory = orderCategoryFilter === 'ALL' ? true : order.category === orderCategoryFilter;
@@ -2054,15 +2051,14 @@ export function AdminDashboardPage() {
                                     {/* Status */}
                                     <td className="py-4 px-4 align-top">
                                       <span
-                                        className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold ${
-                                          order.status === 'COMPLETED'
-                                            ? 'bg-emerald-100 text-emerald-800'
-                                            : order.status === 'IN_PROGRESS'
+                                        className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold ${order.status === 'COMPLETED'
+                                          ? 'bg-emerald-100 text-emerald-800'
+                                          : order.status === 'IN_PROGRESS'
                                             ? 'bg-indigo-100 text-indigo-800'
                                             : order.status === 'ASSIGNED'
-                                            ? 'bg-blue-100 text-[#0B5FD9]'
-                                            : 'bg-amber-100 text-amber-800'
-                                        }`}
+                                              ? 'bg-blue-100 text-[#0B5FD9]'
+                                              : 'bg-amber-100 text-amber-800'
+                                          }`}
                                       >
                                         <span className="w-1.5 h-1.5 rounded-full bg-current" />
                                         <span>
@@ -2126,15 +2122,14 @@ export function AdminDashboardPage() {
                                   </span>
                                 </div>
                                 <span
-                                  className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                                    order.status === 'COMPLETED'
-                                      ? 'bg-emerald-100 text-emerald-800'
-                                      : order.status === 'IN_PROGRESS'
+                                  className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${order.status === 'COMPLETED'
+                                    ? 'bg-emerald-100 text-emerald-800'
+                                    : order.status === 'IN_PROGRESS'
                                       ? 'bg-indigo-100 text-indigo-800'
                                       : order.status === 'ASSIGNED'
-                                      ? 'bg-blue-100 text-[#0B5FD9]'
-                                      : 'bg-amber-100 text-amber-800'
-                                  }`}
+                                        ? 'bg-blue-100 text-[#0B5FD9]'
+                                        : 'bg-amber-100 text-amber-800'
+                                    }`}
                                 >
                                   <span className="w-1.5 h-1.5 rounded-full bg-current" />
                                   <span>
@@ -3550,17 +3545,15 @@ export function AdminDashboardPage() {
                   <div
                     key={partner.id}
                     onClick={() => setSelectedNewPartnerId(partner.id)}
-                    className={`p-3 rounded-xl border text-xs cursor-pointer transition-all flex items-center justify-between gap-3 ${
-                      isSelected
-                        ? 'border-[#0B5FD9] bg-[#EBF2FE]/60 ring-1 ring-[#0B5FD9]'
-                        : 'border-[#DCE7F9] bg-white hover:bg-[#F9FBFF]'
-                    }`}
+                    className={`p-3 rounded-xl border text-xs cursor-pointer transition-all flex items-center justify-between gap-3 ${isSelected
+                      ? 'border-[#0B5FD9] bg-[#EBF2FE]/60 ring-1 ring-[#0B5FD9]'
+                      : 'border-[#DCE7F9] bg-white hover:bg-[#F9FBFF]'
+                      }`}
                   >
                     <div className="flex items-center gap-3 min-w-0">
                       <div
-                        className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 ${
-                          isSelected ? 'bg-[#0B5FD9] text-white' : 'bg-blue-50 text-[#0B5FD9]'
-                        }`}
+                        className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 ${isSelected ? 'bg-[#0B5FD9] text-white' : 'bg-blue-50 text-[#0B5FD9]'
+                          }`}
                       >
                         {partner.ownerName.slice(0, 2).toUpperCase()}
                       </div>
@@ -3592,11 +3585,10 @@ export function AdminDashboardPage() {
 
                     <div className="shrink-0">
                       <div
-                        className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
-                          isSelected
-                            ? 'border-[#0B5FD9] bg-[#0B5FD9] text-white'
-                            : 'border-[#CBD5E1] bg-white'
-                        }`}
+                        className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${isSelected
+                          ? 'border-[#0B5FD9] bg-[#0B5FD9] text-white'
+                          : 'border-[#CBD5E1] bg-white'
+                          }`}
                       >
                         {isSelected && <Check className="w-3 h-3" />}
                       </div>
@@ -3643,15 +3635,14 @@ export function AdminDashboardPage() {
                     {selectedOrderForDetail.category}
                   </span>
                   <span
-                    className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                      selectedOrderForDetail.status === 'COMPLETED'
-                        ? 'bg-emerald-100 text-emerald-800'
-                        : selectedOrderForDetail.status === 'IN_PROGRESS'
+                    className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${selectedOrderForDetail.status === 'COMPLETED'
+                      ? 'bg-emerald-100 text-emerald-800'
+                      : selectedOrderForDetail.status === 'IN_PROGRESS'
                         ? 'bg-indigo-100 text-indigo-800'
                         : selectedOrderForDetail.status === 'ASSIGNED'
-                        ? 'bg-blue-100 text-[#0B5FD9]'
-                        : 'bg-amber-100 text-amber-800'
-                    }`}
+                          ? 'bg-blue-100 text-[#0B5FD9]'
+                          : 'bg-amber-100 text-amber-800'
+                      }`}
                   >
                     {selectedOrderForDetail.status.replace('_', ' ')}
                   </span>
