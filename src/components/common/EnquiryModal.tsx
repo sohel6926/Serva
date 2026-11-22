@@ -19,6 +19,18 @@ const CATEGORIES = [
   'Other / General Enquiry',
 ];
 
+function normalizeCategory(raw?: string): string {
+  if (!raw) return 'Home Services';
+  const lower = raw.toLowerCase();
+  if (lower.includes('agri') || lower.includes('tractor') || lower.includes('farm')) return 'Agriculture Services';
+  if (lower.includes('event') || lower.includes('wedding') || lower.includes('dj')) return 'Event Services';
+  if (lower.includes('moving') || lower.includes('shift') || lower.includes('packer')) return 'Moving & Shifting';
+  if (lower.includes('construct') || lower.includes('contractor') || lower.includes('interior') || lower.includes('worker') || lower.includes('machinery')) return 'Construction & Contractors';
+  if (lower.includes('home') || lower.includes('clean') || lower.includes('repair') || lower.includes('plumb') || lower.includes('electr') || lower.includes('cook') || lower.includes('paint')) return 'Home Services';
+  if (CATEGORIES.includes(raw)) return raw;
+  return 'Home Services';
+}
+
 export function EnquiryModal({
   isOpen,
   onClose,
@@ -29,7 +41,7 @@ export function EnquiryModal({
 
   const [name, setName] = useState('');
   const [mobile, setMobile] = useState('');
-  const [category, setCategory] = useState(initialCategory);
+  const [category, setCategory] = useState(() => normalizeCategory(initialCategory));
   const [service, setService] = useState(initialService);
   const [notes, setNotes] = useState('');
   const [callTime, setCallTime] = useState('Within 15 mins (Urgent)');
@@ -43,7 +55,7 @@ export function EnquiryModal({
         setName(user.name || '');
         setMobile(user.mobile || '');
       }
-      setCategory(initialCategory || 'Home Services');
+      setCategory(normalizeCategory(initialCategory));
       setService(initialService || '');
       setSubmittedRef(null);
     }
@@ -111,27 +123,67 @@ export function EnquiryModal({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
-      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="enquiry-modal-title"
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        width: '100vw',
+        height: '100vh',
+        zIndex: 999999,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.65)',
+        backdropFilter: 'blur(8px)',
+        WebkitBackdropFilter: 'blur(8px)',
+        padding: '16px',
+        boxSizing: 'border-box',
+      }}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          onClose();
+        }
+      }}
     >
       <div
-        className="bg-white w-full max-w-lg rounded-2xl shadow-2xl border border-gray-100 overflow-hidden max-h-[90vh] flex flex-col my-auto animate-in zoom-in-95 duration-200"
+        style={{
+          position: 'relative',
+          width: '100%',
+          maxWidth: '520px',
+          maxHeight: 'min(90vh, 720px)',
+          display: 'flex',
+          flexDirection: 'column',
+          backgroundColor: '#ffffff',
+          borderRadius: '24px',
+          boxShadow: '0 25px 60px -15px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(0, 0, 0, 0.08)',
+          overflow: 'hidden',
+          zIndex: 1000000,
+        }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="px-5 py-4 bg-gradient-to-r from-[#0A1F5C] to-[#0B5FD9] text-white flex items-center justify-between">
+        <div className="px-5 py-4 bg-gradient-to-r from-[#0A1F5C] to-[#0B5FD9] text-white flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-full bg-white/15 flex items-center justify-center text-white">
               <MessageSquare className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="text-base font-bold leading-tight">Enquire Now</h2>
+              <h2 id="enquiry-modal-title" className="text-base font-bold leading-tight text-white">Enquire Now</h2>
               <p className="text-[11px] text-blue-100">Get a fast callback & free transparent quote</p>
             </div>
           </div>
           <button
             type="button"
-            onClick={onClose}
+            onClick={(e) => {
+              e.stopPropagation();
+              onClose();
+            }}
+            aria-label="Close Enquiry Modal"
             className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />

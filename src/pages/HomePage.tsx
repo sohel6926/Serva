@@ -733,9 +733,19 @@ export function HomePage() {
               <h2 className="text-2xl font-bold text-white leading-snug">{currentSlide.title}</h2>
               <p className="text-sm text-blue-100 max-w-lg">{currentSlide.subtitle}</p>
               <div className="flex items-center justify-between pt-2">
-                <Link to={currentSlide.to} className="min-h-[42px] px-5 py-2 rounded-full bg-white text-[#0B5FD9] text-sm font-semibold inline-flex items-center gap-1.5 hover:bg-blue-50">
-                  <span>{currentSlide.cta}</span> <ArrowRight className="w-4 h-4" />
-                </Link>
+                <div className="flex items-center gap-2.5">
+                  <Link to={currentSlide.to} className="min-h-[42px] px-5 py-2 rounded-full bg-white text-[#0B5FD9] text-sm font-semibold inline-flex items-center gap-1.5 hover:bg-blue-50">
+                    <span>{currentSlide.cta}</span> <ArrowRight className="w-4 h-4" />
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => setShowBannerEnquiry(true)}
+                    className="min-h-[42px] px-5 py-2 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-md text-white border border-white/40 text-sm font-semibold inline-flex items-center gap-1.5 shadow-md active:scale-95 transition-all cursor-pointer"
+                  >
+                    <MessageSquare className="w-4 h-4" />
+                    <span>Enquire Now</span>
+                  </button>
+                </div>
                 <div className="flex items-center gap-2">
                   <button type="button" onClick={() => setSlideIdx((i) => (i - 1 + BANNER_SLIDES.length) % BANNER_SLIDES.length)} className="w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center cursor-pointer">
                     <ChevronLeft className="w-4 h-4" />
