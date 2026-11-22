@@ -789,10 +789,10 @@ export function AdminDashboardPage() {
     const updated = kycRequests.map((k) =>
       k.id === selectedKyc.id
         ? {
-            ...k,
-            status: rejectionActionType === 'RESUBMIT' ? ('RESUBMIT' as const) : ('REJECTED' as const),
-            rejectionReason: rejectionReasonText.trim() || 'Please verify and re-upload the requested documentation.',
-          }
+          ...k,
+          status: rejectionActionType === 'RESUBMIT' ? ('RESUBMIT' as const) : ('REJECTED' as const),
+          rejectionReason: rejectionReasonText.trim() || 'Please verify and re-upload the requested documentation.',
+        }
         : k
     );
     saveKyc(updated);
@@ -805,10 +805,10 @@ export function AdminDashboardPage() {
     const updated = withdrawals.map((w) =>
       w.id === wthId
         ? {
-            ...w,
-            status: 'PAID' as const,
-            transactionRef: payoutTxnRef.trim() || `BANK/REF/${Date.now().toString().slice(-8)}`,
-          }
+          ...w,
+          status: 'PAID' as const,
+          transactionRef: payoutTxnRef.trim() || `BANK/REF/${Date.now().toString().slice(-8)}`,
+        }
         : w
     );
     saveWithdrawals(updated);
@@ -819,10 +819,10 @@ export function AdminDashboardPage() {
     const updated = withdrawals.map((w) =>
       w.id === wthId
         ? {
-            ...w,
-            status: 'REJECTED' as const,
-            notes: reason,
-          }
+          ...w,
+          status: 'REJECTED' as const,
+          notes: reason,
+        }
         : w
     );
     saveWithdrawals(updated);
@@ -885,10 +885,10 @@ export function AdminDashboardPage() {
     const updated = tickets.map((t) =>
       t.id === ticketId
         ? {
-            ...t,
-            status: 'RESOLVED' as const,
-            adminReply: replyTicketText.trim(),
-          }
+          ...t,
+          status: 'RESOLVED' as const,
+          adminReply: replyTicketText.trim(),
+        }
         : t
     );
     saveTickets(updated);
@@ -946,24 +946,23 @@ export function AdminDashboardPage() {
             </div>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
+          {/* Desktop Top Admin Actions (hidden on mobile, moved into hamburger menu) */}
+          <div className="hidden lg:flex items-center gap-4">
             {/* Super Admin vs Sub-Admin Switcher */}
             <div className="flex items-center bg-[#152B6B] rounded-lg p-0.5 border border-[#23429B] text-xs">
               <button
                 type="button"
                 onClick={() => setAdminRole('SUPER_ADMIN')}
-                className={`px-2.5 py-1 rounded-md font-semibold transition-all ${
-                  adminRole === 'SUPER_ADMIN' ? 'bg-[#0B5FD9] text-white shadow-sm' : 'text-blue-200 hover:text-white'
-                }`}
+                className={`px-2.5 py-1 rounded-md font-semibold transition-all ${adminRole === 'SUPER_ADMIN' ? 'bg-[#0B5FD9] text-white shadow-sm' : 'text-blue-200 hover:text-white'
+                  }`}
               >
                 Super Admin
               </button>
               <button
                 type="button"
                 onClick={() => setAdminRole('SUB_ADMIN')}
-                className={`px-2.5 py-1 rounded-md font-semibold transition-all ${
-                  adminRole === 'SUB_ADMIN' ? 'bg-[#0B5FD9] text-white shadow-sm' : 'text-blue-200 hover:text-white'
-                }`}
+                className={`px-2.5 py-1 rounded-md font-semibold transition-all ${adminRole === 'SUB_ADMIN' ? 'bg-[#0B5FD9] text-white shadow-sm' : 'text-blue-200 hover:text-white'
+                  }`}
               >
                 Sub-Admin
               </button>
@@ -995,17 +994,6 @@ export function AdminDashboardPage() {
               <LogOut className="w-3.5 h-3.5" />
               <span>Sign Out</span>
             </button>
-
-            {/* Mobile Hamburger Menu Toggle Button */}
-            <button
-              type="button"
-              onClick={() => setIsMobileNavOpen(!isMobileNavOpen)}
-              className="lg:hidden p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white border border-white/20 transition-all cursor-pointer flex items-center justify-center"
-              title="Toggle Navigation Menu"
-              aria-label="Toggle Navigation Menu"
-            >
-              {isMobileNavOpen ? <X className="w-4 h-4 text-white" /> : <Menu className="w-4 h-4 text-white" />}
-            </button>
           </div>
         </div>
       </div>
@@ -1032,11 +1020,10 @@ export function AdminDashboardPage() {
                       setActiveTab(tab.id);
                       window.scrollTo({ top: 0, behavior: 'smooth' });
                     }}
-                    className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
-                      active
-                        ? 'bg-[#0B5FD9] text-white shadow-sm font-bold'
-                        : 'text-[#5B6B8C] hover:bg-[#F1F6FF] hover:text-[#0A1F5C]'
-                    }`}
+                    className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${active
+                      ? 'bg-[#0B5FD9] text-white shadow-sm font-bold'
+                      : 'text-[#5B6B8C] hover:bg-[#F1F6FF] hover:text-[#0A1F5C]'
+                      }`}
                   >
                     <div className="flex items-center gap-2.5 min-w-0">
                       <Icon className="w-4 h-4 shrink-0" />
@@ -1044,9 +1031,8 @@ export function AdminDashboardPage() {
                     </div>
                     {typeof tab.count === 'number' && tab.count > 0 && (
                       <span
-                        className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0 ${
-                          active ? 'bg-white text-[#0B5FD9]' : 'bg-[#EF4444] text-white'
-                        }`}
+                        className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0 ${active ? 'bg-white text-[#0B5FD9]' : 'bg-[#EF4444] text-white'
+                          }`}
                       >
                         {tab.count}
                       </span>
@@ -1148,6 +1134,64 @@ export function AdminDashboardPage() {
                     </button>
                   );
                 })}
+
+                {/* Mobile Admin Actions & Sign Out inside Hamburger */}
+                <div className="pt-3 mt-2 border-t border-[#EAF2FF] space-y-2">
+                  <div className="flex items-center justify-between px-1 text-xs text-[#5B6B8C]">
+                    <span className="font-semibold text-[11px] uppercase tracking-wider">Console Mode</span>
+                    <div className="flex items-center bg-[#F1F6FF] rounded-lg p-0.5 border border-[#DCE7F9] text-xs">
+                      <button
+                        type="button"
+                        onClick={() => setAdminRole('SUPER_ADMIN')}
+                        className={`px-2.5 py-1 rounded-md font-semibold transition-all ${
+                          adminRole === 'SUPER_ADMIN' ? 'bg-[#0B5FD9] text-white shadow-xs' : 'text-[#5B6B8C]'
+                        }`}
+                      >
+                        Super Admin
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setAdminRole('SUB_ADMIN')}
+                        className={`px-2.5 py-1 rounded-md font-semibold transition-all ${
+                          adminRole === 'SUB_ADMIN' ? 'bg-[#0B5FD9] text-white shadow-xs' : 'text-[#5B6B8C]'
+                        }`}
+                      >
+                        Sub-Admin
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 pt-1">
+                    <Link
+                      to="/partner/panel"
+                      onClick={() => setIsMobileNavOpen(false)}
+                      className="text-xs font-semibold px-3 py-2 rounded-xl bg-[#F8FAFD] hover:bg-[#F1F6FF] text-[#0A1F5C] flex items-center justify-center gap-1.5 border border-[#DCE7F9]"
+                    >
+                      <Building2 className="w-3.5 h-3.5 text-[#0B5FD9]" />
+                      <span>Partner Panel</span>
+                    </Link>
+                    <Link
+                      to="/"
+                      onClick={() => setIsMobileNavOpen(false)}
+                      className="text-xs font-semibold px-3 py-2 rounded-xl bg-[#F8FAFD] hover:bg-[#F1F6FF] text-[#0A1F5C] flex items-center justify-center gap-1 border border-[#DCE7F9]"
+                    >
+                      <span>Customer Site &rarr;</span>
+                    </Link>
+                  </div>
+
+                  {/* Sign Out Button in Hamburger Menu */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsMobileNavOpen(false);
+                      logout();
+                    }}
+                    className="w-full flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-200 transition-all cursor-pointer mt-1"
+                  >
+                    <LogOut className="w-4 h-4 text-rose-500" />
+                    <span>Sign Out of Admin Console</span>
+                  </button>
+                </div>
               </div>
             )}
           </div>
@@ -1155,1150 +1199,1140 @@ export function AdminDashboardPage() {
           {/* ── Main Content Area (Right Column) ── */}
           <main className="flex-1 min-w-0 w-full space-y-6">
 
-        {/* ===================== TAB 1: DASHBOARD ===================== */}
-        {activeTab === 'dashboard' && (
-          <div className="space-y-6">
-            {/* Metric KPI Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="bg-white rounded-2xl p-5 border border-[#DCE7F9] shadow-sm flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-semibold text-[#5B6B8C] uppercase tracking-wider">Total Users</p>
-                  <p className="text-2xl sm:text-3xl font-extrabold text-[#0A1F5C] mt-1">14,820</p>
-                  <div className="flex items-center gap-1 text-[11px] font-semibold text-emerald-600 mt-1">
-                    <TrendingUp className="w-3.5 h-3.5" />
-                    <span>+12.4% this month</span>
-                  </div>
-                </div>
-                <div className="w-12 h-12 rounded-2xl bg-blue-50 text-[#0B5FD9] flex items-center justify-center">
-                  <Users className="w-6 h-6" />
-                </div>
-              </div>
-
-              <div className="bg-white rounded-2xl p-5 border border-[#DCE7F9] shadow-sm flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-semibold text-[#5B6B8C] uppercase tracking-wider">Total Partners</p>
-                  <p className="text-2xl sm:text-3xl font-extrabold text-[#0A1F5C] mt-1">342</p>
-                  <div className="flex items-center gap-1 text-[11px] font-semibold text-amber-600 mt-1">
-                    <Clock className="w-3.5 h-3.5" />
-                    <span>{pendingKycCount} pending verification</span>
-                  </div>
-                </div>
-                <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                  <Building2 className="w-6 h-6" />
-                </div>
-              </div>
-
-              <div className="bg-white rounded-2xl p-5 border border-[#DCE7F9] shadow-sm flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-semibold text-[#5B6B8C] uppercase tracking-wider">Total Platform GMV</p>
-                  <p className="text-2xl sm:text-3xl font-extrabold text-[#0A1F5C] mt-1">₹48,24,600</p>
-                  <div className="flex items-center gap-1 text-[11px] font-semibold text-emerald-600 mt-1">
-                    <TrendingUp className="w-3.5 h-3.5" />
-                    <span>+18.9% QoQ</span>
-                  </div>
-                </div>
-                <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center">
-                  <DollarSign className="w-6 h-6" />
-                </div>
-              </div>
-
-              <div className="bg-white rounded-2xl p-5 border border-[#DCE7F9] shadow-sm flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-semibold text-[#5B6B8C] uppercase tracking-wider">Admin Commission</p>
-                  <p className="text-2xl sm:text-3xl font-extrabold text-[#0B5FD9] mt-1">₹4,82,460</p>
-                  <div className="flex items-center gap-1 text-[11px] font-semibold text-blue-600 mt-1">
-                    <Percent className="w-3.5 h-3.5" />
-                    <span>Avg 10.0% take rate</span>
-                  </div>
-                </div>
-                <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-[#0B5FD9] flex items-center justify-center">
-                  <Wallet className="w-6 h-6" />
-                </div>
-              </div>
-            </div>
-
-            {/* Graphs & Analytics Visualizers */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Earnings & Commission Chart */}
-              <div className="lg:col-span-2 bg-white rounded-2xl p-6 border border-[#DCE7F9] shadow-sm">
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <h3 className="text-base font-bold text-[#0A1F5C]">Platform Sales & Commission Trends</h3>
-                    <p className="text-xs text-[#5B6B8C]">Weekly gross sales vs net admin commission retained</p>
-                  </div>
-                  <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-[#EBF2FE] text-[#0B5FD9]">
-                    Nov 2026
-                  </span>
-                </div>
-
-                {/* SVG Mockup Chart */}
-                <div className="space-y-3 pt-2">
-                  {[
-                    { label: 'Week 1', gmv: 980000, comm: 98000, pct: 60 },
-                    { label: 'Week 2', gmv: 1240000, comm: 124000, pct: 78 },
-                    { label: 'Week 3 (Diwali)', gmv: 1580000, comm: 158000, pct: 100 },
-                    { label: 'Week 4 (Current)', gmv: 1024600, comm: 102460, pct: 65 },
-                  ].map((bar) => (
-                    <div key={bar.label} className="space-y-1">
-                      <div className="flex justify-between text-xs font-semibold text-[#0A1F5C]">
-                        <span>{bar.label}</span>
-                        <span>
-                          GMV {formatInr(bar.gmv * 100)} &bull;{' '}
-                          <strong className="text-[#0B5FD9]">Comm {formatInr(bar.comm * 100)}</strong>
-                        </span>
-                      </div>
-                      <div className="w-full bg-[#F1F6FF] rounded-full h-3 overflow-hidden flex">
-                        <div
-                          className="bg-[#0B5FD9] h-full rounded-full transition-all duration-500"
-                          style={{ width: `${bar.pct}%` }}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Category Breakdown */}
-              <div className="bg-white rounded-2xl p-6 border border-[#DCE7F9] shadow-sm">
-                <h3 className="text-base font-bold text-[#0A1F5C] mb-1">Category Share</h3>
-                <p className="text-xs text-[#5B6B8C] mb-4">Gross booking volume by category</p>
-                <div className="space-y-3">
-                  {[
-                    { name: 'Home Services', share: '38%', color: 'bg-blue-600' },
-                    { name: 'Contractors & Machinery', share: '24%', color: 'bg-emerald-600' },
-                    { name: 'Agriculture Services', share: '18%', color: 'bg-amber-500' },
-                    { name: 'Event Services', share: '12%', color: 'bg-purple-600' },
-                    { name: 'Moving & Shifting', share: '8%', color: 'bg-sky-500' },
-                  ].map((cat) => (
-                    <div key={cat.name} className="flex items-center justify-between text-xs">
-                      <div className="flex items-center gap-2">
-                        <span className={`w-3 h-3 rounded-full ${cat.color}`} />
-                        <span className="font-semibold text-[#0A1F5C]">{cat.name}</span>
-                      </div>
-                      <span className="font-bold text-[#5B6B8C]">{cat.share}</span>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="mt-6 pt-4 border-t border-[#EAF2FF]">
-                  <button
-                    type="button"
-                    onClick={() => setActiveTab('commission')}
-                    className="text-xs font-semibold text-[#0B5FD9] hover:underline flex items-center justify-between w-full"
-                  >
-                    <span>Configure Category Commissions</span>
-                    <span>&rarr;</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Quick Actions & Recent Actionable Items */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Urgent Partner Verification Requests */}
-              <div className="bg-white rounded-2xl p-6 border border-[#DCE7F9] shadow-sm">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-2">
-                    <FileCheck className="w-5 h-5 text-[#0B5FD9]" />
-                    <h3 className="text-sm font-bold text-[#0A1F5C]">Pending KYC Verifications</h3>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setActiveTab('kyc')}
-                    className="text-xs font-semibold text-[#0B5FD9] hover:underline"
-                  >
-                    View All ({kycRequests.length})
-                  </button>
-                </div>
-
-                <div className="space-y-3">
-                  {kycRequests
-                    .filter((k) => k.status === 'PENDING')
-                    .slice(0, 3)
-                    .map((item) => (
-                      <div
-                        key={item.id}
-                        className="p-3.5 rounded-xl border border-[#DCE7F9] bg-[#F9FBFF] flex items-center justify-between gap-3"
-                      >
-                        <div>
-                          <p className="text-xs font-bold text-[#0A1F5C]">{item.businessName}</p>
-                          <p className="text-[11px] text-[#5B6B8C]">
-                            {item.ownerName} &bull; {item.partnerType === 'SHOP_BUSINESS' ? 'Shop/Business' : 'Individual'}
-                          </p>
-                          <p className="text-[10px] text-blue-700 font-semibold mt-0.5">
-                            {item.categories.join(', ')}
-                          </p>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setSelectedKyc(item);
-                            setActiveTab('kyc');
-                          }}
-                          className="px-3 py-1.5 rounded-lg bg-[#0B5FD9] text-white text-xs font-semibold hover:bg-[#094FB6] shrink-0"
-                        >
-                          Review KYC
-                        </button>
-                      </div>
-                    ))}
-                </div>
-              </div>
-
-              {/* Pending Withdrawals */}
-              <div className="bg-white rounded-2xl p-6 border border-[#DCE7F9] shadow-sm">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-2">
-                    <Wallet className="w-5 h-5 text-emerald-600" />
-                    <h3 className="text-sm font-bold text-[#0A1F5C]">Pending Partner Payout Requests</h3>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setActiveTab('withdrawals')}
-                    className="text-xs font-semibold text-[#0B5FD9] hover:underline"
-                  >
-                    View All ({withdrawals.length})
-                  </button>
-                </div>
-
-                <div className="space-y-3">
-                  {withdrawals
-                    .filter((w) => w.status === 'PENDING')
-                    .map((wth) => (
-                      <div
-                        key={wth.id}
-                        className="p-3.5 rounded-xl border border-[#DCE7F9] bg-[#F9FBFF] flex items-center justify-between gap-3"
-                      >
-                        <div>
-                          <p className="text-xs font-bold text-[#0A1F5C]">{wth.partnerName}</p>
-                          <p className="text-[11px] text-[#5B6B8C]">
-                            {wth.destination} &bull; {wth.requestedAt}
-                          </p>
-                          <p className="text-xs font-extrabold text-emerald-600 mt-0.5">
-                            {formatInr(wth.amountPaise)}
-                          </p>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setSelectedWithdrawal(wth);
-                            setActiveTab('withdrawals');
-                          }}
-                          className="px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-xs font-semibold hover:bg-emerald-700 shrink-0"
-                        >
-                          Process Payout
-                        </button>
-                      </div>
-                    ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ===================== TAB 2: PARTNER KYC VERIFICATION ===================== */}
-        {activeTab === 'kyc' && (
-          <div className="space-y-6">
-            <div className="bg-white rounded-2xl p-6 border border-[#DCE7F9] shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div>
-                <h2 className="text-lg font-bold text-[#0A1F5C]">Partner Registration & KYC Verification</h2>
-                <p className="text-xs text-[#5B6B8C]">
-                  Verify individual PAN cards, business GST / trade licenses, and approve or request corrections.
-                </p>
-              </div>
-
-              {/* Status Filter Pills */}
-              <div className="flex items-center gap-1.5 bg-[#F1F6FF] p-1 rounded-xl text-xs font-semibold">
-                <span className="px-2.5 py-1 rounded-lg bg-[#0B5FD9] text-white">All ({kycRequests.length})</span>
-                <span className="px-2.5 py-1 text-[#5B6B8C]">Pending ({pendingKycCount})</span>
-                <span className="px-2.5 py-1 text-[#5B6B8C]">
-                  Approved ({kycRequests.filter((k) => k.status === 'APPROVED').length})
-                </span>
-              </div>
-            </div>
-
-            {/* List of KYC Applications */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {kycRequests.map((partner) => (
-                <div
-                  key={partner.id}
-                  className={`bg-white rounded-2xl p-5 border shadow-sm transition-all ${
-                    partner.status === 'PENDING'
-                      ? 'border-blue-200 ring-1 ring-blue-100'
-                      : partner.status === 'APPROVED'
-                      ? 'border-emerald-200'
-                      : partner.status === 'RESUBMIT'
-                      ? 'border-amber-200'
-                      : 'border-red-200'
-                  }`}
-                >
-                  <div className="flex items-start justify-between gap-3 mb-3">
+            {/* ===================== TAB 1: DASHBOARD ===================== */}
+            {activeTab === 'dashboard' && (
+              <div className="space-y-6">
+                {/* Metric KPI Cards */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="bg-white rounded-2xl p-5 border border-[#DCE7F9] shadow-sm flex items-center justify-between">
                     <div>
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-bold text-sm sm:text-base text-[#0A1F5C]">{partner.businessName}</h3>
-                        <span
-                          className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                            partner.status === 'APPROVED'
-                              ? 'bg-emerald-100 text-emerald-800'
-                              : partner.status === 'PENDING'
-                              ? 'bg-amber-100 text-amber-800'
-                              : partner.status === 'RESUBMIT'
-                              ? 'bg-blue-100 text-blue-800'
-                              : 'bg-red-100 text-red-800'
-                          }`}
-                        >
-                          {partner.status}
-                        </span>
+                      <p className="text-xs font-semibold text-[#5B6B8C] uppercase tracking-wider">Total Users</p>
+                      <p className="text-2xl sm:text-3xl font-extrabold text-[#0A1F5C] mt-1">14,820</p>
+                      <div className="flex items-center gap-1 text-[11px] font-semibold text-emerald-600 mt-1">
+                        <TrendingUp className="w-3.5 h-3.5" />
+                        <span>+12.4% this month</span>
                       </div>
-                      <p className="text-xs text-[#5B6B8C] mt-0.5">
-                        Owner: <strong>{partner.ownerName}</strong> &bull;{' '}
-                        {partner.partnerType === 'SHOP_BUSINESS' ? '🏪 Shop/Business' : '👤 Individual Partner'}
-                      </p>
                     </div>
-
-                    <span className="text-[11px] font-semibold text-[#5B6B8C] shrink-0">{partner.submittedAt}</span>
+                    <div className="w-12 h-12 rounded-2xl bg-blue-50 text-[#0B5FD9] flex items-center justify-center">
+                      <Users className="w-6 h-6" />
+                    </div>
                   </div>
 
-                  {/* Core Details Grid */}
-                  <div className="grid grid-cols-2 gap-2 text-xs text-[#5B6B8C] mb-4 bg-[#F8FAFD] p-3 rounded-xl border border-[#EAF2FF]">
+                  <div className="bg-white rounded-2xl p-5 border border-[#DCE7F9] shadow-sm flex items-center justify-between">
                     <div>
-                      <span className="block text-[10px] uppercase font-bold text-[#8FA0C0]">Contact Info</span>
-                      <span className="font-medium text-[#0A1F5C]">{partner.mobile}</span>
-                      <span className="block truncate text-[11px]">{partner.email}</span>
+                      <p className="text-xs font-semibold text-[#5B6B8C] uppercase tracking-wider">Total Partners</p>
+                      <p className="text-2xl sm:text-3xl font-extrabold text-[#0A1F5C] mt-1">342</p>
+                      <div className="flex items-center gap-1 text-[11px] font-semibold text-amber-600 mt-1">
+                        <Clock className="w-3.5 h-3.5" />
+                        <span>{pendingKycCount} pending verification</span>
+                      </div>
                     </div>
+                    <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                      <Building2 className="w-6 h-6" />
+                    </div>
+                  </div>
 
+                  <div className="bg-white rounded-2xl p-5 border border-[#DCE7F9] shadow-sm flex items-center justify-between">
                     <div>
-                      <span className="block text-[10px] uppercase font-bold text-[#8FA0C0]">Service Area</span>
-                      <span className="font-medium text-[#0A1F5C] truncate block">{partner.serviceArea}</span>
-                      <span className="text-[11px]">{partner.experienceYears} yrs experience</span>
+                      <p className="text-xs font-semibold text-[#5B6B8C] uppercase tracking-wider">Total Platform GMV</p>
+                      <p className="text-2xl sm:text-3xl font-extrabold text-[#0A1F5C] mt-1">₹48,24,600</p>
+                      <div className="flex items-center gap-1 text-[11px] font-semibold text-emerald-600 mt-1">
+                        <TrendingUp className="w-3.5 h-3.5" />
+                        <span>+18.9% QoQ</span>
+                      </div>
                     </div>
-
-                    <div className="col-span-2 pt-2 border-t border-[#EAF2FF]">
-                      <span className="block text-[10px] uppercase font-bold text-[#8FA0C0]">Services Offered</span>
-                      <p className="text-xs font-semibold text-[#0B5FD9] mt-0.5">
-                        {partner.categories.join(', ')} &mdash;{' '}
-                        <span className="text-[#5B6B8C] font-normal">{partner.services.join(', ')}</span>
-                      </p>
+                    <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center">
+                      <DollarSign className="w-6 h-6" />
                     </div>
+                  </div>
 
-                    {/* Document details */}
-                    <div className="col-span-2 pt-2 border-t border-[#EAF2FF] flex items-center justify-between">
+                  <div className="bg-white rounded-2xl p-5 border border-[#DCE7F9] shadow-sm flex items-center justify-between">
+                    <div>
+                      <p className="text-xs font-semibold text-[#5B6B8C] uppercase tracking-wider">Admin Commission</p>
+                      <p className="text-2xl sm:text-3xl font-extrabold text-[#0B5FD9] mt-1">₹4,82,460</p>
+                      <div className="flex items-center gap-1 text-[11px] font-semibold text-blue-600 mt-1">
+                        <Percent className="w-3.5 h-3.5" />
+                        <span>Avg 10.0% take rate</span>
+                      </div>
+                    </div>
+                    <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-[#0B5FD9] flex items-center justify-center">
+                      <Wallet className="w-6 h-6" />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Graphs & Analytics Visualizers */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  {/* Earnings & Commission Chart */}
+                  <div className="lg:col-span-2 bg-white rounded-2xl p-6 border border-[#DCE7F9] shadow-sm">
+                    <div className="flex items-center justify-between mb-4">
                       <div>
-                        <span className="block text-[10px] uppercase font-bold text-[#8FA0C0]">Verification Docs</span>
-                        <p className="text-xs font-semibold text-[#0A1F5C]">
-                          {partner.partnerType === 'SHOP_BUSINESS'
-                            ? `GST / Trade Lic: ${partner.gstNumber || 'Uploaded Document'}`
-                            : `PAN: ${partner.panNumber || 'Uploaded PAN Card'}`}
-                        </p>
+                        <h3 className="text-base font-bold text-[#0A1F5C]">Platform Sales & Commission Trends</h3>
+                        <p className="text-xs text-[#5B6B8C]">Weekly gross sales vs net admin commission retained</p>
                       </div>
-
-                      {/* Payout Details */}
-                      <div className="text-right">
-                        <span className="block text-[10px] uppercase font-bold text-[#8FA0C0]">Registered Payout</span>
-                        <p className="text-xs font-semibold text-[#0A1F5C]">
-                          {partner.payoutMode === 'UPI' ? partner.upiId : partner.bankAccount?.accountNumber}
-                        </p>
-                      </div>
+                      <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-[#EBF2FE] text-[#0B5FD9]">
+                        Nov 2026
+                      </span>
                     </div>
-                  </div>
 
-                  {partner.rejectionReason && (
-                    <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 mb-4">
-                      <strong>Admin Correction Request:</strong> {partner.rejectionReason}
-                    </div>
-                  )}
-
-                  {/* Action Buttons */}
-                  <div className="flex items-center justify-between gap-2 pt-2 border-t border-[#EAF2FF]">
-                    <button
-                      type="button"
-                      onClick={() => setSelectedKyc(partner)}
-                      className="px-3 py-1.5 rounded-xl border border-[#DCE7F9] bg-white text-xs font-semibold text-[#0A1F5C] hover:bg-[#F1F6FF] flex items-center gap-1.5"
-                    >
-                      <Eye className="w-3.5 h-3.5 text-[#0B5FD9]" />
-                      <span>View Documents</span>
-                    </button>
-
-                    <div className="flex items-center gap-2">
-                      {partner.status !== 'APPROVED' && (
-                        <button
-                          type="button"
-                          onClick={() => handleApproveKyc(partner.id)}
-                          className="px-3.5 py-1.5 rounded-xl bg-emerald-600 text-white text-xs font-semibold hover:bg-emerald-700 flex items-center gap-1 shadow-sm"
-                        >
-                          <Check className="w-3.5 h-3.5" />
-                          <span>Approve</span>
-                        </button>
-                      )}
-
-                      {partner.status === 'PENDING' && (
-                        <>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setSelectedKyc(partner);
-                              setRejectionActionType('RESUBMIT');
-                              setRejectionModalOpen(true);
-                            }}
-                            className="px-3 py-1.5 rounded-xl bg-amber-500 text-white text-xs font-semibold hover:bg-amber-600"
-                          >
-                            Re-submit
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setSelectedKyc(partner);
-                              setRejectionActionType('REJECT');
-                              setRejectionModalOpen(true);
-                            }}
-                            className="px-3 py-1.5 rounded-xl bg-red-600 text-white text-xs font-semibold hover:bg-red-700"
-                          >
-                            Reject
-                          </button>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* ===================== TAB 3: COMMISSION SETUP ===================== */}
-        {activeTab === 'commission' && (
-          <div className="space-y-6">
-            <div className="bg-white rounded-2xl p-6 border border-[#DCE7F9] shadow-sm">
-              <h2 className="text-lg font-bold text-[#0A1F5C]">Commission Setup (Global & Category-wise)</h2>
-              <p className="text-xs text-[#5B6B8C] mt-0.5">
-                Define the percentage of gross booking value retained by SERVA. Partners receive earnings minus this commission.
-              </p>
-
-              {commissionSavedNotice && (
-                <div className="mt-4 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs font-semibold text-emerald-800 flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                  <span>Commission rules updated successfully and applied to all upcoming bookings!</span>
-                </div>
-              )}
-
-              {/* Global Commission Setting */}
-              <div className="mt-6 p-5 rounded-2xl bg-[#F8FAFD] border border-[#DCE7F9] max-w-xl">
-                <div className="flex items-center justify-between mb-2">
-                  <label className="text-sm font-bold text-[#0A1F5C]">Default Global Commission</label>
-                  <span className="text-base font-extrabold text-[#0B5FD9]">{globalCommissionPercent}%</span>
-                </div>
-                <input
-                  type="range"
-                  min="0"
-                  max="30"
-                  step="0.5"
-                  value={globalCommissionPercent}
-                  onChange={(e) => setGlobalCommissionPercent(parseFloat(e.target.value))}
-                  className="w-full accent-[#0B5FD9] cursor-pointer"
-                />
-                <p className="text-[11px] text-[#5B6B8C] mt-2">
-                  Applied as default to all service bookings unless overridden by category or partner specific agreements.
-                </p>
-              </div>
-
-              {/* Category-Wise Overrides */}
-              <div className="mt-8">
-                <h3 className="text-sm font-bold text-[#0A1F5C] uppercase tracking-wider mb-4">
-                  Category-Wise Commission Rates
-                </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {Object.entries(categoryCommissions).map(([category, rate]) => (
-                    <div key={category} className="p-4 rounded-xl border border-[#DCE7F9] bg-white shadow-sm">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-bold text-[#0A1F5C]">{category}</span>
-                        <span className="text-xs font-extrabold text-[#0B5FD9] bg-[#EBF2FE] px-2 py-0.5 rounded-full">
-                          {rate}%
-                        </span>
-                      </div>
-                      <input
-                        type="range"
-                        min="0"
-                        max="25"
-                        step="1"
-                        value={rate}
-                        onChange={(e) =>
-                          setCategoryCommissions({ ...categoryCommissions, [category]: parseInt(e.target.value, 10) })
-                        }
-                        className="w-full accent-[#0B5FD9] cursor-pointer"
-                      />
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="mt-6 pt-4 border-t border-[#EAF2FF] flex justify-end">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setCommissionSavedNotice(true);
-                    setTimeout(() => setCommissionSavedNotice(false), 4000);
-                  }}
-                  className="px-5 py-2.5 rounded-xl bg-[#0B5FD9] text-white text-xs sm:text-sm font-semibold hover:bg-[#094FB6] shadow-sm flex items-center gap-2"
-                >
-                  <Check className="w-4 h-4" />
-                  <span>Save & Apply Commission Rules</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ===================== TAB 4: COUPONS & PROMOTIONS ===================== */}
-        {activeTab === 'coupons' && (
-          <div className="space-y-6">
-            <div className="bg-white rounded-2xl p-6 border border-[#DCE7F9] shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div>
-                <h2 className="text-lg font-bold text-[#0A1F5C]">Coupons & Promotional Deals</h2>
-                <p className="text-xs text-[#5B6B8C]">
-                  Create, activate, expire and manage percentage or flat discount vouchers.
-                </p>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setShowCreateCoupon(true)}
-                className="px-4 py-2 rounded-xl bg-[#0B5FD9] text-white text-xs font-semibold hover:bg-[#094FB6] flex items-center gap-2 shadow-sm"
-              >
-                <Tag className="w-4 h-4" />
-                <span>+ Create New Coupon</span>
-              </button>
-            </div>
-
-            {/* Coupons Table */}
-            <div className="bg-white rounded-2xl border border-[#DCE7F9] shadow-sm overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse text-xs">
-                  <thead>
-                    <tr className="bg-[#F8FAFD] border-b border-[#EAF2FF] text-[#5B6B8C] font-bold uppercase text-[10px]">
-                      <th className="py-3 px-4">Coupon Code</th>
-                      <th className="py-3 px-4">Discount</th>
-                      <th className="py-3 px-4">Min Order</th>
-                      <th className="py-3 px-4">Redemptions / Limit</th>
-                      <th className="py-3 px-4">Validity</th>
-                      <th className="py-3 px-4">Status</th>
-                      <th className="py-3 px-4 text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[#EAF2FF]">
-                    {coupons.map((cpn) => (
-                      <tr key={cpn.id} className="hover:bg-[#F9FBFF]">
-                        <td className="py-3.5 px-4">
-                          <span className="font-extrabold text-[#0B5FD9] bg-[#EBF2FE] px-2.5 py-1 rounded-md border border-[#DCE7F9]">
-                            {cpn.code}
-                          </span>
-                        </td>
-                        <td className="py-3.5 px-4 font-bold text-[#0A1F5C]">
-                          {cpn.discountType === 'FLAT' ? `₹${cpn.discountValue} Flat` : `${cpn.discountValue}% Off`}
-                        </td>
-                        <td className="py-3.5 px-4 text-[#5B6B8C]">₹{cpn.minOrderValue}</td>
-                        <td className="py-3.5 px-4">
-                          <span className="font-semibold text-[#0A1F5C]">{cpn.usageCount}</span>
-                          <span className="text-[#5B6B8C]"> / {cpn.usageLimit}</span>
-                        </td>
-                        <td className="py-3.5 px-4 text-[#5B6B8C]">{cpn.validUntil}</td>
-                        <td className="py-3.5 px-4">
-                          <span
-                            className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                              cpn.status === 'ACTIVE'
-                                ? 'bg-emerald-100 text-emerald-800'
-                                : 'bg-gray-100 text-gray-700'
-                            }`}
-                          >
-                            {cpn.status}
-                          </span>
-                        </td>
-                        <td className="py-3.5 px-4 text-right">
-                          <button
-                            type="button"
-                            onClick={() => handleToggleCoupon(cpn.id)}
-                            className="px-2.5 py-1 rounded-lg border border-[#DCE7F9] text-xs font-semibold hover:bg-[#F1F6FF]"
-                          >
-                            {cpn.status === 'ACTIVE' ? 'Expire' : 'Activate'}
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ===================== TAB 5: USERS DIRECTORY ===================== */}
-        {activeTab === 'users' && (
-          <div className="space-y-6">
-            <div className="bg-white rounded-2xl p-6 border border-[#DCE7F9] shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div>
-                <h2 className="text-lg font-bold text-[#0A1F5C]">User Directory & Control</h2>
-                <p className="text-xs text-[#5B6B8C]">
-                  View all registered customer accounts, booking history, lifetime spend, and block/unblock.
-                </p>
-              </div>
-
-              <div className="relative w-full sm:w-64">
-                <Search className="w-4 h-4 text-[#5B6B8C] absolute left-3 top-2.5" />
-                <input
-                  type="text"
-                  placeholder="Search user by name or mobile..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-9 pr-3 py-1.5 text-xs rounded-xl border border-[#DCE7F9] bg-[#F8FAFD] focus:outline-none focus:border-[#0B5FD9]"
-                />
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl border border-[#DCE7F9] shadow-sm overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse text-xs">
-                  <thead>
-                    <tr className="bg-[#F8FAFD] border-b border-[#EAF2FF] text-[#5B6B8C] font-bold uppercase text-[10px]">
-                      <th className="py-3 px-4">User</th>
-                      <th className="py-3 px-4">Contact</th>
-                      <th className="py-3 px-4">City</th>
-                      <th className="py-3 px-4">Bookings</th>
-                      <th className="py-3 px-4">Total Spend</th>
-                      <th className="py-3 px-4">Joined Date</th>
-                      <th className="py-3 px-4">Status</th>
-                      <th className="py-3 px-4 text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[#EAF2FF]">
-                    {usersList
-                      .filter(
-                        (u) =>
-                          u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          u.mobile.includes(searchQuery)
-                      )
-                      .map((u) => (
-                        <tr key={u.id} className="hover:bg-[#F9FBFF]">
-                          <td className="py-3.5 px-4 font-bold text-[#0A1F5C]">{u.name}</td>
-                          <td className="py-3.5 px-4 text-[#5B6B8C]">
-                            <div>{u.mobile}</div>
-                            <div className="text-[11px] text-gray-500">{u.email}</div>
-                          </td>
-                          <td className="py-3.5 px-4 text-[#5B6B8C]">{u.city}</td>
-                          <td className="py-3.5 px-4 font-semibold text-[#0A1F5C]">{u.totalBookings}</td>
-                          <td className="py-3.5 px-4 font-bold text-emerald-700">{formatInr(u.totalSpendPaise)}</td>
-                          <td className="py-3.5 px-4 text-[#5B6B8C]">{u.joinedDate}</td>
-                          <td className="py-3.5 px-4">
-                            <span
-                              className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                                u.status === 'ACTIVE'
-                                  ? 'bg-emerald-100 text-emerald-800'
-                                  : 'bg-red-100 text-red-800'
-                              }`}
-                            >
-                              {u.status}
+                    {/* SVG Mockup Chart */}
+                    <div className="space-y-3 pt-2">
+                      {[
+                        { label: 'Week 1', gmv: 980000, comm: 98000, pct: 60 },
+                        { label: 'Week 2', gmv: 1240000, comm: 124000, pct: 78 },
+                        { label: 'Week 3 (Diwali)', gmv: 1580000, comm: 158000, pct: 100 },
+                        { label: 'Week 4 (Current)', gmv: 1024600, comm: 102460, pct: 65 },
+                      ].map((bar) => (
+                        <div key={bar.label} className="space-y-1">
+                          <div className="flex justify-between text-xs font-semibold text-[#0A1F5C]">
+                            <span>{bar.label}</span>
+                            <span>
+                              GMV {formatInr(bar.gmv * 100)} &bull;{' '}
+                              <strong className="text-[#0B5FD9]">Comm {formatInr(bar.comm * 100)}</strong>
                             </span>
-                          </td>
-                          <td className="py-3.5 px-4 text-right">
+                          </div>
+                          <div className="w-full bg-[#F1F6FF] rounded-full h-3 overflow-hidden flex">
+                            <div
+                              className="bg-[#0B5FD9] h-full rounded-full transition-all duration-500"
+                              style={{ width: `${bar.pct}%` }}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Category Breakdown */}
+                  <div className="bg-white rounded-2xl p-6 border border-[#DCE7F9] shadow-sm">
+                    <h3 className="text-base font-bold text-[#0A1F5C] mb-1">Category Share</h3>
+                    <p className="text-xs text-[#5B6B8C] mb-4">Gross booking volume by category</p>
+                    <div className="space-y-3">
+                      {[
+                        { name: 'Home Services', share: '38%', color: 'bg-blue-600' },
+                        { name: 'Contractors & Machinery', share: '24%', color: 'bg-emerald-600' },
+                        { name: 'Agriculture Services', share: '18%', color: 'bg-amber-500' },
+                        { name: 'Event Services', share: '12%', color: 'bg-purple-600' },
+                        { name: 'Moving & Shifting', share: '8%', color: 'bg-sky-500' },
+                      ].map((cat) => (
+                        <div key={cat.name} className="flex items-center justify-between text-xs">
+                          <div className="flex items-center gap-2">
+                            <span className={`w-3 h-3 rounded-full ${cat.color}`} />
+                            <span className="font-semibold text-[#0A1F5C]">{cat.name}</span>
+                          </div>
+                          <span className="font-bold text-[#5B6B8C]">{cat.share}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="mt-6 pt-4 border-t border-[#EAF2FF]">
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab('commission')}
+                        className="text-xs font-semibold text-[#0B5FD9] hover:underline flex items-center justify-between w-full"
+                      >
+                        <span>Configure Category Commissions</span>
+                        <span>&rarr;</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Quick Actions & Recent Actionable Items */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Urgent Partner Verification Requests */}
+                  <div className="bg-white rounded-2xl p-6 border border-[#DCE7F9] shadow-sm">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-2">
+                        <FileCheck className="w-5 h-5 text-[#0B5FD9]" />
+                        <h3 className="text-sm font-bold text-[#0A1F5C]">Pending KYC Verifications</h3>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab('kyc')}
+                        className="text-xs font-semibold text-[#0B5FD9] hover:underline"
+                      >
+                        View All ({kycRequests.length})
+                      </button>
+                    </div>
+
+                    <div className="space-y-3">
+                      {kycRequests
+                        .filter((k) => k.status === 'PENDING')
+                        .slice(0, 3)
+                        .map((item) => (
+                          <div
+                            key={item.id}
+                            className="p-3.5 rounded-xl border border-[#DCE7F9] bg-[#F9FBFF] flex items-center justify-between gap-3"
+                          >
+                            <div>
+                              <p className="text-xs font-bold text-[#0A1F5C]">{item.businessName}</p>
+                              <p className="text-[11px] text-[#5B6B8C]">
+                                {item.ownerName} &bull; {item.partnerType === 'SHOP_BUSINESS' ? 'Shop/Business' : 'Individual'}
+                              </p>
+                              <p className="text-[10px] text-blue-700 font-semibold mt-0.5">
+                                {item.categories.join(', ')}
+                              </p>
+                            </div>
                             <button
                               type="button"
-                              onClick={() => handleToggleUserBlock(u.id)}
-                              className={`px-3 py-1 rounded-lg text-xs font-semibold ${
-                                u.status === 'ACTIVE'
-                                  ? 'border border-red-200 text-red-600 hover:bg-red-50'
-                                  : 'border border-emerald-200 text-emerald-600 hover:bg-emerald-50'
-                              }`}
+                              onClick={() => {
+                                setSelectedKyc(item);
+                                setActiveTab('kyc');
+                              }}
+                              className="px-3 py-1.5 rounded-lg bg-[#0B5FD9] text-white text-xs font-semibold hover:bg-[#094FB6] shrink-0"
                             >
-                              {u.status === 'ACTIVE' ? 'Block' : 'Unblock'}
+                              Review KYC
                             </button>
-                          </td>
-                        </tr>
-                      ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ===================== TAB 6: PARTNERS DIRECTORY ===================== */}
-        {activeTab === 'partners' && (
-          <div className="space-y-6">
-            <div className="bg-white rounded-2xl p-6 border border-[#DCE7F9] shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div>
-                <h2 className="text-lg font-bold text-[#0A1F5C]">Partner Directory & Performance</h2>
-                <p className="text-xs text-[#5B6B8C]">
-                  Category-wise partners, sales, commission paid to platform, ratings, and account status.
-                </p>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <Link
-                  to="/partner/panel"
-                  className="px-3.5 py-1.5 rounded-xl bg-[#0B5FD9] text-white text-xs font-semibold hover:bg-[#094FB6] flex items-center gap-1.5"
-                >
-                  <Building2 className="w-4 h-4" />
-                  <span>Open Partner Portal</span>
-                </Link>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl border border-[#DCE7F9] shadow-sm overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse text-xs">
-                  <thead>
-                    <tr className="bg-[#F8FAFD] border-b border-[#EAF2FF] text-[#5B6B8C] font-bold uppercase text-[10px]">
-                      <th className="py-3 px-4">Partner / Business</th>
-                      <th className="py-3 px-4">Category</th>
-                      <th className="py-3 px-4">Completed Jobs</th>
-                      <th className="py-3 px-4">Gross Sales</th>
-                      <th className="py-3 px-4">Commission Paid</th>
-                      <th className="py-3 px-4">Rating</th>
-                      <th className="py-3 px-4">Status</th>
-                      <th className="py-3 px-4 text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[#EAF2FF]">
-                    {partnersList.map((p) => (
-                      <tr key={p.id} className="hover:bg-[#F9FBFF]">
-                        <td className="py-3.5 px-4">
-                          <div className="font-bold text-[#0A1F5C]">{p.businessName}</div>
-                          <div className="text-[11px] text-[#5B6B8C]">
-                            {p.ownerName} &bull; {p.mobile}
                           </div>
-                        </td>
-                        <td className="py-3.5 px-4 font-semibold text-[#0B5FD9]">{p.category}</td>
-                        <td className="py-3.5 px-4 font-semibold text-[#0A1F5C]">{p.completedJobs}</td>
-                        <td className="py-3.5 px-4 font-bold text-gray-900">{formatInr(p.totalSalesPaise)}</td>
-                        <td className="py-3.5 px-4 font-bold text-[#0B5FD9]">{formatInr(p.commissionPaidPaise)}</td>
-                        <td className="py-3.5 px-4">
-                          <span className="inline-flex items-center gap-1 font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md">
-                            <Star className="w-3 h-3 fill-amber-400 text-amber-500" />
-                            <span>{p.rating}</span>
-                          </span>
-                        </td>
-                        <td className="py-3.5 px-4">
-                          <span
-                            className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                              p.status === 'ACTIVE'
-                                ? 'bg-emerald-100 text-emerald-800'
-                                : 'bg-red-100 text-red-800'
-                            }`}
+                        ))}
+                    </div>
+                  </div>
+
+                  {/* Pending Withdrawals */}
+                  <div className="bg-white rounded-2xl p-6 border border-[#DCE7F9] shadow-sm">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-2">
+                        <Wallet className="w-5 h-5 text-emerald-600" />
+                        <h3 className="text-sm font-bold text-[#0A1F5C]">Pending Partner Payout Requests</h3>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab('withdrawals')}
+                        className="text-xs font-semibold text-[#0B5FD9] hover:underline"
+                      >
+                        View All ({withdrawals.length})
+                      </button>
+                    </div>
+
+                    <div className="space-y-3">
+                      {withdrawals
+                        .filter((w) => w.status === 'PENDING')
+                        .map((wth) => (
+                          <div
+                            key={wth.id}
+                            className="p-3.5 rounded-xl border border-[#DCE7F9] bg-[#F9FBFF] flex items-center justify-between gap-3"
                           >
-                            {p.status}
-                          </span>
-                        </td>
-                        <td className="py-3.5 px-4 text-right">
-                          <button
-                            type="button"
-                            onClick={() => handleTogglePartnerBlock(p.id)}
-                            className={`px-3 py-1 rounded-lg text-xs font-semibold ${
-                              p.status === 'ACTIVE'
-                                ? 'border border-red-200 text-red-600 hover:bg-red-50'
-                                : 'border border-emerald-200 text-emerald-600 hover:bg-emerald-50'
-                            }`}
-                          >
-                            {p.status === 'ACTIVE' ? 'Suspend' : 'Activate'}
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                            <div>
+                              <p className="text-xs font-bold text-[#0A1F5C]">{wth.partnerName}</p>
+                              <p className="text-[11px] text-[#5B6B8C]">
+                                {wth.destination} &bull; {wth.requestedAt}
+                              </p>
+                              <p className="text-xs font-extrabold text-emerald-600 mt-0.5">
+                                {formatInr(wth.amountPaise)}
+                              </p>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSelectedWithdrawal(wth);
+                                setActiveTab('withdrawals');
+                              }}
+                              className="px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-xs font-semibold hover:bg-emerald-700 shrink-0"
+                            >
+                              Process Payout
+                            </button>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-        )}
+            )}
 
-        {/* ===================== TAB 7: WITHDRAWAL REQUESTS & PAYOUTS ===================== */}
-        {activeTab === 'withdrawals' && (
-          <div className="space-y-6">
-            <div className="bg-white rounded-2xl p-6 border border-[#DCE7F9] shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div>
-                <h2 className="text-lg font-bold text-[#0A1F5C]">Partner Withdrawal Requests & Payouts</h2>
-                <p className="text-xs text-[#5B6B8C]">
-                  Approve withdrawals, record bank UTR / UPI transaction IDs, and maintain disbursement ledger.
-                </p>
-              </div>
+            {/* ===================== TAB 2: PARTNER KYC VERIFICATION ===================== */}
+            {activeTab === 'kyc' && (
+              <div className="space-y-6">
+                <div className="bg-white rounded-2xl p-6 border border-[#DCE7F9] shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div>
+                    <h2 className="text-lg font-bold text-[#0A1F5C]">Partner Registration & KYC Verification</h2>
+                    <p className="text-xs text-[#5B6B8C]">
+                      Verify individual PAN cards, business GST / trade licenses, and approve or request corrections.
+                    </p>
+                  </div>
 
-              <button
-                type="button"
-                onClick={() =>
-                  exportCsv(
-                    'serva-partner-withdrawals.csv',
-                    'ID,Partner,Amount,Destination,RequestedAt,Status,TransactionRef\n' +
-                      withdrawals
-                        .map(
-                          (w) =>
-                            `${w.id},"${w.partnerName}",${w.amountPaise / 100},"${w.destination}","${w.requestedAt}",${w.status},"${w.transactionRef || ''}"`
-                        )
-                        .join('\n')
-                  )
-                }
-                className="px-3.5 py-1.5 rounded-xl border border-[#DCE7F9] text-xs font-semibold text-[#0A1F5C] hover:bg-[#F1F6FF] flex items-center gap-1.5"
-              >
-                <Download className="w-3.5 h-3.5 text-[#0B5FD9]" />
-                <span>Export Payouts CSV</span>
-              </button>
-            </div>
+                  {/* Status Filter Pills */}
+                  <div className="flex items-center gap-1.5 bg-[#F1F6FF] p-1 rounded-xl text-xs font-semibold">
+                    <span className="px-2.5 py-1 rounded-lg bg-[#0B5FD9] text-white">All ({kycRequests.length})</span>
+                    <span className="px-2.5 py-1 text-[#5B6B8C]">Pending ({pendingKycCount})</span>
+                    <span className="px-2.5 py-1 text-[#5B6B8C]">
+                      Approved ({kycRequests.filter((k) => k.status === 'APPROVED').length})
+                    </span>
+                  </div>
+                </div>
 
-            <div className="bg-white rounded-2xl border border-[#DCE7F9] shadow-sm overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse text-xs">
-                  <thead>
-                    <tr className="bg-[#F8FAFD] border-b border-[#EAF2FF] text-[#5B6B8C] font-bold uppercase text-[10px]">
-                      <th className="py-3 px-4">Request ID</th>
-                      <th className="py-3 px-4">Partner</th>
-                      <th className="py-3 px-4">Amount</th>
-                      <th className="py-3 px-4">Payout Mode & Destination</th>
-                      <th className="py-3 px-4">Requested At</th>
-                      <th className="py-3 px-4">Status</th>
-                      <th className="py-3 px-4 text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[#EAF2FF]">
-                    {withdrawals.map((wth) => (
-                      <tr key={wth.id} className="hover:bg-[#F9FBFF]">
-                        <td className="py-3.5 px-4 font-bold text-[#0B5FD9]">{wth.id}</td>
-                        <td className="py-3.5 px-4">
-                          <div className="font-bold text-[#0A1F5C]">{wth.partnerName}</div>
-                          <div className="text-[11px] text-[#5B6B8C]">{wth.partnerMobile}</div>
-                        </td>
-                        <td className="py-3.5 px-4 font-extrabold text-base text-emerald-700">
-                          {formatInr(wth.amountPaise)}
-                        </td>
-                        <td className="py-3.5 px-4">
-                          <span className="font-semibold text-[#0A1F5C]">{wth.destination}</span>
-                          <span className="block text-[10px] text-[#5B6B8C] uppercase font-bold">{wth.payoutMode}</span>
-                        </td>
-                        <td className="py-3.5 px-4 text-[#5B6B8C]">{wth.requestedAt}</td>
-                        <td className="py-3.5 px-4">
-                          <span
-                            className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${
-                              wth.status === 'PAID'
+                {/* List of KYC Applications */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {kycRequests.map((partner) => (
+                    <div
+                      key={partner.id}
+                      className={`bg-white rounded-2xl p-5 border shadow-sm transition-all ${partner.status === 'PENDING'
+                        ? 'border-blue-200 ring-1 ring-blue-100'
+                        : partner.status === 'APPROVED'
+                          ? 'border-emerald-200'
+                          : partner.status === 'RESUBMIT'
+                            ? 'border-amber-200'
+                            : 'border-red-200'
+                        }`}
+                    >
+                      <div className="flex items-start justify-between gap-3 mb-3">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-bold text-sm sm:text-base text-[#0A1F5C]">{partner.businessName}</h3>
+                            <span
+                              className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${partner.status === 'APPROVED'
                                 ? 'bg-emerald-100 text-emerald-800'
-                                : wth.status === 'PENDING'
-                                ? 'bg-amber-100 text-amber-800'
-                                : 'bg-red-100 text-red-800'
-                            }`}
-                          >
-                            {wth.status}
-                          </span>
-                          {wth.transactionRef && (
-                            <span className="block text-[10px] text-gray-500 font-mono mt-0.5">
-                              Ref: {wth.transactionRef}
+                                : partner.status === 'PENDING'
+                                  ? 'bg-amber-100 text-amber-800'
+                                  : partner.status === 'RESUBMIT'
+                                    ? 'bg-blue-100 text-blue-800'
+                                    : 'bg-red-100 text-red-800'
+                                }`}
+                            >
+                              {partner.status}
                             </span>
+                          </div>
+                          <p className="text-xs text-[#5B6B8C] mt-0.5">
+                            Owner: <strong>{partner.ownerName}</strong> &bull;{' '}
+                            {partner.partnerType === 'SHOP_BUSINESS' ? '🏪 Shop/Business' : '👤 Individual Partner'}
+                          </p>
+                        </div>
+
+                        <span className="text-[11px] font-semibold text-[#5B6B8C] shrink-0">{partner.submittedAt}</span>
+                      </div>
+
+                      {/* Core Details Grid */}
+                      <div className="grid grid-cols-2 gap-2 text-xs text-[#5B6B8C] mb-4 bg-[#F8FAFD] p-3 rounded-xl border border-[#EAF2FF]">
+                        <div>
+                          <span className="block text-[10px] uppercase font-bold text-[#8FA0C0]">Contact Info</span>
+                          <span className="font-medium text-[#0A1F5C]">{partner.mobile}</span>
+                          <span className="block truncate text-[11px]">{partner.email}</span>
+                        </div>
+
+                        <div>
+                          <span className="block text-[10px] uppercase font-bold text-[#8FA0C0]">Service Area</span>
+                          <span className="font-medium text-[#0A1F5C] truncate block">{partner.serviceArea}</span>
+                          <span className="text-[11px]">{partner.experienceYears} yrs experience</span>
+                        </div>
+
+                        <div className="col-span-2 pt-2 border-t border-[#EAF2FF]">
+                          <span className="block text-[10px] uppercase font-bold text-[#8FA0C0]">Services Offered</span>
+                          <p className="text-xs font-semibold text-[#0B5FD9] mt-0.5">
+                            {partner.categories.join(', ')} &mdash;{' '}
+                            <span className="text-[#5B6B8C] font-normal">{partner.services.join(', ')}</span>
+                          </p>
+                        </div>
+
+                        {/* Document details */}
+                        <div className="col-span-2 pt-2 border-t border-[#EAF2FF] flex items-center justify-between">
+                          <div>
+                            <span className="block text-[10px] uppercase font-bold text-[#8FA0C0]">Verification Docs</span>
+                            <p className="text-xs font-semibold text-[#0A1F5C]">
+                              {partner.partnerType === 'SHOP_BUSINESS'
+                                ? `GST / Trade Lic: ${partner.gstNumber || 'Uploaded Document'}`
+                                : `PAN: ${partner.panNumber || 'Uploaded PAN Card'}`}
+                            </p>
+                          </div>
+
+                          {/* Payout Details */}
+                          <div className="text-right">
+                            <span className="block text-[10px] uppercase font-bold text-[#8FA0C0]">Registered Payout</span>
+                            <p className="text-xs font-semibold text-[#0A1F5C]">
+                              {partner.payoutMode === 'UPI' ? partner.upiId : partner.bankAccount?.accountNumber}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {partner.rejectionReason && (
+                        <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 mb-4">
+                          <strong>Admin Correction Request:</strong> {partner.rejectionReason}
+                        </div>
+                      )}
+
+                      {/* Action Buttons */}
+                      <div className="flex items-center justify-between gap-2 pt-2 border-t border-[#EAF2FF]">
+                        <button
+                          type="button"
+                          onClick={() => setSelectedKyc(partner)}
+                          className="px-3 py-1.5 rounded-xl border border-[#DCE7F9] bg-white text-xs font-semibold text-[#0A1F5C] hover:bg-[#F1F6FF] flex items-center gap-1.5"
+                        >
+                          <Eye className="w-3.5 h-3.5 text-[#0B5FD9]" />
+                          <span>View Documents</span>
+                        </button>
+
+                        <div className="flex items-center gap-2">
+                          {partner.status !== 'APPROVED' && (
+                            <button
+                              type="button"
+                              onClick={() => handleApproveKyc(partner.id)}
+                              className="px-3.5 py-1.5 rounded-xl bg-emerald-600 text-white text-xs font-semibold hover:bg-emerald-700 flex items-center gap-1 shadow-sm"
+                            >
+                              <Check className="w-3.5 h-3.5" />
+                              <span>Approve</span>
+                            </button>
                           )}
-                        </td>
-                        <td className="py-3.5 px-4 text-right">
-                          {wth.status === 'PENDING' ? (
-                            <div className="flex items-center justify-end gap-1.5">
+
+                          {partner.status === 'PENDING' && (
+                            <>
                               <button
                                 type="button"
-                                onClick={() => setSelectedWithdrawal(wth)}
-                                className="px-3 py-1 rounded-lg bg-emerald-600 text-white font-semibold hover:bg-emerald-700 text-xs shadow-sm"
+                                onClick={() => {
+                                  setSelectedKyc(partner);
+                                  setRejectionActionType('RESUBMIT');
+                                  setRejectionModalOpen(true);
+                                }}
+                                className="px-3 py-1.5 rounded-xl bg-amber-500 text-white text-xs font-semibold hover:bg-amber-600"
                               >
-                                Mark Paid
+                                Re-submit
                               </button>
                               <button
                                 type="button"
-                                onClick={() => handleRejectPayout(wth.id, 'Invalid bank IFSC or account name mismatch')}
-                                className="px-2.5 py-1 rounded-lg border border-red-200 text-red-600 hover:bg-red-50 text-xs font-semibold"
+                                onClick={() => {
+                                  setSelectedKyc(partner);
+                                  setRejectionActionType('REJECT');
+                                  setRejectionModalOpen(true);
+                                }}
+                                className="px-3 py-1.5 rounded-xl bg-red-600 text-white text-xs font-semibold hover:bg-red-700"
                               >
                                 Reject
                               </button>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* ===================== TAB 3: COMMISSION SETUP ===================== */}
+            {activeTab === 'commission' && (
+              <div className="space-y-6">
+                <div className="bg-white rounded-2xl p-6 border border-[#DCE7F9] shadow-sm">
+                  <h2 className="text-lg font-bold text-[#0A1F5C]">Commission Setup (Global & Category-wise)</h2>
+                  <p className="text-xs text-[#5B6B8C] mt-0.5">
+                    Define the percentage of gross booking value retained by SERVA. Partners receive earnings minus this commission.
+                  </p>
+
+                  {commissionSavedNotice && (
+                    <div className="mt-4 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs font-semibold text-emerald-800 flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                      <span>Commission rules updated successfully and applied to all upcoming bookings!</span>
+                    </div>
+                  )}
+
+                  {/* Global Commission Setting */}
+                  <div className="mt-6 p-5 rounded-2xl bg-[#F8FAFD] border border-[#DCE7F9] max-w-xl">
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="text-sm font-bold text-[#0A1F5C]">Default Global Commission</label>
+                      <span className="text-base font-extrabold text-[#0B5FD9]">{globalCommissionPercent}%</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="0"
+                      max="30"
+                      step="0.5"
+                      value={globalCommissionPercent}
+                      onChange={(e) => setGlobalCommissionPercent(parseFloat(e.target.value))}
+                      className="w-full accent-[#0B5FD9] cursor-pointer"
+                    />
+                    <p className="text-[11px] text-[#5B6B8C] mt-2">
+                      Applied as default to all service bookings unless overridden by category or partner specific agreements.
+                    </p>
+                  </div>
+
+                  {/* Category-Wise Overrides */}
+                  <div className="mt-8">
+                    <h3 className="text-sm font-bold text-[#0A1F5C] uppercase tracking-wider mb-4">
+                      Category-Wise Commission Rates
+                    </h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {Object.entries(categoryCommissions).map(([category, rate]) => (
+                        <div key={category} className="p-4 rounded-xl border border-[#DCE7F9] bg-white shadow-sm">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-xs font-bold text-[#0A1F5C]">{category}</span>
+                            <span className="text-xs font-extrabold text-[#0B5FD9] bg-[#EBF2FE] px-2 py-0.5 rounded-full">
+                              {rate}%
+                            </span>
+                          </div>
+                          <input
+                            type="range"
+                            min="0"
+                            max="25"
+                            step="1"
+                            value={rate}
+                            onChange={(e) =>
+                              setCategoryCommissions({ ...categoryCommissions, [category]: parseInt(e.target.value, 10) })
+                            }
+                            className="w-full accent-[#0B5FD9] cursor-pointer"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="mt-6 pt-4 border-t border-[#EAF2FF] flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCommissionSavedNotice(true);
+                        setTimeout(() => setCommissionSavedNotice(false), 4000);
+                      }}
+                      className="px-5 py-2.5 rounded-xl bg-[#0B5FD9] text-white text-xs sm:text-sm font-semibold hover:bg-[#094FB6] shadow-sm flex items-center gap-2"
+                    >
+                      <Check className="w-4 h-4" />
+                      <span>Save & Apply Commission Rules</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ===================== TAB 4: COUPONS & PROMOTIONS ===================== */}
+            {activeTab === 'coupons' && (
+              <div className="space-y-6">
+                <div className="bg-white rounded-2xl p-6 border border-[#DCE7F9] shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div>
+                    <h2 className="text-lg font-bold text-[#0A1F5C]">Coupons & Promotional Deals</h2>
+                    <p className="text-xs text-[#5B6B8C]">
+                      Create, activate, expire and manage percentage or flat discount vouchers.
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setShowCreateCoupon(true)}
+                    className="px-4 py-2 rounded-xl bg-[#0B5FD9] text-white text-xs font-semibold hover:bg-[#094FB6] flex items-center gap-2 shadow-sm"
+                  >
+                    <Tag className="w-4 h-4" />
+                    <span>+ Create New Coupon</span>
+                  </button>
+                </div>
+
+                {/* Coupons Table */}
+                <div className="bg-white rounded-2xl border border-[#DCE7F9] shadow-sm overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse text-xs">
+                      <thead>
+                        <tr className="bg-[#F8FAFD] border-b border-[#EAF2FF] text-[#5B6B8C] font-bold uppercase text-[10px]">
+                          <th className="py-3 px-4">Coupon Code</th>
+                          <th className="py-3 px-4">Discount</th>
+                          <th className="py-3 px-4">Min Order</th>
+                          <th className="py-3 px-4">Redemptions / Limit</th>
+                          <th className="py-3 px-4">Validity</th>
+                          <th className="py-3 px-4">Status</th>
+                          <th className="py-3 px-4 text-right">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-[#EAF2FF]">
+                        {coupons.map((cpn) => (
+                          <tr key={cpn.id} className="hover:bg-[#F9FBFF]">
+                            <td className="py-3.5 px-4">
+                              <span className="font-extrabold text-[#0B5FD9] bg-[#EBF2FE] px-2.5 py-1 rounded-md border border-[#DCE7F9]">
+                                {cpn.code}
+                              </span>
+                            </td>
+                            <td className="py-3.5 px-4 font-bold text-[#0A1F5C]">
+                              {cpn.discountType === 'FLAT' ? `₹${cpn.discountValue} Flat` : `${cpn.discountValue}% Off`}
+                            </td>
+                            <td className="py-3.5 px-4 text-[#5B6B8C]">₹{cpn.minOrderValue}</td>
+                            <td className="py-3.5 px-4">
+                              <span className="font-semibold text-[#0A1F5C]">{cpn.usageCount}</span>
+                              <span className="text-[#5B6B8C]"> / {cpn.usageLimit}</span>
+                            </td>
+                            <td className="py-3.5 px-4 text-[#5B6B8C]">{cpn.validUntil}</td>
+                            <td className="py-3.5 px-4">
+                              <span
+                                className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${cpn.status === 'ACTIVE'
+                                  ? 'bg-emerald-100 text-emerald-800'
+                                  : 'bg-gray-100 text-gray-700'
+                                  }`}
+                              >
+                                {cpn.status}
+                              </span>
+                            </td>
+                            <td className="py-3.5 px-4 text-right">
+                              <button
+                                type="button"
+                                onClick={() => handleToggleCoupon(cpn.id)}
+                                className="px-2.5 py-1 rounded-lg border border-[#DCE7F9] text-xs font-semibold hover:bg-[#F1F6FF]"
+                              >
+                                {cpn.status === 'ACTIVE' ? 'Expire' : 'Activate'}
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ===================== TAB 5: USERS DIRECTORY ===================== */}
+            {activeTab === 'users' && (
+              <div className="space-y-6">
+                <div className="bg-white rounded-2xl p-6 border border-[#DCE7F9] shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div>
+                    <h2 className="text-lg font-bold text-[#0A1F5C]">User Directory & Control</h2>
+                    <p className="text-xs text-[#5B6B8C]">
+                      View all registered customer accounts, booking history, lifetime spend, and block/unblock.
+                    </p>
+                  </div>
+
+                  <div className="relative w-full sm:w-64">
+                    <Search className="w-4 h-4 text-[#5B6B8C] absolute left-3 top-2.5" />
+                    <input
+                      type="text"
+                      placeholder="Search user by name or mobile..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full pl-9 pr-3 py-1.5 text-xs rounded-xl border border-[#DCE7F9] bg-[#F8FAFD] focus:outline-none focus:border-[#0B5FD9]"
+                    />
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-2xl border border-[#DCE7F9] shadow-sm overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse text-xs">
+                      <thead>
+                        <tr className="bg-[#F8FAFD] border-b border-[#EAF2FF] text-[#5B6B8C] font-bold uppercase text-[10px]">
+                          <th className="py-3 px-4">User</th>
+                          <th className="py-3 px-4">Contact</th>
+                          <th className="py-3 px-4">City</th>
+                          <th className="py-3 px-4">Bookings</th>
+                          <th className="py-3 px-4">Total Spend</th>
+                          <th className="py-3 px-4">Joined Date</th>
+                          <th className="py-3 px-4">Status</th>
+                          <th className="py-3 px-4 text-right">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-[#EAF2FF]">
+                        {usersList
+                          .filter(
+                            (u) =>
+                              u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                              u.mobile.includes(searchQuery)
+                          )
+                          .map((u) => (
+                            <tr key={u.id} className="hover:bg-[#F9FBFF]">
+                              <td className="py-3.5 px-4 font-bold text-[#0A1F5C]">{u.name}</td>
+                              <td className="py-3.5 px-4 text-[#5B6B8C]">
+                                <div>{u.mobile}</div>
+                                <div className="text-[11px] text-gray-500">{u.email}</div>
+                              </td>
+                              <td className="py-3.5 px-4 text-[#5B6B8C]">{u.city}</td>
+                              <td className="py-3.5 px-4 font-semibold text-[#0A1F5C]">{u.totalBookings}</td>
+                              <td className="py-3.5 px-4 font-bold text-emerald-700">{formatInr(u.totalSpendPaise)}</td>
+                              <td className="py-3.5 px-4 text-[#5B6B8C]">{u.joinedDate}</td>
+                              <td className="py-3.5 px-4">
+                                <span
+                                  className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${u.status === 'ACTIVE'
+                                    ? 'bg-emerald-100 text-emerald-800'
+                                    : 'bg-red-100 text-red-800'
+                                    }`}
+                                >
+                                  {u.status}
+                                </span>
+                              </td>
+                              <td className="py-3.5 px-4 text-right">
+                                <button
+                                  type="button"
+                                  onClick={() => handleToggleUserBlock(u.id)}
+                                  className={`px-3 py-1 rounded-lg text-xs font-semibold ${u.status === 'ACTIVE'
+                                    ? 'border border-red-200 text-red-600 hover:bg-red-50'
+                                    : 'border border-emerald-200 text-emerald-600 hover:bg-emerald-50'
+                                    }`}
+                                >
+                                  {u.status === 'ACTIVE' ? 'Block' : 'Unblock'}
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ===================== TAB 6: PARTNERS DIRECTORY ===================== */}
+            {activeTab === 'partners' && (
+              <div className="space-y-6">
+                <div className="bg-white rounded-2xl p-6 border border-[#DCE7F9] shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div>
+                    <h2 className="text-lg font-bold text-[#0A1F5C]">Partner Directory & Performance</h2>
+                    <p className="text-xs text-[#5B6B8C]">
+                      Category-wise partners, sales, commission paid to platform, ratings, and account status.
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Link
+                      to="/partner/panel"
+                      className="px-3.5 py-1.5 rounded-xl bg-[#0B5FD9] text-white text-xs font-semibold hover:bg-[#094FB6] flex items-center gap-1.5"
+                    >
+                      <Building2 className="w-4 h-4" />
+                      <span>Open Partner Portal</span>
+                    </Link>
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-2xl border border-[#DCE7F9] shadow-sm overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse text-xs">
+                      <thead>
+                        <tr className="bg-[#F8FAFD] border-b border-[#EAF2FF] text-[#5B6B8C] font-bold uppercase text-[10px]">
+                          <th className="py-3 px-4">Partner / Business</th>
+                          <th className="py-3 px-4">Category</th>
+                          <th className="py-3 px-4">Completed Jobs</th>
+                          <th className="py-3 px-4">Gross Sales</th>
+                          <th className="py-3 px-4">Commission Paid</th>
+                          <th className="py-3 px-4">Rating</th>
+                          <th className="py-3 px-4">Status</th>
+                          <th className="py-3 px-4 text-right">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-[#EAF2FF]">
+                        {partnersList.map((p) => (
+                          <tr key={p.id} className="hover:bg-[#F9FBFF]">
+                            <td className="py-3.5 px-4">
+                              <div className="font-bold text-[#0A1F5C]">{p.businessName}</div>
+                              <div className="text-[11px] text-[#5B6B8C]">
+                                {p.ownerName} &bull; {p.mobile}
+                              </div>
+                            </td>
+                            <td className="py-3.5 px-4 font-semibold text-[#0B5FD9]">{p.category}</td>
+                            <td className="py-3.5 px-4 font-semibold text-[#0A1F5C]">{p.completedJobs}</td>
+                            <td className="py-3.5 px-4 font-bold text-gray-900">{formatInr(p.totalSalesPaise)}</td>
+                            <td className="py-3.5 px-4 font-bold text-[#0B5FD9]">{formatInr(p.commissionPaidPaise)}</td>
+                            <td className="py-3.5 px-4">
+                              <span className="inline-flex items-center gap-1 font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md">
+                                <Star className="w-3 h-3 fill-amber-400 text-amber-500" />
+                                <span>{p.rating}</span>
+                              </span>
+                            </td>
+                            <td className="py-3.5 px-4">
+                              <span
+                                className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${p.status === 'ACTIVE'
+                                  ? 'bg-emerald-100 text-emerald-800'
+                                  : 'bg-red-100 text-red-800'
+                                  }`}
+                              >
+                                {p.status}
+                              </span>
+                            </td>
+                            <td className="py-3.5 px-4 text-right">
+                              <button
+                                type="button"
+                                onClick={() => handleTogglePartnerBlock(p.id)}
+                                className={`px-3 py-1 rounded-lg text-xs font-semibold ${p.status === 'ACTIVE'
+                                  ? 'border border-red-200 text-red-600 hover:bg-red-50'
+                                  : 'border border-emerald-200 text-emerald-600 hover:bg-emerald-50'
+                                  }`}
+                              >
+                                {p.status === 'ACTIVE' ? 'Suspend' : 'Activate'}
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ===================== TAB 7: WITHDRAWAL REQUESTS & PAYOUTS ===================== */}
+            {activeTab === 'withdrawals' && (
+              <div className="space-y-6">
+                <div className="bg-white rounded-2xl p-6 border border-[#DCE7F9] shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div>
+                    <h2 className="text-lg font-bold text-[#0A1F5C]">Partner Withdrawal Requests & Payouts</h2>
+                    <p className="text-xs text-[#5B6B8C]">
+                      Approve withdrawals, record bank UTR / UPI transaction IDs, and maintain disbursement ledger.
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      exportCsv(
+                        'serva-partner-withdrawals.csv',
+                        'ID,Partner,Amount,Destination,RequestedAt,Status,TransactionRef\n' +
+                        withdrawals
+                          .map(
+                            (w) =>
+                              `${w.id},"${w.partnerName}",${w.amountPaise / 100},"${w.destination}","${w.requestedAt}",${w.status},"${w.transactionRef || ''}"`
+                          )
+                          .join('\n')
+                      )
+                    }
+                    className="px-3.5 py-1.5 rounded-xl border border-[#DCE7F9] text-xs font-semibold text-[#0A1F5C] hover:bg-[#F1F6FF] flex items-center gap-1.5"
+                  >
+                    <Download className="w-3.5 h-3.5 text-[#0B5FD9]" />
+                    <span>Export Payouts CSV</span>
+                  </button>
+                </div>
+
+                <div className="bg-white rounded-2xl border border-[#DCE7F9] shadow-sm overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse text-xs">
+                      <thead>
+                        <tr className="bg-[#F8FAFD] border-b border-[#EAF2FF] text-[#5B6B8C] font-bold uppercase text-[10px]">
+                          <th className="py-3 px-4">Request ID</th>
+                          <th className="py-3 px-4">Partner</th>
+                          <th className="py-3 px-4">Amount</th>
+                          <th className="py-3 px-4">Payout Mode & Destination</th>
+                          <th className="py-3 px-4">Requested At</th>
+                          <th className="py-3 px-4">Status</th>
+                          <th className="py-3 px-4 text-right">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-[#EAF2FF]">
+                        {withdrawals.map((wth) => (
+                          <tr key={wth.id} className="hover:bg-[#F9FBFF]">
+                            <td className="py-3.5 px-4 font-bold text-[#0B5FD9]">{wth.id}</td>
+                            <td className="py-3.5 px-4">
+                              <div className="font-bold text-[#0A1F5C]">{wth.partnerName}</div>
+                              <div className="text-[11px] text-[#5B6B8C]">{wth.partnerMobile}</div>
+                            </td>
+                            <td className="py-3.5 px-4 font-extrabold text-base text-emerald-700">
+                              {formatInr(wth.amountPaise)}
+                            </td>
+                            <td className="py-3.5 px-4">
+                              <span className="font-semibold text-[#0A1F5C]">{wth.destination}</span>
+                              <span className="block text-[10px] text-[#5B6B8C] uppercase font-bold">{wth.payoutMode}</span>
+                            </td>
+                            <td className="py-3.5 px-4 text-[#5B6B8C]">{wth.requestedAt}</td>
+                            <td className="py-3.5 px-4">
+                              <span
+                                className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${wth.status === 'PAID'
+                                  ? 'bg-emerald-100 text-emerald-800'
+                                  : wth.status === 'PENDING'
+                                    ? 'bg-amber-100 text-amber-800'
+                                    : 'bg-red-100 text-red-800'
+                                  }`}
+                              >
+                                {wth.status}
+                              </span>
+                              {wth.transactionRef && (
+                                <span className="block text-[10px] text-gray-500 font-mono mt-0.5">
+                                  Ref: {wth.transactionRef}
+                                </span>
+                              )}
+                            </td>
+                            <td className="py-3.5 px-4 text-right">
+                              {wth.status === 'PENDING' ? (
+                                <div className="flex items-center justify-end gap-1.5">
+                                  <button
+                                    type="button"
+                                    onClick={() => setSelectedWithdrawal(wth)}
+                                    className="px-3 py-1 rounded-lg bg-emerald-600 text-white font-semibold hover:bg-emerald-700 text-xs shadow-sm"
+                                  >
+                                    Mark Paid
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRejectPayout(wth.id, 'Invalid bank IFSC or account name mismatch')}
+                                    className="px-2.5 py-1 rounded-lg border border-red-200 text-red-600 hover:bg-red-50 text-xs font-semibold"
+                                  >
+                                    Reject
+                                  </button>
+                                </div>
+                              ) : (
+                                <span className="text-gray-400 font-semibold text-[11px]">Processed</span>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ===================== TAB 8: SUPPORT TICKETS ===================== */}
+            {activeTab === 'support' && (
+              <div className="space-y-6">
+                <div className="bg-white rounded-2xl p-6 border border-[#DCE7F9] shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div>
+                    <h2 className="text-lg font-bold text-[#0A1F5C]">Support Ticket Helpdesk</h2>
+                    <p className="text-xs text-[#5B6B8C]">
+                      Customer & Partner support inquiries with direct admin reply and status resolution.
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-amber-700 bg-amber-50 px-3 py-1 rounded-full border border-amber-200">
+                      {openTicketCount} Open Tickets
+                    </span>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-4">
+                  {tickets.map((tkt) => (
+                    <div key={tkt.id} className="bg-white rounded-2xl p-5 border border-[#DCE7F9] shadow-sm">
+                      <div className="flex items-start justify-between gap-3 mb-2">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-xs bg-[#EBF2FE] text-[#0B5FD9] px-2 py-0.5 rounded-md">
+                              {tkt.id}
+                            </span>
+                            <h3 className="font-bold text-sm text-[#0A1F5C]">{tkt.subject}</h3>
+                            <span
+                              className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${tkt.status === 'RESOLVED'
+                                ? 'bg-emerald-100 text-emerald-800'
+                                : tkt.status === 'OPEN'
+                                  ? 'bg-red-100 text-red-800'
+                                  : 'bg-amber-100 text-amber-800'
+                                }`}
+                            >
+                              {tkt.status}
+                            </span>
+                          </div>
+                          <p className="text-xs text-[#5B6B8C] mt-1">
+                            Reported by: <strong>{tkt.reporterName}</strong> ({tkt.reporterType}) &bull; Mobile: {tkt.reporterMobile} &bull; {tkt.createdAt}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="p-3 rounded-xl bg-[#F8FAFD] border border-[#EAF2FF] text-xs text-[#0A1F5C] my-3">
+                        {tkt.message}
+                      </div>
+
+                      {tkt.adminReply && (
+                        <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-950 mb-3">
+                          <p className="font-bold text-emerald-800 mb-0.5">Admin Resolution Reply:</p>
+                          <p>{tkt.adminReply}</p>
+                        </div>
+                      )}
+
+                      {tkt.status !== 'RESOLVED' && (
+                        <div>
+                          {replyTicketId === tkt.id ? (
+                            <div className="space-y-2 mt-2">
+                              <textarea
+                                rows={3}
+                                placeholder="Type official admin reply to resolve ticket..."
+                                value={replyTicketText}
+                                onChange={(e) => setReplyTicketText(e.target.value)}
+                                className="w-full p-2.5 rounded-xl border border-[#DCE7F9] text-xs focus:outline-none focus:border-[#0B5FD9]"
+                              />
+                              <div className="flex justify-end gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => setReplyTicketId(null)}
+                                  className="px-3 py-1.5 rounded-xl border text-xs font-semibold hover:bg-gray-50"
+                                >
+                                  Cancel
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleReplyTicket(tkt.id)}
+                                  className="px-4 py-1.5 rounded-xl bg-[#0B5FD9] text-white text-xs font-semibold hover:bg-[#094FB6] flex items-center gap-1.5"
+                                >
+                                  <Send className="w-3.5 h-3.5" />
+                                  <span>Send Reply & Resolve</span>
+                                </button>
+                              </div>
                             </div>
                           ) : (
-                            <span className="text-gray-400 font-semibold text-[11px]">Processed</span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setReplyTicketId(tkt.id);
+                                setReplyTicketText('');
+                              }}
+                              className="px-3.5 py-1.5 rounded-xl bg-[#0B5FD9] text-white text-xs font-semibold hover:bg-[#094FB6]"
+                            >
+                              Reply & Resolve
+                            </button>
                           )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ===================== TAB 8: SUPPORT TICKETS ===================== */}
-        {activeTab === 'support' && (
-          <div className="space-y-6">
-            <div className="bg-white rounded-2xl p-6 border border-[#DCE7F9] shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div>
-                <h2 className="text-lg font-bold text-[#0A1F5C]">Support Ticket Helpdesk</h2>
-                <p className="text-xs text-[#5B6B8C]">
-                  Customer & Partner support inquiries with direct admin reply and status resolution.
-                </p>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-amber-700 bg-amber-50 px-3 py-1 rounded-full border border-amber-200">
-                  {openTicketCount} Open Tickets
-                </span>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 gap-4">
-              {tickets.map((tkt) => (
-                <div key={tkt.id} className="bg-white rounded-2xl p-5 border border-[#DCE7F9] shadow-sm">
-                  <div className="flex items-start justify-between gap-3 mb-2">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-xs bg-[#EBF2FE] text-[#0B5FD9] px-2 py-0.5 rounded-md">
-                          {tkt.id}
-                        </span>
-                        <h3 className="font-bold text-sm text-[#0A1F5C]">{tkt.subject}</h3>
-                        <span
-                          className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                            tkt.status === 'RESOLVED'
-                              ? 'bg-emerald-100 text-emerald-800'
-                              : tkt.status === 'OPEN'
-                              ? 'bg-red-100 text-red-800'
-                              : 'bg-amber-100 text-amber-800'
-                          }`}
-                        >
-                          {tkt.status}
-                        </span>
-                      </div>
-                      <p className="text-xs text-[#5B6B8C] mt-1">
-                        Reported by: <strong>{tkt.reporterName}</strong> ({tkt.reporterType}) &bull; Mobile: {tkt.reporterMobile} &bull; {tkt.createdAt}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="p-3 rounded-xl bg-[#F8FAFD] border border-[#EAF2FF] text-xs text-[#0A1F5C] my-3">
-                    {tkt.message}
-                  </div>
-
-                  {tkt.adminReply && (
-                    <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-950 mb-3">
-                      <p className="font-bold text-emerald-800 mb-0.5">Admin Resolution Reply:</p>
-                      <p>{tkt.adminReply}</p>
-                    </div>
-                  )}
-
-                  {tkt.status !== 'RESOLVED' && (
-                    <div>
-                      {replyTicketId === tkt.id ? (
-                        <div className="space-y-2 mt-2">
-                          <textarea
-                            rows={3}
-                            placeholder="Type official admin reply to resolve ticket..."
-                            value={replyTicketText}
-                            onChange={(e) => setReplyTicketText(e.target.value)}
-                            className="w-full p-2.5 rounded-xl border border-[#DCE7F9] text-xs focus:outline-none focus:border-[#0B5FD9]"
-                          />
-                          <div className="flex justify-end gap-2">
-                            <button
-                              type="button"
-                              onClick={() => setReplyTicketId(null)}
-                              className="px-3 py-1.5 rounded-xl border text-xs font-semibold hover:bg-gray-50"
-                            >
-                              Cancel
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => handleReplyTicket(tkt.id)}
-                              className="px-4 py-1.5 rounded-xl bg-[#0B5FD9] text-white text-xs font-semibold hover:bg-[#094FB6] flex items-center gap-1.5"
-                            >
-                              <Send className="w-3.5 h-3.5" />
-                              <span>Send Reply & Resolve</span>
-                            </button>
-                          </div>
                         </div>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setReplyTicketId(tkt.id);
-                            setReplyTicketText('');
-                          }}
-                          className="px-3.5 py-1.5 rounded-xl bg-[#0B5FD9] text-white text-xs font-semibold hover:bg-[#094FB6]"
-                        >
-                          Reply & Resolve
-                        </button>
                       )}
                     </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* ===================== TAB 9: BROADCAST ANNOUNCEMENTS ===================== */}
-        {activeTab === 'announcements' && (
-          <div className="space-y-6">
-            <div className="bg-white rounded-2xl p-6 border border-[#DCE7F9] shadow-sm max-w-2xl">
-              <h2 className="text-lg font-bold text-[#0A1F5C]">Broadcast Announcements</h2>
-              <p className="text-xs text-[#5B6B8C] mt-0.5">
-                Dispatch instantaneous in-app push notifications and alerts to all registered users or service partners.
-              </p>
-
-              {announcementSentNotice && (
-                <div className="mt-4 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs font-semibold text-emerald-800 flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                  <span>Broadcast alert delivered successfully across mobile apps and web push!</span>
-                </div>
-              )}
-
-              <form onSubmit={handleSendAnnouncement} className="space-y-4 mt-6">
-                <div>
-                  <label className="block text-xs font-bold text-[#0A1F5C] mb-1.5">Target Audience</label>
-                  <div className="grid grid-cols-3 gap-2">
-                    {[
-                      { id: 'ALL', label: 'Everyone (Users + Partners)' },
-                      { id: 'USERS', label: 'Customers Only' },
-                      { id: 'PARTNERS', label: 'Partners Only' },
-                    ].map((opt) => (
-                      <button
-                        key={opt.id}
-                        type="button"
-                        onClick={() => setAnnouncementAudience(opt.id as any)}
-                        className={`p-2.5 rounded-xl text-xs font-semibold border text-center transition-all ${
-                          announcementAudience === opt.id
-                            ? 'bg-[#0B5FD9] text-white border-[#0B5FD9] shadow-sm'
-                            : 'bg-[#F8FAFD] border-[#DCE7F9] text-[#0A1F5C] hover:bg-white'
-                        }`}
-                      >
-                        {opt.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-[#0A1F5C] mb-1.5">Announcement Title</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. 0% Commission Weekend for all Agricultural Partners!"
-                    value={announcementTitle}
-                    onChange={(e) => setAnnouncementTitle(e.target.value)}
-                    className="w-full p-2.5 rounded-xl border border-[#DCE7F9] text-xs focus:outline-none focus:border-[#0B5FD9]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-[#0A1F5C] mb-1.5">Message Content</label>
-                  <textarea
-                    rows={4}
-                    required
-                    placeholder="Write detailed notification body..."
-                    value={announcementBody}
-                    onChange={(e) => setAnnouncementBody(e.target.value)}
-                    className="w-full p-2.5 rounded-xl border border-[#DCE7F9] text-xs focus:outline-none focus:border-[#0B5FD9]"
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  className="px-6 py-2.5 rounded-xl bg-[#0B5FD9] text-white text-xs font-semibold hover:bg-[#094FB6] flex items-center gap-2 shadow-sm"
-                >
-                  <Send className="w-4 h-4" />
-                  <span>Send Broadcast Notification</span>
-                </button>
-              </form>
-            </div>
-          </div>
-        )}
-
-        {/* ===================== TAB 10: REPORTS & EXPORTS ===================== */}
-        {activeTab === 'reports' && (
-          <div className="space-y-6">
-            <div className="bg-white rounded-2xl p-6 border border-[#DCE7F9] shadow-sm">
-              <h2 className="text-lg font-bold text-[#0A1F5C]">Financial & Operational Reports</h2>
-              <p className="text-xs text-[#5B6B8C] mt-0.5">
-                Download comprehensive Excel / CSV spreadsheets for accounting, audit and tax filings.
-              </p>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-                <div className="p-5 rounded-2xl border border-[#DCE7F9] bg-[#F8FAFD] space-y-3">
-                  <div className="w-10 h-10 rounded-xl bg-blue-50 text-[#0B5FD9] flex items-center justify-center font-bold">
-                    <FileSpreadsheet className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-sm text-[#0A1F5C]">Platform Sales & GMV Ledger</h3>
-                    <p className="text-xs text-[#5B6B8C] mt-1">
-                      Complete transactional ledger including customer details, booking codes, service amounts and discounts.
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      exportCsv(
-                        'serva-sales-report.csv',
-                        'BookingCode,Service,Customer,GrossPaise,CommissionPaise,Date\n' +
-                          'SRV-9821,Electrician,Ananya Reddy,149900,14990,2026-11-17\n' +
-                          'SRV-9822,AC Repair,Rajesh Goud,89900,8990,2026-11-17\n' +
-                          'SRV-9823,House Deep Clean,Pooja Varma,249900,24990,2026-11-16\n'
-                      )
-                    }
-                    className="w-full py-2 rounded-xl bg-white border border-[#DCE7F9] text-xs font-semibold text-[#0B5FD9] hover:bg-[#F1F6FF] flex items-center justify-center gap-1.5"
-                  >
-                    <Download className="w-3.5 h-3.5" />
-                    <span>Download Sales CSV</span>
-                  </button>
-                </div>
-
-                <div className="p-5 rounded-2xl border border-[#DCE7F9] bg-[#F8FAFD] space-y-3">
-                  <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
-                    <Wallet className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-sm text-[#0A1F5C]">Partner Payouts & Tax Summary</h3>
-                    <p className="text-xs text-[#5B6B8C] mt-1">
-                      Disbursement breakdown with partner PAN numbers, GSTIN details, bank accounts, and TDS references.
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      exportCsv(
-                        'serva-payouts-tax-report.csv',
-                        'PartnerID,BusinessName,TotalEarnings,CommissionDeducted,NetPayouts\n' +
-                          'PTR-501,Sri Balaji Deep Cleaning,284000,28400,255600\n' +
-                          'PTR-502,Deccan Machinery Fleet,389000,23340,365660\n'
-                      )
-                    }
-                    className="w-full py-2 rounded-xl bg-white border border-[#DCE7F9] text-xs font-semibold text-emerald-700 hover:bg-emerald-50 flex items-center justify-center gap-1.5"
-                  >
-                    <Download className="w-3.5 h-3.5" />
-                    <span>Download Tax & Payout CSV</span>
-                  </button>
-                </div>
-
-                <div className="p-5 rounded-2xl border border-[#DCE7F9] bg-[#F8FAFD] space-y-3">
-                  <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
-                    <Percent className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-sm text-[#0A1F5C]">Category Commission Audit</h3>
-                    <p className="text-xs text-[#5B6B8C] mt-1">
-                      Analysis of retained commission across Home Services, Agriculture, Contractors, Events and Moving.
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      exportCsv(
-                        'serva-commission-audit.csv',
-                        'Category,GrossSales,CommissionRate,NetCommissionRetained\n' +
-                          'Home Services,1833000,10%,183300\n' +
-                          'Agriculture Services,868000,6%,52080\n' +
-                          'Contractors & Machinery,1157000,8%,92560\n' +
-                          'Event Services,578000,12%,69360\n' +
-                          'Moving & Shifting,388000,9%,34920\n'
-                      )
-                    }
-                    className="w-full py-2 rounded-xl bg-white border border-[#DCE7F9] text-xs font-semibold text-amber-700 hover:bg-amber-50 flex items-center justify-center gap-1.5"
-                  >
-                    <Download className="w-3.5 h-3.5" />
-                    <span>Download Commission CSV</span>
-                  </button>
+                  ))}
                 </div>
               </div>
-            </div>
-          </div>
-        )}
+            )}
+
+            {/* ===================== TAB 9: BROADCAST ANNOUNCEMENTS ===================== */}
+            {activeTab === 'announcements' && (
+              <div className="space-y-6">
+                <div className="bg-white rounded-2xl p-6 border border-[#DCE7F9] shadow-sm max-w-2xl">
+                  <h2 className="text-lg font-bold text-[#0A1F5C]">Broadcast Announcements</h2>
+                  <p className="text-xs text-[#5B6B8C] mt-0.5">
+                    Dispatch instantaneous in-app push notifications and alerts to all registered users or service partners.
+                  </p>
+
+                  {announcementSentNotice && (
+                    <div className="mt-4 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs font-semibold text-emerald-800 flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                      <span>Broadcast alert delivered successfully across mobile apps and web push!</span>
+                    </div>
+                  )}
+
+                  <form onSubmit={handleSendAnnouncement} className="space-y-4 mt-6">
+                    <div>
+                      <label className="block text-xs font-bold text-[#0A1F5C] mb-1.5">Target Audience</label>
+                      <div className="grid grid-cols-3 gap-2">
+                        {[
+                          { id: 'ALL', label: 'Everyone (Users + Partners)' },
+                          { id: 'USERS', label: 'Customers Only' },
+                          { id: 'PARTNERS', label: 'Partners Only' },
+                        ].map((opt) => (
+                          <button
+                            key={opt.id}
+                            type="button"
+                            onClick={() => setAnnouncementAudience(opt.id as any)}
+                            className={`p-2.5 rounded-xl text-xs font-semibold border text-center transition-all ${announcementAudience === opt.id
+                              ? 'bg-[#0B5FD9] text-white border-[#0B5FD9] shadow-sm'
+                              : 'bg-[#F8FAFD] border-[#DCE7F9] text-[#0A1F5C] hover:bg-white'
+                              }`}
+                          >
+                            {opt.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-[#0A1F5C] mb-1.5">Announcement Title</label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g. 0% Commission Weekend for all Agricultural Partners!"
+                        value={announcementTitle}
+                        onChange={(e) => setAnnouncementTitle(e.target.value)}
+                        className="w-full p-2.5 rounded-xl border border-[#DCE7F9] text-xs focus:outline-none focus:border-[#0B5FD9]"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-[#0A1F5C] mb-1.5">Message Content</label>
+                      <textarea
+                        rows={4}
+                        required
+                        placeholder="Write detailed notification body..."
+                        value={announcementBody}
+                        onChange={(e) => setAnnouncementBody(e.target.value)}
+                        className="w-full p-2.5 rounded-xl border border-[#DCE7F9] text-xs focus:outline-none focus:border-[#0B5FD9]"
+                      />
+                    </div>
+
+                    <button
+                      type="submit"
+                      className="px-6 py-2.5 rounded-xl bg-[#0B5FD9] text-white text-xs font-semibold hover:bg-[#094FB6] flex items-center gap-2 shadow-sm"
+                    >
+                      <Send className="w-4 h-4" />
+                      <span>Send Broadcast Notification</span>
+                    </button>
+                  </form>
+                </div>
+              </div>
+            )}
+
+            {/* ===================== TAB 10: REPORTS & EXPORTS ===================== */}
+            {activeTab === 'reports' && (
+              <div className="space-y-6">
+                <div className="bg-white rounded-2xl p-6 border border-[#DCE7F9] shadow-sm">
+                  <h2 className="text-lg font-bold text-[#0A1F5C]">Financial & Operational Reports</h2>
+                  <p className="text-xs text-[#5B6B8C] mt-0.5">
+                    Download comprehensive Excel / CSV spreadsheets for accounting, audit and tax filings.
+                  </p>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+                    <div className="p-5 rounded-2xl border border-[#DCE7F9] bg-[#F8FAFD] space-y-3">
+                      <div className="w-10 h-10 rounded-xl bg-blue-50 text-[#0B5FD9] flex items-center justify-center font-bold">
+                        <FileSpreadsheet className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-sm text-[#0A1F5C]">Platform Sales & GMV Ledger</h3>
+                        <p className="text-xs text-[#5B6B8C] mt-1">
+                          Complete transactional ledger including customer details, booking codes, service amounts and discounts.
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          exportCsv(
+                            'serva-sales-report.csv',
+                            'BookingCode,Service,Customer,GrossPaise,CommissionPaise,Date\n' +
+                            'SRV-9821,Electrician,Ananya Reddy,149900,14990,2026-11-17\n' +
+                            'SRV-9822,AC Repair,Rajesh Goud,89900,8990,2026-11-17\n' +
+                            'SRV-9823,House Deep Clean,Pooja Varma,249900,24990,2026-11-16\n'
+                          )
+                        }
+                        className="w-full py-2 rounded-xl bg-white border border-[#DCE7F9] text-xs font-semibold text-[#0B5FD9] hover:bg-[#F1F6FF] flex items-center justify-center gap-1.5"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                        <span>Download Sales CSV</span>
+                      </button>
+                    </div>
+
+                    <div className="p-5 rounded-2xl border border-[#DCE7F9] bg-[#F8FAFD] space-y-3">
+                      <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
+                        <Wallet className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-sm text-[#0A1F5C]">Partner Payouts & Tax Summary</h3>
+                        <p className="text-xs text-[#5B6B8C] mt-1">
+                          Disbursement breakdown with partner PAN numbers, GSTIN details, bank accounts, and TDS references.
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          exportCsv(
+                            'serva-payouts-tax-report.csv',
+                            'PartnerID,BusinessName,TotalEarnings,CommissionDeducted,NetPayouts\n' +
+                            'PTR-501,Sri Balaji Deep Cleaning,284000,28400,255600\n' +
+                            'PTR-502,Deccan Machinery Fleet,389000,23340,365660\n'
+                          )
+                        }
+                        className="w-full py-2 rounded-xl bg-white border border-[#DCE7F9] text-xs font-semibold text-emerald-700 hover:bg-emerald-50 flex items-center justify-center gap-1.5"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                        <span>Download Tax & Payout CSV</span>
+                      </button>
+                    </div>
+
+                    <div className="p-5 rounded-2xl border border-[#DCE7F9] bg-[#F8FAFD] space-y-3">
+                      <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
+                        <Percent className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-sm text-[#0A1F5C]">Category Commission Audit</h3>
+                        <p className="text-xs text-[#5B6B8C] mt-1">
+                          Analysis of retained commission across Home Services, Agriculture, Contractors, Events and Moving.
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          exportCsv(
+                            'serva-commission-audit.csv',
+                            'Category,GrossSales,CommissionRate,NetCommissionRetained\n' +
+                            'Home Services,1833000,10%,183300\n' +
+                            'Agriculture Services,868000,6%,52080\n' +
+                            'Contractors & Machinery,1157000,8%,92560\n' +
+                            'Event Services,578000,12%,69360\n' +
+                            'Moving & Shifting,388000,9%,34920\n'
+                          )
+                        }
+                        className="w-full py-2 rounded-xl bg-white border border-[#DCE7F9] text-xs font-semibold text-amber-700 hover:bg-amber-50 flex items-center justify-center gap-1.5"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                        <span>Download Commission CSV</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </main>
         </div>
       </div>
@@ -2461,11 +2495,10 @@ export function AdminDashboardPage() {
               <button
                 type="button"
                 onClick={handleConfirmRejectionOrResubmit}
-                className={`px-4 py-2 rounded-xl text-white text-xs font-semibold ${
-                  rejectionActionType === 'RESUBMIT'
-                    ? 'bg-amber-600 hover:bg-amber-700'
-                    : 'bg-red-600 hover:bg-red-700'
-                }`}
+                className={`px-4 py-2 rounded-xl text-white text-xs font-semibold ${rejectionActionType === 'RESUBMIT'
+                  ? 'bg-amber-600 hover:bg-amber-700'
+                  : 'bg-red-600 hover:bg-red-700'
+                  }`}
               >
                 Confirm {rejectionActionType === 'RESUBMIT' ? 'Re-submission' : 'Rejection'}
               </button>
