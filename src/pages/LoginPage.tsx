@@ -31,7 +31,7 @@ export function LoginPage() {
   const [regMobile, setRegMobile] = useState('');
   const [regEmail, setRegEmail] = useState('');
   const [regPassword, setRegPassword] = useState('');
-  const [regRole, setRegRole] = useState<'CUSTOMER' | 'PARTNER'>('CUSTOMER');
+  const regRole = 'CUSTOMER';
   const [regOtpSent, setRegOtpSent] = useState(false);
   const [regOtpCode, setRegOtpCode] = useState('');
 
@@ -194,7 +194,7 @@ export function LoginPage() {
         return;
       }
       await refreshUser();
-      navigate(regRole === 'PARTNER' ? '/partner/register' : nextPath);
+      navigate(nextPath);
     } catch {
       setError('Network error while creating account.');
     } finally {
@@ -641,32 +641,6 @@ export function LoginPage() {
                   className="absolute right-2 top-1/2 -translate-y-1/2 min-w-[36px] min-h-[36px] flex items-center justify-center text-[#5B6B8C] cursor-pointer"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
-            </div>
-
-            <div>
-              <span className="block text-sm font-semibold text-[#0A1F5C] mb-1.5">Account Type</span>
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  type="button"
-                  onClick={() => setRegRole('CUSTOMER')}
-                  className={`min-h-[44px] px-4 rounded-xl border text-sm font-semibold cursor-pointer ${regRole === 'CUSTOMER'
-                    ? 'bg-[#EAF2FF] border-[#0B5FD9] text-[#0B5FD9]'
-                    : 'border-[#DCE7F9] text-[#0A1F5C]'
-                    }`}
-                >
-                  Customer
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setRegRole('PARTNER')}
-                  className={`min-h-[44px] px-4 rounded-xl border text-sm font-semibold cursor-pointer ${regRole === 'PARTNER'
-                    ? 'bg-[#EAF2FF] border-[#0B5FD9] text-[#0B5FD9]'
-                    : 'border-[#DCE7F9] text-[#0A1F5C]'
-                    }`}
-                >
-                  Service Partner
                 </button>
               </div>
             </div>
