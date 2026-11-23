@@ -12,6 +12,7 @@ import {
 import { PortfolioGallery } from '../components/gallery/PortfolioGallery.tsx';
 import { useAuth } from '../context/AuthContext.tsx';
 import { Link, useRouter } from '../lib/router.tsx';
+import { EventPlannersDirectory } from '../components/events/EventPlannersDirectory.tsx';
 
 interface LaunchService {
   slug: 'decoration' | 'catering' | 'dance' | 'singing' | 'photography' | 'dj';
@@ -433,6 +434,9 @@ export function EventServiceFlowPage({ serviceSlug }: { serviceSlug: string }) {
           </div>
         </aside>
       </div>
+
+      {/* Verified Event Planners Portfolios & Pre-Decided Event Packages */}
+      <EventPlannersDirectory selectedEventType={eventType} />
     </div>
   );
 }
@@ -837,6 +841,9 @@ export function EventsPlanPage() {
           </div>
         </aside>
       </div>
+
+      {/* Verified Event Planners Portfolios & Pre-Decided Event Packages */}
+      <EventPlannersDirectory selectedEventType={eventType} />
     </div>
   );
 }

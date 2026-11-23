@@ -19,6 +19,7 @@ import { PortfolioGallery } from '../components/gallery/PortfolioGallery.tsx';
 import { getServicePath } from '../components/search/SearchBar.tsx';
 import { Link } from '../lib/router.tsx';
 import { EnquiryModal } from '../components/common/EnquiryModal.tsx';
+import { EventPlannersDirectory } from '../components/events/EventPlannersDirectory.tsx';
 
 interface ServiceRecord {
   id: string;
@@ -478,6 +479,9 @@ export function EventsLandingPage() {
           ))}
         </div>
       </section>
+
+      {/* Verified Nearby Event Planners, Portfolios & Pre-Decided Event Packages */}
+      <EventPlannersDirectory selectedEventType={selectedEventType} />
 
       {/* Six Launch Services (DJ is standalone with no subcategories) */}
       <section className="space-y-3">

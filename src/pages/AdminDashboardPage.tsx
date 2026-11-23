@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   AlertCircle,
   ArrowDownRight,
@@ -64,6 +64,13 @@ import {
   type DesignerPortfolioMedia,
   type DesignerInquiry,
 } from '../data/interiorDesignersData.ts';
+import {
+  EVENT_PLANNERS_DATA,
+  INITIAL_EVENT_INQUIRIES,
+  type EventPlanner,
+  type EventPortfolioMedia,
+  type EventInquiry,
+} from '../data/eventPlannersData.ts';
 
 /* Types for Admin Panel */
 type AdminTab =
@@ -1055,7 +1062,44 @@ export function AdminDashboardPage() {
     return INITIAL_DESIGNER_INQUIRIES;
   });
 
-  const [partnerSubTab, setPartnerSubTab] = useState<'all' | 'wages' | 'interior_design'>('all');
+  const [partnerSubTab, setPartnerSubTab] = useState<'all' | 'wages' | 'interior_design' | 'event_planners'>('all');
+  const [eventInquiries, setEventInquiries] = useState<EventInquiry[]>(() => {
+    try {
+      const saved = localStorage.getItem('serva_event_inquiries');
+      if (saved) return JSON.parse(saved);
+    } catch {
+      // fallback
+    }
+    return INITIAL_EVENT_INQUIRIES;
+  });
+  const [selectedPlannerForPortfolioModal, setSelectedPlannerForPortfolioModal] = useState<EventPlanner | null>(null);
+  const [adminEventInquiryFilter, setAdminEventInquiryFilter] = useState<string>('ALL');
+
+  const handleAdminUpdateEventInquiry = (id: string, updates: Partial<EventInquiry>) => {
+    const updated = eventInquiries.map((inq) =>
+      inq.id === id ? { ...inq, ...updates } : inq
+    );
+    setEventInquiries(updated);
+    try {
+      localStorage.setItem('serva_event_inquiries', JSON.stringify(updated));
+      window.dispatchEvent(new Event('storage'));
+    } catch {
+      // ignore
+    }
+  };
+
+  useEffect(() => {
+    const handleStorage = () => {
+      try {
+        const saved = localStorage.getItem('serva_event_inquiries');
+        if (saved) setEventInquiries(JSON.parse(saved));
+      } catch {
+        // ignore
+      }
+    };
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, []);
   const [selectedPartnerForWageEdit, setSelectedPartnerForWageEdit] = useState<PlatformPartner | null>(null);
   const [editWageBasis, setEditWageBasis] = useState<'DAILY' | 'HOURLY' | 'PER_SERVICE'>('DAILY');
   const [editDailyWage, setEditDailyWage] = useState<number>(600);
@@ -2897,6 +2941,22 @@ export function AdminDashboardPage() {
                       {designerInquiries.length} Leads
                     </span>
                   </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setPartnerSubTab('event_planners')}
+                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
+                      partnerSubTab === 'event_planners'
+                        ? 'bg-purple-800 text-white shadow-xs'
+                        : 'bg-white border border-[#DCE7F9] text-[#5B6B8C] hover:text-[#0A1F5C]'
+                    }`}
+                  >
+                    <Calendar className="w-3.5 h-3.5 text-purple-400" />
+                    <span>Event Planners &amp; Portfolios Hub (6 Planners)</span>
+                    <span className="px-2 py-0.5 rounded-full bg-purple-500 text-white text-[10px] font-extrabold">
+                      {eventInquiries.length} Quotes
+                    </span>
+                  </button>
                 </div>
 
                 {/* SUB-VIEW 1: Standard Partner Directory */}
@@ -3406,6 +3466,248 @@ export function AdminDashboardPage() {
                     </div>
                   </div>
                 )}
+
+                {/* SUB-VIEW 4: Event Planners & Portfolios Hub */}
+                {partnerSubTab === 'event_planners' && (
+                  <div className="space-y-6">
+                    {/* Top KPI Scorecards */}
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                      <div className="bg-white rounded-2xl border border-purple-200 p-4 shadow-sm bg-gradient-to-br from-purple-50/40 to-white">
+                        <span className="text-[10px] font-bold uppercase text-purple-800">Verified Event Planners</span>
+                        <p className="text-2xl font-extrabold text-purple-900 mt-1 font-mono-num">{EVENT_PLANNERS_DATA.length}</p>
+                        <span className="text-[11px] font-semibold text-purple-700 mt-1 block">
+                          Hyderabad Top Hubs &bull; Verified
+                        </span>
+                      </div>
+
+                      <div className="bg-white rounded-2xl border border-[#DCE7F9] p-4 shadow-sm">
+                        <span className="text-[10px] font-bold uppercase text-[#5B6B8C]">Completed Celebrations</span>
+                        <p className="text-2xl font-extrabold text-[#0B5FD9] mt-1 font-mono-num">2,185+</p>
+                        <span className="text-[11px] font-semibold text-[#5B6B8C] mt-1 block">
+                          Weddings, Sangeet, Galas &amp; Birthdays
+                        </span>
+                      </div>
+
+                      <div className="bg-white rounded-2xl border border-[#DCE7F9] p-4 shadow-sm">
+                        <span className="text-[10px] font-bold uppercase text-[#5B6B8C]">On-Time Execution Rate</span>
+                        <p className="text-2xl font-extrabold text-emerald-600 mt-1 font-mono-num">99.2%</p>
+                        <span className="text-[11px] font-semibold text-[#5B6B8C] mt-1 block">
+                          Zero Setup Delays Recorded
+                        </span>
+                      </div>
+
+                      <div className="bg-white rounded-2xl border border-purple-200 p-4 shadow-sm">
+                        <span className="text-[10px] font-bold uppercase text-[#5B6B8C]">Customer Quote Inquiries</span>
+                        <p className="text-2xl font-extrabold text-purple-700 mt-1 font-mono-num">
+                          {eventInquiries.length}
+                        </p>
+                        <span className="text-[11px] font-bold text-rose-600 mt-1 block">
+                          {eventInquiries.filter((i) => i.status === 'NEW').length} Pending Dispatch
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Section 1: Verified Planners Directory Table */}
+                    <div className="bg-white rounded-2xl border border-[#DCE7F9] shadow-sm overflow-hidden">
+                      <div className="p-5 border-b border-[#EAF2FF] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div>
+                          <h3 className="text-base font-bold text-[#0A1F5C]">
+                            Verified Event Planners &amp; Pre-Decided Packages
+                          </h3>
+                          <p className="text-xs text-[#5B6B8C]">
+                            Real-time ratings, project completion numbers, pre-decided pricing, and photo/video portfolios.
+                          </p>
+                        </div>
+                        <span className="text-xs font-bold text-purple-700 bg-purple-50 px-3 py-1 rounded-full border border-purple-200">
+                          6 Active Planners
+                        </span>
+                      </div>
+
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse text-xs">
+                          <thead>
+                            <tr className="bg-[#F8FAFD] border-b border-[#EAF2FF] text-[#5B6B8C] font-bold uppercase text-[10px]">
+                              <th className="py-3 px-4">Planner &amp; Firm</th>
+                              <th className="py-3 px-4">Operating Area</th>
+                              <th className="py-3 px-4">Rating &amp; Experience</th>
+                              <th className="py-3 px-4">Completed Events</th>
+                              <th className="py-3 px-4">Wedding Starting Package</th>
+                              <th className="py-3 px-4">Birthday Starting Package</th>
+                              <th className="py-3 px-4 text-right">Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-[#EAF2FF]">
+                            {EVENT_PLANNERS_DATA.map((planner: EventPlanner) => (
+                              <tr key={planner.id} className="hover:bg-[#F9FBFF]">
+                                <td className="py-3.5 px-4">
+                                  <div className="flex items-center gap-2.5">
+                                    <img
+                                      src={planner.avatar}
+                                      alt={planner.name}
+                                      className="w-8 h-8 rounded-full object-cover border border-[#0B5FD9]"
+                                    />
+                                    <div>
+                                      <div className="font-bold text-[#0A1F5C]">{planner.name}</div>
+                                      <div className="text-[11px] text-[#5B6B8C]">{planner.businessName}</div>
+                                    </div>
+                                  </div>
+                                </td>
+                                <td className="py-3.5 px-4">
+                                  <span className="font-semibold text-[#0B5FD9] block">{planner.locality}</span>
+                                  <span className="text-[11px] text-slate-500">{planner.distanceKm} km away</span>
+                                </td>
+                                <td className="py-3.5 px-4">
+                                  <div className="flex items-center gap-1 font-bold text-amber-600">
+                                    <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-500" />
+                                    <span>{planner.rating}</span>
+                                    <span className="text-[11px] text-[#5B6B8C] font-normal">({planner.reviewCount})</span>
+                                  </div>
+                                  <div className="text-[11px] text-[#5B6B8C]">{planner.experienceYears} Years Exp.</div>
+                                </td>
+                                <td className="py-3.5 px-4 font-bold text-[#0A1F5C]">
+                                  {planner.completedEvents} Events
+                                </td>
+                                <td className="py-3.5 px-4 font-mono font-bold text-[#0B5FD9]">
+                                  {planner.packages['Marriage / Wedding']?.priceDisplay || '₹1,60,000'}
+                                </td>
+                                <td className="py-3.5 px-4 font-mono font-bold text-emerald-700">
+                                  {planner.packages['Birthday Parties']?.priceDisplay || '₹25,000'}
+                                </td>
+                                <td className="py-3.5 px-4 text-right">
+                                  <button
+                                    type="button"
+                                    onClick={() => setSelectedPlannerForPortfolioModal(planner)}
+                                    className="px-3 py-1.5 rounded-xl border border-purple-200 bg-purple-50 hover:bg-purple-100 text-purple-700 font-bold text-xs shadow-2xs transition-all flex items-center gap-1.5 ml-auto cursor-pointer"
+                                  >
+                                    <Eye className="w-3.5 h-3.5 text-purple-600" />
+                                    <span>Portfolio &amp; Packages</span>
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+                    {/* Section 2: Customer Event Quote Inquiries */}
+                    <div className="bg-white rounded-2xl border border-[#DCE7F9] shadow-sm overflow-hidden">
+                      <div className="p-5 border-b border-[#EAF2FF] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div>
+                          <h3 className="text-base font-bold text-[#0A1F5C]">Customer Event Quotation Inquiries</h3>
+                          <p className="text-xs text-[#5B6B8C]">
+                            Track customer requests, pre-decided package rates, event dates, and planner response statuses.
+                          </p>
+                        </div>
+
+                        {/* Status Filter */}
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          {['ALL', 'NEW', 'CONTACTED', 'QUOTED', 'CONFIRMED'].map((st) => (
+                            <button
+                              key={st}
+                              type="button"
+                              onClick={() => setAdminEventInquiryFilter(st)}
+                              className={`px-3 py-1 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                                adminEventInquiryFilter === st
+                                  ? 'bg-purple-700 text-white shadow-2xs'
+                                  : 'bg-[#F8FAFD] text-[#5B6B8C] border border-[#DCE7F9]'
+                              }`}
+                            >
+                              {st}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse text-xs">
+                          <thead>
+                            <tr className="bg-[#F8FAFD] border-b border-[#EAF2FF] text-[#5B6B8C] font-bold uppercase text-[10px]">
+                              <th className="py-3 px-4">Inquiry ID</th>
+                              <th className="py-3 px-4">Customer Details</th>
+                              <th className="py-3 px-4">Event Type &amp; Date</th>
+                              <th className="py-3 px-4">Guests</th>
+                              <th className="py-3 px-4">Pre-Decided Starting Price</th>
+                              <th className="py-3 px-4">Assigned Planner</th>
+                              <th className="py-3 px-4">Status</th>
+                              <th className="py-3 px-4 text-right">Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-[#EAF2FF]">
+                            {eventInquiries
+                              .filter((inq) =>
+                                adminEventInquiryFilter === 'ALL' ? true : inq.status === adminEventInquiryFilter
+                              )
+                              .map((inq) => (
+                                <tr key={inq.id} className="hover:bg-[#F9FBFF]">
+                                  <td className="py-3.5 px-4 font-mono font-bold text-[#0B5FD9]">#{inq.id}</td>
+                                  <td className="py-3.5 px-4">
+                                    <div className="font-bold text-[#0A1F5C]">{inq.customerName}</div>
+                                    <div className="text-[11px] text-[#5B6B8C]">{inq.customerMobile}</div>
+                                    <div className="text-[10px] text-slate-400">{inq.venueLocation}</div>
+                                  </td>
+                                  <td className="py-3.5 px-4">
+                                    <span className="font-semibold text-purple-700 block">{inq.eventType}</span>
+                                    <span className="text-[11px] text-[#5B6B8C] flex items-center gap-1">
+                                      <Calendar className="w-3 h-3 text-[#0B5FD9]" />
+                                      <span>{inq.eventDate}</span>
+                                    </span>
+                                  </td>
+                                  <td className="py-3.5 px-4 font-bold text-[#0A1F5C]">{inq.guestCount} Guests</td>
+                                  <td className="py-3.5 px-4 font-mono font-bold text-[#0B5FD9]">
+                                    {inq.preDecidedPriceDisplay}
+                                  </td>
+                                  <td className="py-3.5 px-4">
+                                    <span className="font-semibold text-[#0A1F5C] block">{inq.plannerName}</span>
+                                    <span className="text-[11px] text-[#5B6B8C]">{inq.plannerBusiness}</span>
+                                  </td>
+                                  <td className="py-3.5 px-4">
+                                    <select
+                                      value={inq.status}
+                                      onChange={(e) =>
+                                        handleAdminUpdateEventInquiry(inq.id, {
+                                          status: e.target.value as EventInquiry['status'],
+                                        })
+                                      }
+                                      className="p-1.5 rounded-lg border border-[#DCE7F9] bg-white text-xs font-bold"
+                                    >
+                                      <option value="NEW">NEW</option>
+                                      <option value="CONTACTED">CONTACTED</option>
+                                      <option value="QUOTED">QUOTED</option>
+                                      <option value="CONFIRMED">CONFIRMED</option>
+                                      <option value="REJECTED">REJECTED</option>
+                                    </select>
+                                  </td>
+                                  <td className="py-3.5 px-4 text-right">
+                                    <div className="flex items-center justify-end gap-1.5">
+                                      <a
+                                        href={`tel:${inq.customerMobile}`}
+                                        className="p-1.5 rounded-lg border border-blue-200 text-[#0B5FD9] hover:bg-blue-50 cursor-pointer"
+                                        title="Call Customer"
+                                      >
+                                        <Phone className="w-3.5 h-3.5" />
+                                      </a>
+                                      <a
+                                        href={`https://wa.me/91${inq.customerMobile.replace(/\D/g, '')}?text=${encodeURIComponent(
+                                          `Hello ${inq.customerName}, this is SERVA Admin dispatch regarding your ${inq.eventType} quotation with ${inq.plannerName}.`
+                                        )}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="p-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer"
+                                        title="WhatsApp Customer"
+                                      >
+                                        <Send className="w-3.5 h-3.5" />
+                                      </a>
+                                    </div>
+                                  </td>
+                                </tr>
+                              ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
@@ -3537,6 +3839,176 @@ export function AdminDashboardPage() {
                     <button
                       type="button"
                       onClick={() => setSelectedDesignerForPortfolioModal(null)}
+                      className="px-5 py-2 rounded-xl bg-[#0A1F5C] text-white text-xs font-bold cursor-pointer hover:bg-slate-800"
+                    >
+                      Close Inspector
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Modal: Admin Inspect Event Planner Portfolio & Pre-Decided Packages */}
+            {selectedPlannerForPortfolioModal && (
+              <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+                <div className="bg-white rounded-3xl border border-[#DCE7F9] max-w-4xl w-full p-6 sm:p-7 shadow-2xl space-y-5 animate-scale-up max-h-[90vh] overflow-y-auto">
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={selectedPlannerForPortfolioModal.avatar}
+                        alt={selectedPlannerForPortfolioModal.name}
+                        className="w-12 h-12 rounded-2xl object-cover border-2 border-purple-600"
+                      />
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-lg font-bold text-[#0A1F5C]">
+                            {selectedPlannerForPortfolioModal.name}
+                          </h3>
+                          <span className="text-xs font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md flex items-center gap-1">
+                            <Star className="w-3 h-3 fill-amber-400 text-amber-500" />
+                            {selectedPlannerForPortfolioModal.rating} ({selectedPlannerForPortfolioModal.reviewCount})
+                          </span>
+                        </div>
+                        <p className="text-xs text-[#5B6B8C]">
+                          {selectedPlannerForPortfolioModal.businessName} &bull; {selectedPlannerForPortfolioModal.locality} ({selectedPlannerForPortfolioModal.distanceKm} km away)
+                        </p>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setSelectedPlannerForPortfolioModal(null)}
+                      className="p-2 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 cursor-pointer"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+
+                  {/* Performance Breakdown */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 rounded-2xl bg-[#F8FAFD] border border-[#EAF2FF] text-xs">
+                    <div>
+                      <span className="text-[10px] uppercase font-bold text-[#5B6B8C] block">Completed Events</span>
+                      <span className="font-extrabold text-[#0A1F5C] text-sm">{selectedPlannerForPortfolioModal.completedEvents}+ Celebrations</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] uppercase font-bold text-[#5B6B8C] block">On-Time Execution</span>
+                      <span className="font-extrabold text-emerald-600 text-sm">{selectedPlannerForPortfolioModal.onTimeRate}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] uppercase font-bold text-[#5B6B8C] block">Experience</span>
+                      <span className="font-extrabold text-[#0A1F5C] text-sm">{selectedPlannerForPortfolioModal.experienceYears} Years in Hyderabad</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] uppercase font-bold text-[#5B6B8C] block">Direct Contact</span>
+                      <span className="font-extrabold text-purple-700 text-sm">+91 {selectedPlannerForPortfolioModal.phone}</span>
+                    </div>
+                  </div>
+
+                  {/* Pre-Decided Event Packages */}
+                  <div className="space-y-2.5">
+                    <h4 className="text-sm font-bold text-[#0A1F5C] flex items-center gap-1.5">
+                      <Tag className="w-4 h-4 text-purple-600" />
+                      <span>Pre-Decided Event Packages &amp; Pricing (Provided by Planner)</span>
+                    </h4>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-56 overflow-y-auto p-1">
+                      {Object.values(selectedPlannerForPortfolioModal.packages).map((pkg) => (
+                        <div
+                          key={pkg.eventType}
+                          className="p-3 rounded-2xl bg-gradient-to-br from-purple-50/50 via-white to-white border border-purple-100 shadow-2xs space-y-1.5"
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <div>
+                              <span className="text-[10px] font-bold text-purple-800 bg-purple-100 px-2 py-0.5 rounded-full">
+                                {pkg.eventType}
+                              </span>
+                              <h5 className="text-xs font-bold text-[#0A1F5C] mt-1">{pkg.packageName}</h5>
+                            </div>
+                            <span className="text-sm font-black text-purple-700 font-mono-num shrink-0">
+                              {pkg.priceDisplay}
+                            </span>
+                          </div>
+                          <div className="flex flex-wrap gap-1">
+                            {pkg.highlights.slice(0, 2).map((h, i) => (
+                              <span key={i} className="text-[10px] text-slate-600 bg-slate-100 px-1.5 py-0.2 rounded">
+                                ✓ {h}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Portfolio Media (Photos & Videos) */}
+                  <div className="space-y-3">
+                    <h4 className="text-sm font-bold text-[#0A1F5C] flex items-center gap-1.5">
+                      <ImageIcon className="w-4 h-4 text-[#0B5FD9]" />
+                      <span>Verified Media Reel ({selectedPlannerForPortfolioModal.portfolio.length} Projects)</span>
+                    </h4>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {selectedPlannerForPortfolioModal.portfolio.map((media: EventPortfolioMedia) => (
+                        <div
+                          key={media.id}
+                          className="rounded-2xl border border-[#EAF2FF] overflow-hidden bg-white shadow-xs space-y-2.5 p-3"
+                        >
+                          <div className="relative aspect-video rounded-xl bg-slate-900 overflow-hidden">
+                            {media.mediaType === 'VIDEO' ? (
+                              <video
+                                src={media.mediaUrl}
+                                poster={media.thumbnailUrl}
+                                controls
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <img
+                                src={media.mediaUrl}
+                                alt={media.title}
+                                className="w-full h-full object-cover"
+                              />
+                            )}
+
+                            <span className="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-black/75 text-white text-[10px] font-bold flex items-center gap-1">
+                              {media.mediaType === 'VIDEO' ? (
+                                <>
+                                  <Play className="w-3 h-3 fill-white" />
+                                  <span>Walkthrough ({media.videoDuration || '2:15'})</span>
+                                </>
+                              ) : (
+                                <>
+                                  <ImageIcon className="w-3 h-3" />
+                                  <span>Photo</span>
+                                </>
+                              )}
+                            </span>
+                          </div>
+
+                          <div>
+                            <div className="flex items-center justify-between">
+                              <span className="text-[10px] font-bold text-purple-700 bg-purple-50 px-2 py-0.2 rounded">
+                                {media.eventType}
+                              </span>
+                              {media.venueName && (
+                                <span className="text-[10px] text-[#5B6B8C] truncate max-w-[200px]">
+                                  {media.venueName}
+                                </span>
+                              )}
+                            </div>
+                            <h5 className="text-xs font-bold text-[#0A1F5C] mt-1">{media.title}</h5>
+                            {media.description && (
+                              <p className="text-[11px] text-[#5B6B8C] mt-0.5">{media.description}</p>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end pt-3 border-t border-slate-100">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedPlannerForPortfolioModal(null)}
                       className="px-5 py-2 rounded-xl bg-[#0A1F5C] text-white text-xs font-bold cursor-pointer hover:bg-slate-800"
                     >
                       Close Inspector

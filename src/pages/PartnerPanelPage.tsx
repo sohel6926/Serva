@@ -37,11 +37,13 @@ import {
   ShieldCheck,
   Sparkles,
   Star,
+  Tag,
   Trash2,
   TrendingUp,
   Upload,
   User,
   UserCheck,
+  Users,
   Wallet,
   X,
   Zap,
@@ -61,6 +63,13 @@ import {
   type DesignerPortfolioMedia,
   type DesignerInquiry,
 } from '../data/interiorDesignersData.ts';
+import {
+  EVENT_PLANNERS_DATA,
+  INITIAL_EVENT_INQUIRIES,
+  type EventPlanner,
+  type EventInquiry,
+  type EventPortfolioMedia,
+} from '../data/eventPlannersData.ts';
 
 /* Types for Partner Panel */
 type PanelTab = 'overview' | 'jobs' | 'wallet' | 'kyc' | 'profile' | 'reviews' | 'support' | 'portfolio';
@@ -1144,6 +1153,34 @@ export function PartnerPanelPage() {
   const [profileNotice, setProfileNotice] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState(false);
 
+  // Portfolio Hub Mode: Event Planners vs Interior Designers
+  const [portfolioHubType, setPortfolioHubType] = useState<'events' | 'interior'>('events');
+
+  // Event Planner Portfolios & Quotation Inquiries State
+  const [eventInquiries, setEventInquiries] = useState<EventInquiry[]>(() => {
+    try {
+      const saved = localStorage.getItem('serva_event_inquiries');
+      if (saved) return JSON.parse(saved);
+    } catch {
+      // fallback
+    }
+    return INITIAL_EVENT_INQUIRIES;
+  });
+  const [eventInquiryFilter, setEventInquiryFilter] = useState<string>('ALL');
+
+  const handleUpdateEventInquiryStatus = (id: string, newStatus: EventInquiry['status']) => {
+    const updated = eventInquiries.map((inq) =>
+      inq.id === id ? { ...inq, status: newStatus } : inq
+    );
+    setEventInquiries(updated);
+    try {
+      localStorage.setItem('serva_event_inquiries', JSON.stringify(updated));
+      window.dispatchEvent(new Event('storage'));
+    } catch {
+      // ignore
+    }
+  };
+
   // Interior Designer Portfolio & Consultation Inquiries State
   const [designerInquiries, setDesignerInquiries] = useState<DesignerInquiry[]>(() => {
     try {
@@ -1184,6 +1221,13 @@ export function PartnerPanelPage() {
       if (e.key === 'serva_designer_inquiries' && e.newValue) {
         try {
           setDesignerInquiries(JSON.parse(e.newValue));
+        } catch {
+          // ignore
+        }
+      }
+      if (e.key === 'serva_event_inquiries' && e.newValue) {
+        try {
+          setEventInquiries(JSON.parse(e.newValue));
         } catch {
           // ignore
         }
@@ -1703,7 +1747,7 @@ Verification Portal: https://serva.in/verify/PTR-8821
             {[
               { id: 'overview' as const, label: 'Overview', icon: TrendingUp },
               { id: 'jobs' as const, label: `Service Jobs (${activeJobs.length})`, icon: Clock, badge: pendingRequests.length > 0 ? pendingRequests.length : undefined },
-              { id: 'portfolio' as const, label: `Portfolio & Leads (${designerInquiries.length})`, icon: Sparkles, badge: designerInquiries.filter(i => i.status === 'NEW').length > 0 ? designerInquiries.filter(i => i.status === 'NEW').length : undefined },
+              { id: 'portfolio' as const, label: `Portfolios & Leads (${designerInquiries.length + eventInquiries.length})`, icon: Sparkles, badge: (designerInquiries.filter(i => i.status === 'NEW').length + eventInquiries.filter(i => i.status === 'NEW').length) > 0 ? (designerInquiries.filter(i => i.status === 'NEW').length + eventInquiries.filter(i => i.status === 'NEW').length) : undefined },
               { id: 'wallet' as const, label: 'Wallet & Withdrawals', icon: Wallet },
               { id: 'profile' as const, label: 'Partner Profile & KYC', icon: UserCheck },
               { id: 'reviews' as const, label: `Reviews (${reviews.length})`, icon: Star },
@@ -3269,6 +3313,337 @@ Verification Portal: https://serva.in/verify/PTR-8821
             </div>
           )}
 
+          {/* Sub-Navigation: Event Planners vs Interior Designers */}
+          <div className="flex items-center gap-2 border-b border-[#EAF2FF] pb-2 flex-wrap">
+            <button
+              type="button"
+              onClick={() => setPortfolioHubType('events')}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
+                portfolioHubType === 'events'
+                  ? 'bg-purple-800 text-white shadow-xs'
+                  : 'bg-white border border-[#DCE7F9] text-[#5B6B8C] hover:text-[#0A1F5C]'
+              }`}
+            >
+              <Calendar className="w-3.5 h-3.5 text-purple-300" />
+              <span>Event Planners &amp; Quote Leads ({eventInquiries.length})</span>
+              {eventInquiries.filter((i) => i.status === 'NEW').length > 0 && (
+                <span className="px-2 py-0.5 rounded-full bg-amber-400 text-slate-900 text-[10px] font-black">
+                  {eventInquiries.filter((i) => i.status === 'NEW').length} New
+                </span>
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setPortfolioHubType('interior')}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
+                portfolioHubType === 'interior'
+                  ? 'bg-[#0B5FD9] text-white shadow-xs'
+                  : 'bg-white border border-[#DCE7F9] text-[#5B6B8C] hover:text-[#0A1F5C]'
+              }`}
+            >
+              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+              <span>Interior Design Portfolios &amp; Leads ({designerInquiries.length})</span>
+            </button>
+          </div>
+
+          {/* ═══════════════ SUB-VIEW 1: EVENT PLANNER HUB ═══════════════ */}
+          {portfolioHubType === 'events' && (
+            <div className="space-y-6">
+              {/* Event Performance Scorecards */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                <div className="bg-white rounded-2xl border border-purple-200 p-4 shadow-sm bg-gradient-to-br from-purple-50/30 to-white">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-purple-800">Customer Quote Leads</span>
+                  <p className="text-2xl font-extrabold text-purple-900 mt-1 font-mono-num">{eventInquiries.length}</p>
+                  <span className="text-[11px] font-bold text-rose-600 flex items-center gap-1 mt-1">
+                    {eventInquiries.filter((i) => i.status === 'NEW').length} Pending Response
+                  </span>
+                </div>
+
+                <div className="bg-white rounded-2xl border border-[#DCE7F9] p-4 shadow-sm">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#5B6B8C]">Completed Celebrations</span>
+                  <p className="text-2xl font-extrabold text-[#0A1F5C] mt-1 font-mono-num">460+</p>
+                  <span className="text-[11px] font-bold text-emerald-600 flex items-center gap-1 mt-1">
+                    <TrendingUp className="w-3 h-3" /> 99.4% On-Time Execution
+                  </span>
+                </div>
+
+                <div className="bg-white rounded-2xl border border-[#DCE7F9] p-4 shadow-sm">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#5B6B8C]">Client Rating</span>
+                  <div className="flex items-center gap-1.5 mt-1">
+                    <Star className="w-5 h-5 fill-amber-400 text-amber-500" />
+                    <span className="text-2xl font-extrabold text-[#0A1F5C] font-mono-num">4.95</span>
+                    <span className="text-xs text-[#5B6B8C]">/ 5.0</span>
+                  </div>
+                  <span className="text-[11px] text-[#5B6B8C] font-semibold mt-1 block">
+                    Based on 310 verified reviews
+                  </span>
+                </div>
+
+                <div className="bg-white rounded-2xl border border-[#DCE7F9] p-4 shadow-sm">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#5B6B8C]">Pre-Decided Event Packages</span>
+                  <p className="text-2xl font-extrabold text-[#0B5FD9] mt-1 font-mono-num">13 Events</p>
+                  <span className="text-[11px] font-semibold text-emerald-600 mt-1 block">
+                    Configured with upfront pricing
+                  </span>
+                </div>
+              </div>
+
+              {/* Incoming Event Quotation Leads */}
+              <div className="bg-white rounded-3xl border border-[#DCE7F9] p-6 shadow-sm space-y-5">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#EAF2FF] pb-4">
+                  <div>
+                    <h3 className="text-base font-bold text-[#0A1F5C] flex items-center gap-2">
+                      <MessageSquare className="w-4 h-4 text-purple-600" />
+                      <span>Incoming Event Quotation Requests</span>
+                      <span className="px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 text-xs font-bold border border-purple-200">
+                        {eventInquiries.length} Inquiries
+                      </span>
+                    </h3>
+                    <p className="text-xs text-[#5B6B8C] mt-0.5">
+                      Customer requests submitted through SERVA Events Directory with pre-decided starting rates.
+                    </p>
+                  </div>
+
+                  {/* Filter Pills */}
+                  <div className="flex items-center gap-1.5 overflow-x-auto">
+                    {['ALL', 'NEW', 'CONTACTED', 'QUOTED', 'CONFIRMED'].map((st) => (
+                      <button
+                        key={st}
+                        type="button"
+                        onClick={() => setEventInquiryFilter(st)}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                          eventInquiryFilter === st
+                            ? 'bg-purple-800 text-white shadow-xs'
+                            : 'bg-[#F1F6FF] text-[#5B6B8C] hover:text-[#0A1F5C]'
+                        }`}
+                      >
+                        {st === 'ALL' ? 'All Quotes' : st}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {eventInquiries.length === 0 ? (
+                  <div className="text-center py-10 text-xs text-[#5B6B8C]">
+                    No event quote requests yet. Customers submitting quotes for your pre-decided packages will appear here instantly.
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {eventInquiries
+                      .filter((inq) => eventInquiryFilter === 'ALL' || inq.status === eventInquiryFilter)
+                      .map((inq) => (
+                        <div
+                          key={inq.id}
+                          className="p-4 rounded-2xl bg-[#F8FAFD] border border-[#E2EEFE] hover:border-purple-300 transition-all space-y-3"
+                        >
+                          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
+                            <div>
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-purple-100 text-purple-800">
+                                  #{inq.id}
+                                </span>
+                                <span className="font-bold text-sm text-[#0A1F5C]">{inq.customerName}</span>
+                                <span className="text-xs font-mono text-[#5B6B8C]">({inq.customerMobile})</span>
+                                <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-[#0B5FD9]">
+                                  {inq.eventType}
+                                </span>
+                              </div>
+
+                              <div className="flex items-center gap-3 mt-1.5 text-xs text-[#5B6B8C] flex-wrap">
+                                <span className="flex items-center gap-1 font-semibold text-[#0A1F5C]">
+                                  <Calendar className="w-3.5 h-3.5 text-[#0B5FD9]" />
+                                  <span>Date: {inq.eventDate}</span>
+                                </span>
+                                <span>&bull;</span>
+                                <span className="flex items-center gap-1">
+                                  <Users className="w-3.5 h-3.5 text-[#0B5FD9]" />
+                                  <span>{inq.guestCount} Guests</span>
+                                </span>
+                                <span>&bull;</span>
+                                <span className="flex items-center gap-1">
+                                  <MapPin className="w-3.5 h-3.5 text-[#0B5FD9]" />
+                                  <span>{inq.venueLocation}</span>
+                                </span>
+                              </div>
+                            </div>
+
+                            <div className="text-left sm:text-right shrink-0">
+                              <span className="text-[10px] uppercase font-bold text-[#5B6B8C] block">Pre-Decided Starting Price</span>
+                              <span className="text-base font-black text-purple-700 font-mono-num">{inq.preDecidedPriceDisplay}</span>
+                              <span className="text-[10px] text-slate-500 block">Target: {inq.budgetRange}</span>
+                            </div>
+                          </div>
+
+                          {inq.notes && (
+                            <p className="text-xs text-[#475569] bg-white p-2.5 rounded-xl border border-slate-200 italic">
+                              &ldquo;{inq.notes}&rdquo;
+                            </p>
+                          )}
+
+                          <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-[#EAEFF8]">
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-semibold text-[#5B6B8C]">Update Status:</span>
+                              <select
+                                value={inq.status}
+                                onChange={(e) =>
+                                  handleUpdateEventInquiryStatus(inq.id, e.target.value as EventInquiry['status'])
+                                }
+                                className="text-xs font-bold text-[#0A1F5C] bg-white border border-[#DCE7F9] rounded-xl px-2.5 py-1 focus:outline-none focus:border-purple-600 cursor-pointer"
+                              >
+                                <option value="NEW">NEW LEAD</option>
+                                <option value="CONTACTED">CONTACTED CUSTOMER</option>
+                                <option value="QUOTED">FORMAL QUOTE SENT</option>
+                                <option value="CONFIRMED">CONFIRMED / ADVANCE PAID</option>
+                                <option value="REJECTED">DECLINED / CANCELLED</option>
+                              </select>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                              <a
+                                href={`tel:${inq.customerMobile}`}
+                                className="px-3 py-1.5 rounded-xl border border-blue-200 bg-white hover:bg-blue-50 text-[#0B5FD9] text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                              >
+                                <Phone className="w-3.5 h-3.5" />
+                                <span>Call Customer</span>
+                              </a>
+                              <a
+                                href={`https://wa.me/91${inq.customerMobile.replace(/\D/g, '')}?text=${encodeURIComponent(
+                                  `Hello ${inq.customerName}, this is Sandeep from Grand Royal Events regarding your ${inq.eventType} planned on ${inq.eventDate}. I have reviewed your requirements.`
+                                )}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                              >
+                                <Send className="w-3.5 h-3.5" />
+                                <span>WhatsApp Quote</span>
+                              </a>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Section 2: Pre-Decided Event Packages & Pricing Setup */}
+              <div className="bg-white rounded-3xl border border-[#DCE7F9] p-6 shadow-sm space-y-4">
+                <div className="border-b border-[#EAF2FF] pb-3">
+                  <h3 className="text-base font-bold text-[#0A1F5C] flex items-center gap-2">
+                    <Tag className="w-4 h-4 text-purple-600" />
+                    <span>Your Pre-Decided Event Packages &amp; Starting Rates</span>
+                  </h3>
+                  <p className="text-xs text-[#5B6B8C] mt-0.5">
+                    These pre-decided starting packages are displayed to customers browsing the SERVA Events section.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+                  {Object.values(EVENT_PLANNERS_DATA[0].packages).map((pkg) => (
+                    <div
+                      key={pkg.eventType}
+                      className="p-4 rounded-2xl bg-gradient-to-br from-purple-50/40 via-white to-white border border-purple-100 shadow-2xs space-y-2"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <span className="text-[10px] font-bold text-purple-800 bg-purple-100 px-2 py-0.5 rounded-full">
+                            {pkg.eventType}
+                          </span>
+                          <h4 className="text-xs font-bold text-[#0A1F5C] mt-1">{pkg.packageName}</h4>
+                        </div>
+                        <span className="text-sm font-black text-purple-700 font-mono-num shrink-0">
+                          {pkg.priceDisplay}
+                        </span>
+                      </div>
+                      <div className="space-y-1 pt-1">
+                        {pkg.highlights.map((h, i) => (
+                          <div key={i} className="text-[11px] text-slate-600 flex items-start gap-1">
+                            <span className="text-emerald-600 font-bold">✓</span>
+                            <span>{h}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Section 3: Event Portfolio Media Reel */}
+              <div className="bg-white rounded-3xl border border-[#DCE7F9] p-6 shadow-sm space-y-4">
+                <div className="border-b border-[#EAF2FF] pb-3">
+                  <h3 className="text-base font-bold text-[#0A1F5C] flex items-center gap-2">
+                    <ImageIcon className="w-4 h-4 text-[#0B5FD9]" />
+                    <span>Event Showcase Portfolios (Photos &amp; Walkthrough Videos)</span>
+                  </h3>
+                  <p className="text-xs text-[#5B6B8C] mt-0.5">
+                    Verified media uploaded and visible on your public planner portfolio.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                  {EVENT_PLANNERS_DATA[0].portfolio.map((media) => (
+                    <div
+                      key={media.id}
+                      className="rounded-2xl border border-[#EAF2FF] overflow-hidden bg-white shadow-2xs space-y-2 p-3"
+                    >
+                      <div className="relative aspect-video rounded-xl bg-slate-900 overflow-hidden">
+                        {media.mediaType === 'VIDEO' ? (
+                          <video
+                            src={media.mediaUrl}
+                            poster={media.thumbnailUrl}
+                            controls
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <img
+                            src={media.mediaUrl}
+                            alt={media.title}
+                            className="w-full h-full object-cover"
+                          />
+                        )}
+
+                        <span className="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-black/75 text-white text-[10px] font-bold flex items-center gap-1">
+                          {media.mediaType === 'VIDEO' ? (
+                            <>
+                              <Play className="w-3 h-3 fill-white" />
+                              <span>Walkthrough ({media.videoDuration || '2:15'})</span>
+                            </>
+                          ) : (
+                            <>
+                              <ImageIcon className="w-3 h-3" />
+                              <span>Photo</span>
+                            </>
+                          )}
+                        </span>
+                      </div>
+
+                      <div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] font-bold text-purple-700 bg-purple-50 px-2 py-0.2 rounded">
+                            {media.eventType}
+                          </span>
+                          {media.venueName && (
+                            <span className="text-[10px] text-[#5B6B8C] truncate max-w-[150px]">
+                              {media.venueName}
+                            </span>
+                          )}
+                        </div>
+                        <h5 className="text-xs font-bold text-[#0A1F5C] mt-1">{media.title}</h5>
+                        {media.description && (
+                          <p className="text-[11px] text-[#5B6B8C] mt-0.5">{media.description}</p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ═══════════════ SUB-VIEW 2: INTERIOR DESIGNER HUB ═══════════════ */}
+          {portfolioHubType === 'interior' && (
+            <div className="space-y-6">
+
           {/* Past Performance Scorecard Strip */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             <div className="bg-white rounded-2xl border border-[#DCE7F9] p-4 shadow-sm">
@@ -3576,6 +3951,8 @@ Verification Portal: https://serva.in/verify/PTR-8821
                 ))}
             </div>
           </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -3836,7 +4213,7 @@ Verification Portal: https://serva.in/verify/PTR-8821
         {[
           { id: 'overview' as const, label: 'Overview', icon: TrendingUp },
           { id: 'jobs' as const, label: 'Jobs', icon: Clock, badge: pendingRequests.length > 0 ? pendingRequests.length : undefined },
-          { id: 'portfolio' as const, label: 'Portfolio', icon: Sparkles, badge: designerInquiries.filter(i => i.status === 'NEW').length > 0 ? designerInquiries.filter(i => i.status === 'NEW').length : undefined },
+          { id: 'portfolio' as const, label: 'Portfolio', icon: Sparkles, badge: (designerInquiries.filter(i => i.status === 'NEW').length + eventInquiries.filter(i => i.status === 'NEW').length) > 0 ? (designerInquiries.filter(i => i.status === 'NEW').length + eventInquiries.filter(i => i.status === 'NEW').length) : undefined },
           { id: 'wallet' as const, label: 'Wallet', icon: Wallet },
           { id: 'reviews' as const, label: 'Reviews', icon: Star },
           { id: 'support' as const, label: 'Support', icon: HelpCircle },
