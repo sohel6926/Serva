@@ -184,10 +184,10 @@ export function EventPlannersDirectory({
       </div>
 
       {/* Filter and Locality Bar */}
-      <div className="bg-white rounded-2xl border border-[#DCE7F9] p-4 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+      <div className="bg-white rounded-2xl border border-[#DCE7F9] p-3.5 sm:p-4 shadow-sm space-y-3.5">
         {/* Locality Quick Filters */}
         <div className="flex items-center gap-1.5 flex-wrap">
-          <span className="text-xs font-bold text-[#5B6B8C] flex items-center gap-1 mr-1">
+          <span className="text-xs font-bold text-[#5B6B8C] flex items-center gap-1 mr-1 shrink-0">
             <Compass className="w-3.5 h-3.5 text-[#0B5FD9]" />
             <span>Locality:</span>
           </span>
@@ -196,7 +196,7 @@ export function EventPlannersDirectory({
               key={loc}
               type="button"
               onClick={() => setSelectedLocality(loc)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+              className={`px-2.5 sm:px-3 py-1 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                 selectedLocality === loc
                   ? 'bg-[#0B5FD9] text-white shadow-xs'
                   : 'bg-[#F4F8FE] text-[#5B6B8C] hover:bg-[#EAF2FF] hover:text-[#0A1F5C] border border-[#DCE7F9]'
@@ -207,15 +207,18 @@ export function EventPlannersDirectory({
           ))}
         </div>
 
-        {/* Sort & Media Filter */}
-        <div className="flex items-center gap-3 self-end lg:self-center">
-          <div className="flex items-center gap-1.5 text-xs text-[#5B6B8C]">
-            <Filter className="w-3.5 h-3.5" />
-            <span className="font-semibold">Sort by:</span>
+        {/* Sort & Media Filter Bar */}
+        <div className="pt-2.5 border-t border-[#EAF2FF] flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+          {/* Sort By Filter */}
+          <div className="flex items-center gap-2 text-xs text-[#5B6B8C] w-full sm:w-auto">
+            <div className="flex items-center gap-1.5 shrink-0">
+              <Filter className="w-3.5 h-3.5 text-[#0B5FD9]" />
+              <span className="font-bold text-[#0A1F5C]">Sort by:</span>
+            </div>
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as 'rating' | 'distance' | 'completed')}
-              className="bg-[#F8FAFD] border border-[#DCE7F9] rounded-xl px-2.5 py-1 text-xs font-bold text-[#0A1F5C] focus:outline-none focus:border-[#0B5FD9]"
+              className="flex-1 sm:flex-none bg-[#F8FAFD] border border-[#DCE7F9] rounded-xl px-2.5 py-1.5 text-xs font-bold text-[#0A1F5C] focus:outline-none focus:border-[#0B5FD9]"
             >
               <option value="rating">Top Rated (4.9+)</option>
               <option value="distance">Nearest to Me (km)</option>
@@ -223,11 +226,12 @@ export function EventPlannersDirectory({
             </select>
           </div>
 
-          <div className="inline-flex rounded-xl p-0.5 bg-[#F4F8FE] border border-[#DCE7F9]">
+          {/* Media Filter Tabs */}
+          <div className="inline-flex rounded-xl p-0.5 bg-[#F4F8FE] border border-[#DCE7F9] w-full sm:w-auto justify-between sm:justify-start">
             <button
               type="button"
               onClick={() => setActiveMediaTab('ALL')}
-              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+              className={`flex-1 sm:flex-none px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer text-center ${
                 activeMediaTab === 'ALL' ? 'bg-white text-[#0B5FD9] shadow-2xs' : 'text-[#5B6B8C]'
               }`}
             >
@@ -236,7 +240,7 @@ export function EventPlannersDirectory({
             <button
               type="button"
               onClick={() => setActiveMediaTab('IMAGE')}
-              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+              className={`flex-1 sm:flex-none px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer text-center ${
                 activeMediaTab === 'IMAGE' ? 'bg-white text-[#0B5FD9] shadow-2xs' : 'text-[#5B6B8C]'
               }`}
             >
@@ -245,7 +249,7 @@ export function EventPlannersDirectory({
             <button
               type="button"
               onClick={() => setActiveMediaTab('VIDEO')}
-              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+              className={`flex-1 sm:flex-none px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer text-center ${
                 activeMediaTab === 'VIDEO' ? 'bg-white text-[#0B5FD9] shadow-2xs' : 'text-[#5B6B8C]'
               }`}
             >
