@@ -15,6 +15,7 @@ import {
   CreditCard,
   DollarSign,
   Download,
+  Edit3,
   Eye,
   FileCheck,
   FileSpreadsheet,
@@ -149,6 +150,11 @@ interface PlatformPartner {
   rating: number;
   status: 'ACTIVE' | 'SUSPENDED';
   joinedDate: string;
+  wageBasis?: 'DAILY' | 'HOURLY' | 'PER_SERVICE';
+  dailyWagePaise?: number;
+  hourlyWagePaise?: number;
+  operatorHourlyWagePaise?: number;
+  skillTrade?: string;
 }
 
 interface WithdrawalRequest {
@@ -433,6 +439,9 @@ const INITIAL_PARTNERS: PlatformPartner[] = [
     rating: 4.9,
     status: 'ACTIVE',
     joinedDate: '12 Nov 2026',
+    wageBasis: 'DAILY',
+    dailyWagePaise: 70000,
+    skillTrade: 'Deep Cleaning, Painting & Sanitization',
   },
   {
     id: 'PTR-502',
@@ -447,6 +456,45 @@ const INITIAL_PARTNERS: PlatformPartner[] = [
     rating: 4.8,
     status: 'ACTIVE',
     joinedDate: '28 Aug 2026',
+    wageBasis: 'HOURLY',
+    hourlyWagePaise: 90000,
+    operatorHourlyWagePaise: 30000,
+    skillTrade: '45-55 HP 4WD Tractor & Heavy Earthmoving',
+  },
+  {
+    id: 'PTR-AGRI-101',
+    businessName: 'Rythu Seva Farm Labour Group',
+    ownerName: 'Mallaiah Goud',
+    mobile: '9848099887',
+    category: 'Agriculture',
+    serviceArea: 'Nalgonda, Miryalaguda, Suryapet',
+    completedJobs: 88,
+    totalSalesPaise: 42000000,
+    commissionPaidPaise: 2520000,
+    rating: 4.9,
+    status: 'ACTIVE',
+    joinedDate: '10 Sep 2026',
+    wageBasis: 'DAILY',
+    dailyWagePaise: 60000, // ₹600/day
+    skillTrade: 'Paddy Harvesting, Weeding & Sowing Field Labour',
+  },
+  {
+    id: 'PTR-AGRI-102',
+    businessName: 'Kisan Harvester & Drone Hub',
+    ownerName: 'Srinivasulu Naik',
+    mobile: '9701122334',
+    category: 'Agriculture',
+    serviceArea: 'Warangal & Khammam Farm Belt',
+    completedJobs: 54,
+    totalSalesPaise: 51200000,
+    commissionPaidPaise: 3072000,
+    rating: 4.85,
+    status: 'ACTIVE',
+    joinedDate: '04 Oct 2026',
+    wageBasis: 'HOURLY',
+    hourlyWagePaise: 180000, // ₹1,800/hr
+    operatorHourlyWagePaise: 40000, // ₹400/hr
+    skillTrade: 'Multi-Crop Combine Harvester & Spraying Drone',
   },
   {
     id: 'PTR-503',
@@ -461,6 +509,9 @@ const INITIAL_PARTNERS: PlatformPartner[] = [
     rating: 4.7,
     status: 'ACTIVE',
     joinedDate: '15 Sep 2026',
+    wageBasis: 'PER_SERVICE',
+    dailyWagePaise: 80000,
+    skillTrade: 'Sound & Audio Rigging Specialist',
   },
   {
     id: 'PTR-504',
@@ -475,6 +526,9 @@ const INITIAL_PARTNERS: PlatformPartner[] = [
     rating: 4.6,
     status: 'ACTIVE',
     joinedDate: '01 Oct 2026',
+    wageBasis: 'DAILY',
+    dailyWagePaise: 65000,
+    skillTrade: 'Trained Heavy Lifting & Shifting Crew',
   },
 ];
 
@@ -1001,7 +1055,57 @@ export function AdminDashboardPage() {
     return INITIAL_DESIGNER_INQUIRIES;
   });
 
-  const [partnerSubTab, setPartnerSubTab] = useState<'all' | 'interior_design'>('all');
+  const [partnerSubTab, setPartnerSubTab] = useState<'all' | 'wages' | 'interior_design'>('all');
+  const [selectedPartnerForWageEdit, setSelectedPartnerForWageEdit] = useState<PlatformPartner | null>(null);
+  const [editWageBasis, setEditWageBasis] = useState<'DAILY' | 'HOURLY' | 'PER_SERVICE'>('DAILY');
+  const [editDailyWage, setEditDailyWage] = useState<number>(600);
+  const [editHourlyWage, setEditHourlyWage] = useState<number>(900);
+  const [editOperatorWage, setEditOperatorWage] = useState<number>(300);
+  const [wageSuccessMsg, setWageSuccessMsg] = useState<string | null>(null);
+
+  const handleOpenWageModal = (partner: PlatformPartner) => {
+    setSelectedPartnerForWageEdit(partner);
+    setEditWageBasis(partner.wageBasis || (partner.category.toLowerCase().includes('machinery') ? 'HOURLY' : 'DAILY'));
+    setEditDailyWage(partner.dailyWagePaise ? partner.dailyWagePaise / 100 : 600);
+    setEditHourlyWage(partner.hourlyWagePaise ? partner.hourlyWagePaise / 100 : 900);
+    setEditOperatorWage(partner.operatorHourlyWagePaise ? partner.operatorHourlyWagePaise / 100 : 300);
+  };
+
+  const handleSaveWageProfile = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedPartnerForWageEdit) return;
+
+    const updated = partnersList.map((p) =>
+      p.id === selectedPartnerForWageEdit.id
+        ? {
+            ...p,
+            wageBasis: editWageBasis,
+            dailyWagePaise: editDailyWage * 100,
+            hourlyWagePaise: editHourlyWage * 100,
+            operatorHourlyWagePaise: editOperatorWage * 100,
+          }
+        : p
+    );
+    setPartnersList(updated);
+    try {
+      localStorage.setItem('serva_admin_partners', JSON.stringify(updated));
+      const currentWageSettings = {
+        workerDailyWagePaise: editDailyWage * 100,
+        tractorHourlyPaise: editHourlyWage * 100,
+        operatorHourlyPaise: editOperatorWage * 100,
+        droneHourlyPaise: 80000,
+        harvesterHourlyPaise: 180000,
+      };
+      localStorage.setItem('serva_agri_wage_settings', JSON.stringify(currentWageSettings));
+      window.dispatchEvent(new Event('storage'));
+    } catch {
+      // ignore
+    }
+
+    setWageSuccessMsg(`Wage settings successfully updated for ${selectedPartnerForWageEdit.ownerName} (${selectedPartnerForWageEdit.businessName})!`);
+    setTimeout(() => setWageSuccessMsg(null), 4000);
+    setSelectedPartnerForWageEdit(null);
+  };
   const [selectedDesignerForPortfolioModal, setSelectedDesignerForPortfolioModal] = useState<InteriorDesigner | null>(null);
   const [adminInquiryStatusFilter, setAdminInquiryStatusFilter] = useState<string>('ALL');
 
@@ -2734,8 +2838,25 @@ export function AdminDashboardPage() {
                   </div>
                 </div>
 
-                {/* Sub-Navigation: All Partners vs Interior Design Hub */}
-                <div className="flex items-center gap-2 border-b border-[#EAF2FF] pb-2">
+                {/* Wage Profile Update Success Toast */}
+                {wageSuccessMsg && (
+                  <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold flex items-center justify-between shadow-xs animate-fade-in">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                      <span>{wageSuccessMsg}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setWageSuccessMsg(null)}
+                      className="text-emerald-700 hover:text-emerald-900 cursor-pointer"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
+
+                {/* Sub-Navigation: All Partners vs Wages vs Interior Design Hub */}
+                <div className="flex items-center gap-2 border-b border-[#EAF2FF] pb-2 flex-wrap">
                   <button
                     type="button"
                     onClick={() => setPartnerSubTab('all')}
@@ -2746,6 +2867,19 @@ export function AdminDashboardPage() {
                     }`}
                   >
                     All Service Partners ({partnersList.length})
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setPartnerSubTab('wages')}
+                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                      partnerSubTab === 'wages'
+                        ? 'bg-[#16A34A] text-white shadow-xs'
+                        : 'bg-white border border-[#DCE7F9] text-[#5B6B8C] hover:text-[#0A1F5C]'
+                    }`}
+                  >
+                    <DollarSign className="w-3.5 h-3.5" />
+                    <span>Worker & Machinery Wage Profiles ({partnersList.filter((p) => p.wageBasis).length})</span>
                   </button>
 
                   <button
@@ -2774,6 +2908,7 @@ export function AdminDashboardPage() {
                           <tr className="bg-[#F8FAFD] border-b border-[#EAF2FF] text-[#5B6B8C] font-bold uppercase text-[10px]">
                             <th className="py-3 px-4">Partner / Business</th>
                             <th className="py-3 px-4">Category</th>
+                            <th className="py-3 px-4">Wage Structure</th>
                             <th className="py-3 px-4">Completed Jobs</th>
                             <th className="py-3 px-4">Gross Sales</th>
                             <th className="py-3 px-4">Commission Paid</th>
@@ -2792,6 +2927,19 @@ export function AdminDashboardPage() {
                                 </div>
                               </td>
                               <td className="py-3.5 px-4 font-semibold text-[#0B5FD9]">{p.category}</td>
+                              <td className="py-3.5 px-4">
+                                {p.wageBasis === 'DAILY' ? (
+                                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                                    ₹{(p.dailyWagePaise ? p.dailyWagePaise / 100 : 600)} / day (Daily)
+                                  </span>
+                                ) : p.wageBasis === 'HOURLY' ? (
+                                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-200">
+                                    ₹{(p.hourlyWagePaise ? p.hourlyWagePaise / 100 : 900)} / hr (Hourly)
+                                  </span>
+                                ) : (
+                                  <span className="text-[11px] text-[#5B6B8C]">Per Service</span>
+                                )}
+                              </td>
                               <td className="py-3.5 px-4 font-semibold text-[#0A1F5C]">{p.completedJobs}</td>
                               <td className="py-3.5 px-4 font-bold text-gray-900">{formatInr(p.totalSalesPaise)}</td>
                               <td className="py-3.5 px-4 font-bold text-[#0B5FD9]">{formatInr(p.commissionPaidPaise)}</td>
@@ -2813,17 +2961,28 @@ export function AdminDashboardPage() {
                                 </span>
                               </td>
                               <td className="py-3.5 px-4 text-right">
-                                <button
-                                  type="button"
-                                  onClick={() => handleTogglePartnerBlock(p.id)}
-                                  className={`px-3 py-1 rounded-lg text-xs font-semibold ${
-                                    p.status === 'ACTIVE'
-                                      ? 'border border-red-200 text-red-600 hover:bg-red-50'
-                                      : 'border border-emerald-200 text-emerald-600 hover:bg-emerald-50'
-                                  }`}
-                                >
-                                  {p.status === 'ACTIVE' ? 'Suspend' : 'Activate'}
-                                </button>
+                                <div className="flex items-center justify-end gap-1.5">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleOpenWageModal(p)}
+                                    className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 flex items-center gap-1 cursor-pointer"
+                                    title="Edit Wage Profile Independently"
+                                  >
+                                    <Edit3 className="w-3 h-3" />
+                                    <span>Wages</span>
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleTogglePartnerBlock(p.id)}
+                                    className={`px-2.5 py-1 rounded-lg text-xs font-semibold cursor-pointer ${
+                                      p.status === 'ACTIVE'
+                                        ? 'border border-red-200 text-red-600 hover:bg-red-50'
+                                        : 'border border-emerald-200 text-emerald-600 hover:bg-emerald-50'
+                                    }`}
+                                  >
+                                    {p.status === 'ACTIVE' ? 'Suspend' : 'Activate'}
+                                  </button>
+                                </div>
                               </td>
                             </tr>
                           ))}
@@ -2833,7 +2992,157 @@ export function AdminDashboardPage() {
                   </div>
                 )}
 
-                {/* SUB-VIEW 2: Interior Design & Portfolio Hub */}
+                {/* SUB-VIEW 2: Worker & Machinery Wage Profiles */}
+                {partnerSubTab === 'wages' && (
+                  <div className="space-y-6">
+                    {/* Top Wage KPI Scorecards */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                      <div className="bg-white rounded-2xl border border-emerald-200 p-4 shadow-sm bg-gradient-to-br from-emerald-50/40 to-white">
+                        <span className="text-[10px] font-bold uppercase text-emerald-800">Agricultural Labour Wage</span>
+                        <p className="text-2xl font-extrabold text-emerald-700 mt-1 font-mono-num">
+                          ₹600 <span className="text-xs font-medium text-slate-500">/ worker / day</span>
+                        </p>
+                        <span className="text-[11px] font-semibold text-emerald-600 mt-1 block">
+                          Daily Basis Standard Shift (8 hrs)
+                        </span>
+                      </div>
+
+                      <div className="bg-white rounded-2xl border border-blue-200 p-4 shadow-sm bg-gradient-to-br from-blue-50/40 to-white">
+                        <span className="text-[10px] font-bold uppercase text-[#0B5FD9]">Tractor Machinery Wage</span>
+                        <p className="text-2xl font-extrabold text-[#0B5FD9] mt-1 font-mono-num">
+                          ₹900 <span className="text-xs font-medium text-slate-500">/ hour</span>
+                        </p>
+                        <span className="text-[11px] font-semibold text-[#5B6B8C] mt-1 block">
+                          Hourly Basis + ₹300/hr Operator
+                        </span>
+                      </div>
+
+                      <div className="bg-white rounded-2xl border border-amber-200 p-4 shadow-sm bg-gradient-to-br from-amber-50/40 to-white">
+                        <span className="text-[10px] font-bold uppercase text-amber-800">Combine Harvester & Drone</span>
+                        <p className="text-2xl font-extrabold text-amber-700 mt-1 font-mono-num">
+                          ₹1,800 <span className="text-xs font-medium text-slate-500">/ hour</span>
+                        </p>
+                        <span className="text-[11px] font-semibold text-[#5B6B8C] mt-1 block">
+                          Hourly Basis + ₹400/hr Operator
+                        </span>
+                      </div>
+
+                      <div className="bg-white rounded-2xl border border-[#DCE7F9] p-4 shadow-sm">
+                        <span className="text-[10px] font-bold uppercase text-[#5B6B8C]">Configured Wage Profiles</span>
+                        <p className="text-2xl font-extrabold text-[#0A1F5C] mt-1 font-mono-num">
+                          {partnersList.length} Profiles
+                        </p>
+                        <span className="text-[11px] font-bold text-emerald-600 mt-1 block">
+                          Real-Time Sync with Customer Booking
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Table of Partners with Wage Edit Actions */}
+                    <div className="bg-white rounded-2xl border border-[#DCE7F9] shadow-sm overflow-hidden">
+                      <div className="p-5 border-b border-[#EAF2FF] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div>
+                          <h3 className="text-base font-bold text-[#0A1F5C]">Independent Worker & Machinery Wage Settings</h3>
+                          <p className="text-xs text-[#5B6B8C]">
+                            Configure Daily Basis wages for workers/labourers and Hourly Basis rates for heavy machinery and operators independently.
+                          </p>
+                        </div>
+                        <span className="text-xs font-bold text-emerald-800 bg-emerald-100 px-3 py-1 rounded-full w-fit">
+                          Live Sync Active
+                        </span>
+                      </div>
+
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse text-xs">
+                          <thead>
+                            <tr className="bg-[#F8FAFD] border-b border-[#EAF2FF] text-[#5B6B8C] font-bold uppercase text-[10px]">
+                              <th className="py-3 px-4">Worker / Partner</th>
+                              <th className="py-3 px-4">Trade & Specialization</th>
+                              <th className="py-3 px-4">Wage Model</th>
+                              <th className="py-3 px-4">Daily Basis Wage</th>
+                              <th className="py-3 px-4">Machinery Hourly Rate</th>
+                              <th className="py-3 px-4">Operator Hourly Wage</th>
+                              <th className="py-3 px-4 text-right">Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-[#EAF2FF]">
+                            {partnersList.map((p) => (
+                              <tr key={p.id} className="hover:bg-[#F9FBFF]">
+                                <td className="py-3.5 px-4">
+                                  <div className="font-bold text-[#0A1F5C]">{p.ownerName}</div>
+                                  <div className="text-[11px] text-[#5B6B8C]">
+                                    {p.businessName} &bull; {p.mobile}
+                                  </div>
+                                </td>
+                                <td className="py-3.5 px-4">
+                                  <span className="font-semibold text-[#0B5FD9] block">{p.category}</span>
+                                  <span className="text-[11px] text-slate-500">{p.skillTrade || 'General Field Services'}</span>
+                                </td>
+                                <td className="py-3.5 px-4">
+                                  {p.wageBasis === 'DAILY' ? (
+                                    <span className="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                                      Daily Basis (Shift)
+                                    </span>
+                                  ) : p.wageBasis === 'HOURLY' ? (
+                                    <span className="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-blue-100 text-blue-800 border border-blue-200">
+                                      Hourly Basis (Metered)
+                                    </span>
+                                  ) : (
+                                    <span className="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-purple-100 text-purple-800 border border-purple-200">
+                                      Per Service
+                                    </span>
+                                  )}
+                                </td>
+                                <td className="py-3.5 px-4 font-mono font-bold">
+                                  {p.dailyWagePaise ? (
+                                    <span className="text-emerald-700">
+                                      ₹{(p.dailyWagePaise / 100).toLocaleString('en-IN')}{' '}
+                                      <span className="text-[10px] font-normal text-slate-500">/ day</span>
+                                    </span>
+                                  ) : (
+                                    <span className="text-slate-400 font-normal">--</span>
+                                  )}
+                                </td>
+                                <td className="py-3.5 px-4 font-mono font-bold">
+                                  {p.hourlyWagePaise ? (
+                                    <span className="text-[#0B5FD9]">
+                                      ₹{(p.hourlyWagePaise / 100).toLocaleString('en-IN')}{' '}
+                                      <span className="text-[10px] font-normal text-slate-500">/ hr</span>
+                                    </span>
+                                  ) : (
+                                    <span className="text-slate-400 font-normal">--</span>
+                                  )}
+                                </td>
+                                <td className="py-3.5 px-4 font-mono font-bold">
+                                  {p.operatorHourlyWagePaise ? (
+                                    <span className="text-amber-700">
+                                      ₹{(p.operatorHourlyWagePaise / 100).toLocaleString('en-IN')}{' '}
+                                      <span className="text-[10px] font-normal text-slate-500">/ hr</span>
+                                    </span>
+                                  ) : (
+                                    <span className="text-slate-400 font-normal">--</span>
+                                  )}
+                                </td>
+                                <td className="py-3.5 px-4 text-right">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleOpenWageModal(p)}
+                                    className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs transition-all flex items-center gap-1.5 ml-auto cursor-pointer"
+                                  >
+                                    <Edit3 className="w-3.5 h-3.5" />
+                                    <span>Edit Wages</span>
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* SUB-VIEW 3: Interior Design & Portfolio Hub */}
                 {partnerSubTab === 'interior_design' && (
                   <div className="space-y-6">
                     {/* Top KPI Scorecards */}
@@ -3233,6 +3542,171 @@ export function AdminDashboardPage() {
                       Close Inspector
                     </button>
                   </div>
+                </div>
+              </div>
+            )}
+
+            {/* Modal: Edit Partner Wage Profile Independently */}
+            {selectedPartnerForWageEdit && (
+              <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+                <div className="bg-white rounded-3xl border border-[#DCE7F9] max-w-lg w-full p-6 sm:p-7 shadow-2xl space-y-5 animate-scale-up max-h-[90vh] overflow-y-auto">
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                    <div>
+                      <h3 className="text-base font-bold text-[#0A1F5C] flex items-center gap-2">
+                        <DollarSign className="w-5 h-5 text-emerald-600" />
+                        <span>Configure Worker & Machinery Wages</span>
+                      </h3>
+                      <p className="text-xs text-[#5B6B8C] mt-0.5">
+                        {selectedPartnerForWageEdit.ownerName} &bull; {selectedPartnerForWageEdit.businessName}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedPartnerForWageEdit(null)}
+                      className="p-2 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 cursor-pointer"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+
+                  <form onSubmit={handleSaveWageProfile} className="space-y-4">
+                    {/* Wage Model Selector */}
+                    <div>
+                      <label className="block text-xs font-bold text-[#0A1F5C] mb-1.5">
+                        Wage Billing Model
+                      </label>
+                      <div className="grid grid-cols-3 gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setEditWageBasis('DAILY')}
+                          className={`py-2 px-3 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                            editWageBasis === 'DAILY'
+                              ? 'bg-emerald-600 text-white border-emerald-700 shadow-xs'
+                              : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                          }`}
+                        >
+                          Daily Basis
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setEditWageBasis('HOURLY')}
+                          className={`py-2 px-3 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                            editWageBasis === 'HOURLY'
+                              ? 'bg-blue-600 text-white border-blue-700 shadow-xs'
+                              : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                          }`}
+                        >
+                          Hourly Basis
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setEditWageBasis('PER_SERVICE')}
+                          className={`py-2 px-3 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                            editWageBasis === 'PER_SERVICE'
+                              ? 'bg-purple-600 text-white border-purple-700 shadow-xs'
+                              : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                          }`}
+                        >
+                          Per Service
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Daily Basis Input */}
+                    <div>
+                      <label className="block text-xs font-bold text-[#0A1F5C] mb-1">
+                        Worker Daily Wage (₹ / Day per 8-Hour Shift)
+                      </label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-2.5 text-slate-400 font-bold text-sm">₹</span>
+                        <input
+                          type="number"
+                          min="200"
+                          max="10000"
+                          step="50"
+                          value={editDailyWage}
+                          onChange={(e) => setEditDailyWage(Number(e.target.value))}
+                          className="w-full pl-8 pr-4 py-2 border border-[#DCE7F9] rounded-xl text-xs font-bold text-[#0A1F5C] focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                        />
+                      </div>
+                      <p className="text-[11px] text-slate-500 mt-1">
+                        Applies to farm labour, field workers, sowing, harvesting and weeding crews.
+                      </p>
+                    </div>
+
+                    {/* Hourly Basis Machinery Input */}
+                    <div>
+                      <label className="block text-xs font-bold text-[#0A1F5C] mb-1">
+                        Machinery Hourly Rental Rate (₹ / Hour)
+                      </label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-2.5 text-slate-400 font-bold text-sm">₹</span>
+                        <input
+                          type="number"
+                          min="300"
+                          max="25000"
+                          step="50"
+                          value={editHourlyWage}
+                          onChange={(e) => setEditHourlyWage(Number(e.target.value))}
+                          className="w-full pl-8 pr-4 py-2 border border-[#DCE7F9] rounded-xl text-xs font-bold text-[#0A1F5C] focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                        />
+                      </div>
+                      <p className="text-[11px] text-slate-500 mt-1">
+                        Standard hourly rate for tractors (₹900/hr), harvesters (₹1,800/hr) & spray drones (₹800/hr).
+                      </p>
+                    </div>
+
+                    {/* Operator Hourly Wage Input */}
+                    <div>
+                      <label className="block text-xs font-bold text-[#0A1F5C] mb-1">
+                        Certified Operator Hourly Wage (₹ / Hour)
+                      </label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-2.5 text-slate-400 font-bold text-sm">₹</span>
+                        <input
+                          type="number"
+                          min="100"
+                          max="5000"
+                          step="25"
+                          value={editOperatorWage}
+                          onChange={(e) => setEditOperatorWage(Number(e.target.value))}
+                          className="w-full pl-8 pr-4 py-2 border border-[#DCE7F9] rounded-xl text-xs font-bold text-[#0A1F5C] focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                        />
+                      </div>
+                      <p className="text-[11px] text-slate-500 mt-1">
+                        Hourly compensation credited to the equipment operator/driver.
+                      </p>
+                    </div>
+
+                    {/* Notice Info Box */}
+                    <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs space-y-1">
+                      <div className="flex items-center gap-1.5 font-bold">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                        <span>Instant Real-Time Synchronization</span>
+                      </div>
+                      <p className="text-[11px] text-emerald-700 leading-relaxed">
+                        Saving these changes will immediately update the customer agriculture estimate calculator, farm bookings, and reflect under the partner&apos;s verified wage structure.
+                      </p>
+                    </div>
+
+                    {/* Buttons */}
+                    <div className="flex items-center justify-end gap-2.5 pt-2">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedPartnerForWageEdit(null)}
+                        className="px-4 py-2 rounded-xl border border-slate-200 text-slate-700 text-xs font-bold hover:bg-slate-50 cursor-pointer"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm transition-all cursor-pointer flex items-center gap-1.5"
+                      >
+                        <Check className="w-4 h-4" />
+                        <span>Save & Apply Wage Changes</span>
+                      </button>
+                    </div>
+                  </form>
                 </div>
               </div>
             )}

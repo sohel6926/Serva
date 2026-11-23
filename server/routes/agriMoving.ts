@@ -39,9 +39,10 @@ const agriBookSchema = z.object({
   areaValue: z.number().positive(),
   areaUnit: z.enum(['ACRES', 'GUNTAS', 'HECTARES']),
   workerCount: z.number().int().min(0).max(200).optional().default(0),
+  workerDays: z.number().int().min(1).max(90).optional().default(1),
   machineId: z.string().optional(),
-  machineryBilling: z.enum(['HOURLY', 'DAILY', 'PER_ACRE']).optional().default('PER_ACRE'),
-  machineryDuration: z.number().int().min(1).max(100).optional().default(1),
+  machineryBilling: z.enum(['HOURLY', 'DAILY', 'PER_ACRE']).optional().default('HOURLY'),
+  machineryDuration: z.number().int().min(1).max(100).optional().default(2),
   includeOperator: z.boolean().optional().default(true),
   isRecurring: z.boolean().optional().default(false),
   location: z.object({
@@ -72,14 +73,16 @@ agriMovingRouter.post('/agriculture/book', requireAuth, (req: Request, res: Resp
 
   const lines: Array<{ name: string; quantity: number; unitPaise: number; totalPaise: number }> = [];
 
-  // 1. Workers component (₹600/worker/day)
+  // 1. Workers component (Daily Basis: ₹600/worker/day)
   if (d.entryMode === 'WORKERS' || d.workerCount > 0) {
     const workers = Math.max(1, d.workerCount);
-    const workerTotal = workers * 60000;
+    const days = Math.max(1, d.workerDays || 1);
+    const workerDailyUnitPaise = 60000; // standard daily basis rate
+    const workerTotal = workers * days * workerDailyUnitPaise;
     lines.push({
-      name: `Agricultural Workers (${workers} workers)`,
-      quantity: workers,
-      unitPaise: 60000,
+      name: `Agricultural Workers (${workers} workers × ${days} ${days === 1 ? 'day' : 'days'} Daily Basis)`,
+      quantity: workers * days,
+      unitPaise: workerDailyUnitPaise,
       totalPaise: workerTotal,
     });
   }

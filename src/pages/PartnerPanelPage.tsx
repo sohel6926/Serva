@@ -13,6 +13,7 @@ import {
   Clock,
   Copy,
   CreditCard,
+  DollarSign,
   Download,
   Edit3,
   ExternalLink,
@@ -116,6 +117,40 @@ interface SupportTicket {
 }
 
 const INITIAL_JOBS: PartnerJob[] = [
+  {
+    id: 'job-agri-1',
+    bookingCode: 'SRV-AGRI-101',
+    customerName: 'Koteswara Rao',
+    customerMobile: '9849234567',
+    serviceCategory: 'Agriculture & Farm Labour',
+    serviceTitle: 'Paddy Harvesting & Field Weeding (Daily Basis: 5 Workers · 2 Days Shift)',
+    address: 'Survey No. 142/B, Miryalaguda Road, Nalgonda Dist.',
+    distanceKm: 8.5,
+    scheduledDate: 'Tomorrow',
+    scheduledTime: '07:00 AM (Day Shift)',
+    grossAmountPaise: 600000, // 5 workers * 2 days * ₹600 = ₹6,000
+    commissionRate: 0.08,
+    status: 'CONFIRMED',
+    notes: 'Paddy field ready for harvesting. Tools provided by team. Daily shift 7:00 AM to 3:00 PM.',
+    paymentMode: 'ONLINE',
+  },
+  {
+    id: 'job-agri-2',
+    bookingCode: 'SRV-AGRI-102',
+    customerName: 'Sambaiah Patel',
+    customerMobile: '9701445566',
+    serviceCategory: 'Agriculture & Machinery',
+    serviceTitle: '55 HP 4WD Tractor + Rotavator (Hourly Basis: 4 Hours + Operator)',
+    address: 'Plot 78, Suryapet Agricultural Zone, Telangana',
+    distanceKm: 12.0,
+    scheduledDate: '26 Nov 2026',
+    scheduledTime: '08:00 AM (Metered Hourly)',
+    grossAmountPaise: 480000, // (₹900 machinery + ₹300 operator) * 4 = ₹4,800
+    commissionRate: 0.08,
+    status: 'PENDING_ACCEPTANCE',
+    notes: 'Deep plowing and rotavator tilling for 4 hours. Driver and diesel included.',
+    paymentMode: 'ONLINE',
+  },
   {
     id: 'job-1',
     bookingCode: 'SRV-9821',
@@ -1004,6 +1039,42 @@ export function PartnerPanelPage() {
   const [isOnline, setIsOnline] = useState<boolean>(() => {
     return localStorage.getItem('serva_partner_online') !== 'false';
   });
+
+  // Approved Agricultural & Machinery Wage Rates (Synced with Admin Settings)
+  const [agriWageSettings, setAgriWageSettings] = useState<{
+    workerDailyWagePaise: number;
+    tractorHourlyPaise: number;
+    operatorHourlyPaise: number;
+    droneHourlyPaise: number;
+    harvesterHourlyPaise: number;
+  }>(() => {
+    try {
+      const saved = localStorage.getItem('serva_agri_wage_settings');
+      if (saved) return JSON.parse(saved);
+    } catch {
+      // fallback
+    }
+    return {
+      workerDailyWagePaise: 60000,
+      tractorHourlyPaise: 90000,
+      operatorHourlyPaise: 30000,
+      droneHourlyPaise: 80000,
+      harvesterHourlyPaise: 180000,
+    };
+  });
+
+  useEffect(() => {
+    const handleStorage = () => {
+      try {
+        const saved = localStorage.getItem('serva_agri_wage_settings');
+        if (saved) setAgriWageSettings(JSON.parse(saved));
+      } catch {
+        // ignore
+      }
+    };
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, []);
 
   // State data (persisted in localStorage for demo / static Vercel reliability)
   const [jobs, setJobs] = useState<PartnerJob[]>(() => {
@@ -1902,7 +1973,19 @@ Verification Portal: https://serva.in/verify/PTR-8821
                             <ExternalLink className="w-2.5 h-2.5" />
                           </a>
                         </div>
-                        <h3 className="text-sm font-bold text-[#0A1F5C] mt-0.5 group-hover:text-[#0B5FD9] transition-colors">{job.serviceTitle}</h3>
+                        <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
+                          <h3 className="text-sm font-bold text-[#0A1F5C] group-hover:text-[#0B5FD9] transition-colors">{job.serviceTitle}</h3>
+                          {job.serviceTitle.includes('Daily Basis') && (
+                            <span className="text-[10px] font-extrabold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full border border-emerald-200">
+                              Daily Wage Basis
+                            </span>
+                          )}
+                          {job.serviceTitle.includes('Hourly Basis') && (
+                            <span className="text-[10px] font-extrabold bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full border border-blue-200">
+                              Hourly Machinery Rate
+                            </span>
+                          )}
+                        </div>
                         <p className="text-xs text-[#5B6B8C] mt-0.5 flex items-center gap-1.5">
                           <MapPin className="w-3.5 h-3.5 text-[#0B5FD9]" />
                           <span>{job.address} ({job.distanceKm} km away)</span>
@@ -2033,7 +2116,19 @@ Verification Portal: https://serva.in/verify/PTR-8821
                           </a>
                         </div>
 
-                        <h3 className="text-base font-bold text-[#0A1F5C] mt-1.5 group-hover:text-[#0B5FD9] transition-colors">{job.serviceTitle}</h3>
+                        <div className="flex items-center gap-1.5 flex-wrap mt-1.5">
+                          <h3 className="text-base font-bold text-[#0A1F5C] group-hover:text-[#0B5FD9] transition-colors">{job.serviceTitle}</h3>
+                          {job.serviceTitle.includes('Daily Basis') && (
+                            <span className="text-[10px] font-extrabold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full border border-emerald-200">
+                              Daily Wage Basis
+                            </span>
+                          )}
+                          {job.serviceTitle.includes('Hourly Basis') && (
+                            <span className="text-[10px] font-extrabold bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full border border-blue-200">
+                              Hourly Machinery Rate
+                            </span>
+                          )}
+                        </div>
                         <p className="text-xs text-[#5B6B8C] mt-0.5">
                           Customer: <strong className="text-[#0A1F5C]">{job.customerName}</strong> ({job.customerMobile})
                         </p>
@@ -2739,6 +2834,103 @@ Verification Portal: https://serva.in/verify/PTR-8821
                 <div className="flex flex-col sm:flex-row sm:justify-between py-1.5 gap-1">
                   <span className="text-[#5B6B8C]">Settlement Time:</span>
                   <span className="font-bold text-emerald-700">Instant (24x7 Real-Time Payout)</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Card E: Approved Wage Structure & Shift Rates (Verified by SERVA Admin) */}
+            <div className="bg-white rounded-3xl border border-emerald-200 p-6 shadow-sm space-y-4 md:col-span-2 bg-gradient-to-br from-emerald-50/20 via-white to-white">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#F0F4FA] pb-3 gap-2">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">
+                    <DollarSign className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-[#0A1F5C] flex items-center gap-2">
+                      <span>Approved Wage Structure & Shift Rates</span>
+                      <span className="text-[10px] font-extrabold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full border border-emerald-200">
+                        Admin Verified &amp; Guaranteed ✓
+                      </span>
+                    </h3>
+                    <p className="text-[11px] text-[#5B6B8C]">
+                      Independent wage rates configured for your profile by SERVA Operations Admin Console.
+                    </p>
+                  </div>
+                </div>
+
+                <span className="text-[11px] font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-lg w-fit">
+                  Live System Sync
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+                {/* 1. Daily Basis Shift */}
+                <div className="p-3.5 rounded-2xl bg-white border border-emerald-200 shadow-2xs space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] uppercase font-bold text-[#5B6B8C]">Field Labour &amp; Workers</span>
+                    <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700">Daily Basis</span>
+                  </div>
+                  <div className="text-xl font-black text-emerald-700 font-mono-num">
+                    ₹{(agriWageSettings.workerDailyWagePaise / 100).toLocaleString('en-IN')}
+                    <span className="text-xs font-normal text-slate-500"> / worker / day</span>
+                  </div>
+                  <p className="text-[11px] text-slate-500">
+                    Standard 8-hour shift. Sowing, weeding, harvesting &amp; farm labour.
+                  </p>
+                </div>
+
+                {/* 2. Hourly Tractor */}
+                <div className="p-3.5 rounded-2xl bg-white border border-blue-200 shadow-2xs space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] uppercase font-bold text-[#5B6B8C]">Tractor &amp; Implements</span>
+                    <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-blue-50 text-blue-700">Hourly Basis</span>
+                  </div>
+                  <div className="text-xl font-black text-[#0B5FD9] font-mono-num">
+                    ₹{(agriWageSettings.tractorHourlyPaise / 100).toLocaleString('en-IN')}
+                    <span className="text-xs font-normal text-slate-500"> / hour</span>
+                  </div>
+                  <p className="text-[11px] text-slate-500">
+                    Metered operating hours for 45-55 HP tractors, rotavator &amp; plowing.
+                  </p>
+                </div>
+
+                {/* 3. Operator Hourly Wage */}
+                <div className="p-3.5 rounded-2xl bg-white border border-amber-200 shadow-2xs space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] uppercase font-bold text-[#5B6B8C]">Certified Operator</span>
+                    <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-amber-50 text-amber-700">Hourly Wage</span>
+                  </div>
+                  <div className="text-xl font-black text-amber-700 font-mono-num">
+                    ₹{(agriWageSettings.operatorHourlyPaise / 100).toLocaleString('en-IN')}
+                    <span className="text-xs font-normal text-slate-500"> / hour</span>
+                  </div>
+                  <p className="text-[11px] text-slate-500">
+                    Dedicated driver/operator compensation credited alongside machine rental.
+                  </p>
+                </div>
+
+                {/* 4. Combine Harvester & Drone */}
+                <div className="p-3.5 rounded-2xl bg-white border border-purple-200 shadow-2xs space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] uppercase font-bold text-[#5B6B8C]">Harvester &amp; Drone</span>
+                    <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-purple-50 text-purple-700">Hourly Basis</span>
+                  </div>
+                  <div className="text-xl font-black text-purple-700 font-mono-num">
+                    ₹{(agriWageSettings.harvesterHourlyPaise / 100).toLocaleString('en-IN')}
+                    <span className="text-xs font-normal text-slate-500"> / hour</span>
+                  </div>
+                  <p className="text-[11px] text-slate-500">
+                    Multi-crop combine harvester with operator crew included.
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200 text-slate-700 text-xs flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span className="text-[11px]">
+                    <strong>Wage Rate Lock Guarantee:</strong> Rates above are set by SERVA Admin and applied automatically across all customer bookings in your area. Payouts are credited instantly to your wallet.
+                  </span>
                 </div>
               </div>
             </div>

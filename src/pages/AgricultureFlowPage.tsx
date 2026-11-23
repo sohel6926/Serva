@@ -37,12 +37,44 @@ export function AgricultureFlowPage({ entryPath }: { entryPath: 'workers' | 'ser
   const [areaValue, setAreaValue] = useState(2);
   const [areaUnit, setAreaUnit] = useState<'ACRES' | 'GUNTAS' | 'HECTARES'>('ACRES');
   const [workerCount, setWorkerCount] = useState(entryPath === 'workers' ? 5 : 0);
+  const [workerDays, setWorkerDays] = useState(1);
   const [combineMachinery, setCombineMachinery] = useState(entryPath === 'machinery');
   const [selectedMachineId, setSelectedMachineId] = useState('m-tractor');
-  const [machineryBilling, setMachineryBilling] = useState<'HOURLY' | 'DAILY' | 'PER_ACRE'>('PER_ACRE');
-  const [machineryDuration, setMachineryDuration] = useState(2);
+  const [machineryBilling, setMachineryBilling] = useState<'HOURLY' | 'DAILY' | 'PER_ACRE'>('HOURLY');
+  const [machineryDuration, setMachineryDuration] = useState(4); // Default 4 hours
   const [includeOperator, setIncludeOperator] = useState(true);
   const [isRecurring, setIsRecurring] = useState(false);
+
+  // Dynamic Agri Wage Settings (Synchronized with Admin Panel)
+  const [agriWageSettings, setAgriWageSettings] = useState(() => {
+    try {
+      const saved = localStorage.getItem('serva_agri_wage_settings');
+      if (saved) return JSON.parse(saved);
+    } catch {
+      // fallback
+    }
+    return {
+      workerDailyWagePaise: 60000, // ₹600 / worker / day
+      tractorHourlyPaise: 90000, // ₹900 / hr
+      droneHourlyPaise: 80000, // ₹800 / hr
+      harvesterHourlyPaise: 180000, // ₹1,800 / hr
+      operatorHourlyPaise: 30000, // ₹300 / hr
+    };
+  });
+
+  useEffect(() => {
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === 'serva_agri_wage_settings' && e.newValue) {
+        try {
+          setAgriWageSettings(JSON.parse(e.newValue));
+        } catch {
+          // ignore
+        }
+      }
+    };
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, []);
 
   // Farm location
   const [village, setVillage] = useState('Miryalaguda');
@@ -95,6 +127,78 @@ export function AgricultureFlowPage({ entryPath }: { entryPath: 'workers' | 'ser
     };
   }, [areaValue, areaUnit]);
 
+  const activeMachine = useMemo(
+    () => machinery.find((m) => m.id === selectedMachineId) ?? machinery[0],
+    [machinery, selectedMachineId]
+  );
+
+  const estimateCalculation = useMemo(() => {
+    let workerSubtotal = 0;
+    const workerDailyRate = agriWageSettings.workerDailyWagePaise || 60000;
+    const activeWorkers = mode === 'WORKERS' ? Math.max(1, workerCount) : workerCount;
+    if (activeWorkers > 0) {
+      workerSubtotal = activeWorkers * workerDays * workerDailyRate;
+    }
+
+    let serviceSubtotal = 0;
+    if (mode === 'SERVICES' && selectedService) {
+      const isPerAcre = selectedService.unitLabel.includes('acre');
+      serviceSubtotal = Math.round(isPerAcre ? selectedService.ratePaise * Number(convertedArea.acres) : selectedService.ratePaise);
+    }
+
+    let machinerySubtotal = 0;
+    let operatorSubtotal = 0;
+    if (mode === 'MACHINERY' || combineMachinery) {
+      const hourlyRate = activeMachine?.hourlyRatePaise || agriWageSettings.tractorHourlyPaise || 90000;
+      if (machineryBilling === 'HOURLY') {
+        machinerySubtotal = hourlyRate * machineryDuration;
+        if (includeOperator) {
+          operatorSubtotal = (activeMachine?.operatorFeePaise || agriWageSettings.operatorHourlyPaise || 30000) * machineryDuration;
+        }
+      } else if (machineryBilling === 'DAILY') {
+        const dailyRate = activeMachine?.dailyRatePaise || 600000;
+        machinerySubtotal = dailyRate * machineryDuration;
+        if (includeOperator) {
+          operatorSubtotal = (activeMachine?.operatorFeePaise || 30000) * 8 * machineryDuration;
+        }
+      } else {
+        const acreRate = activeMachine?.perAcreRatePaise || 85000;
+        machinerySubtotal = Math.round(acreRate * Number(convertedArea.acres));
+        if (includeOperator) {
+          operatorSubtotal = activeMachine?.operatorFeePaise || 30000;
+        }
+      }
+    }
+
+    const travelFee = 15000; // ₹150
+    const platformFee = 5000; // ₹50
+    const totalPaise = workerSubtotal + serviceSubtotal + machinerySubtotal + operatorSubtotal + travelFee + platformFee;
+
+    return {
+      activeWorkers,
+      workerDailyRate,
+      workerSubtotal,
+      serviceSubtotal,
+      machinerySubtotal,
+      operatorSubtotal,
+      travelFee,
+      platformFee,
+      totalPaise,
+    };
+  }, [
+    workerCount,
+    workerDays,
+    agriWageSettings,
+    mode,
+    selectedService,
+    convertedArea.acres,
+    combineMachinery,
+    activeMachine,
+    machineryBilling,
+    machineryDuration,
+    includeOperator,
+  ]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -134,6 +238,7 @@ export function AgricultureFlowPage({ entryPath }: { entryPath: 'workers' | 'ser
           areaValue,
           areaUnit,
           workerCount: mode === 'WORKERS' ? Math.max(1, workerCount) : workerCount,
+          workerDays: mode === 'WORKERS' || workerCount > 0 ? workerDays : 1,
           machineId: mode === 'MACHINERY' || combineMachinery ? selectedMachineId : undefined,
           machineryBilling,
           machineryDuration,
@@ -395,42 +500,112 @@ export function AgricultureFlowPage({ entryPath }: { entryPath: 'workers' | 'ser
             {convertedArea.hectares} hectares
           </p>
 
-          {/* Workers team presets (5, 10, 20 or custom) */}
-          <div className="space-y-2 pt-2 border-t border-[#EAF2FF]">
+          {/* Workers team & Daily Basis Shift selection */}
+          <div className="space-y-4 pt-4 border-t border-[#EAF2FF]">
             <div className="flex items-center justify-between flex-wrap gap-2">
-              <label htmlFor="ag-workers" className="text-xs font-bold text-[#0A1F5C]">
-                Agricultural Workers (Optional or Standalone)
-              </label>
-              <div className="flex gap-1.5">
-                {[0, 5, 10, 20].map((preset) => (
-                  <button
-                    key={preset}
-                    type="button"
-                    onClick={() => setWorkerCount(preset)}
-                    className={`min-h-[34px] px-3 rounded-lg text-xs font-bold cursor-pointer ${
-                      workerCount === preset
-                        ? 'bg-[#16A34A] text-white'
-                        : 'bg-[#F1F6FF] text-[#0A1F5C]'
-                    }`}
-                  >
-                    {preset === 0 ? 'None' : `${preset} team`}
-                  </button>
-                ))}
+              <div>
+                <label htmlFor="ag-workers" className="text-xs font-bold text-[#0A1F5C] flex items-center gap-1.5">
+                  <Users className="w-4 h-4 text-[#16A34A]" />
+                  <span>Agricultural Workers (Daily Basis Shift)</span>
+                </label>
+                <p className="text-[11px] text-[#5B6B8C]">
+                  Book verified farm labour teams on an approved daily basis wage.
+                </p>
+              </div>
+
+              <span className="px-2.5 py-1 rounded-xl bg-green-50 border border-green-200 text-xs font-bold text-[#16A34A]">
+                ₹{Math.round((agriWageSettings.workerDailyWagePaise || 60000) / 100)} / worker / day (Daily Basis)
+              </span>
+            </div>
+
+            {/* Worker Count Presets */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <span className="text-xs font-semibold text-[#5B6B8C]">Worker Team Size:</span>
+                <div className="flex gap-1.5">
+                  {[0, 5, 10, 20].map((preset) => (
+                    <button
+                      key={preset}
+                      type="button"
+                      onClick={() => setWorkerCount(preset)}
+                      className={`min-h-[34px] px-3 rounded-lg text-xs font-bold cursor-pointer transition-all ${
+                        workerCount === preset
+                          ? 'bg-[#16A34A] text-white shadow-xs'
+                          : 'bg-[#F1F6FF] text-[#0A1F5C] hover:bg-slate-200'
+                      }`}
+                    >
+                      {preset === 0 ? 'None' : `${preset} workers`}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <input
+                  id="ag-workers"
+                  type="number"
+                  min={0}
+                  max={200}
+                  value={workerCount}
+                  onChange={(e) => setWorkerCount(Math.max(0, Number(e.target.value)))}
+                  className="w-32 min-h-[42px] px-3 rounded-xl border border-[#DCE7F9] text-sm font-mono-num font-bold text-[#0A1F5C]"
+                />
+                <span className="text-xs text-[#5B6B8C]">field workers</span>
               </div>
             </div>
-            <input
-              id="ag-workers"
-              type="number"
-              min={0}
-              max={200}
-              value={workerCount}
-              onChange={(e) => setWorkerCount(Math.max(0, Number(e.target.value)))}
-              className="w-32 min-h-[42px] px-3 rounded-xl border border-[#DCE7F9] text-sm font-mono-num"
-            />
+
+            {/* Daily Shift Duration in Days (Daily Basis) */}
+            {(mode === 'WORKERS' || workerCount > 0) && (
+              <div className="p-4 rounded-2xl bg-[#F8FAFD] border border-[#EAF2FF] space-y-3">
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <label htmlFor="ag-worker-days" className="text-xs font-bold text-[#0A1F5C]">
+                    Duration in Days (Daily Basis)
+                  </label>
+                  <div className="flex gap-1.5">
+                    {[1, 2, 3, 5, 7].map((d) => (
+                      <button
+                        key={d}
+                        type="button"
+                        onClick={() => setWorkerDays(d)}
+                        className={`min-h-[32px] px-2.5 rounded-lg text-xs font-bold cursor-pointer transition-all ${
+                          workerDays === d
+                            ? 'bg-[#0A1F5C] text-white shadow-xs'
+                            : 'bg-white border border-[#DCE7F9] text-[#5B6B8C] hover:text-[#0A1F5C]'
+                        }`}
+                      >
+                        {d} {d === 1 ? 'Day' : 'Days'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <input
+                    id="ag-worker-days"
+                    type="number"
+                    min={1}
+                    max={90}
+                    value={workerDays}
+                    onChange={(e) => setWorkerDays(Math.max(1, Number(e.target.value)))}
+                    className="w-32 min-h-[42px] px-3 rounded-xl border border-[#DCE7F9] text-sm font-mono-num font-bold text-[#0A1F5C] bg-white"
+                  />
+                  <span className="text-xs text-[#5B6B8C]">
+                    daily shift ({workerDays} {workerDays === 1 ? 'day' : 'days'} × {mode === 'WORKERS' ? Math.max(1, workerCount) : workerCount} workers = {(mode === 'WORKERS' ? Math.max(1, workerCount) : workerCount) * workerDays} man-days)
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between text-xs pt-1 border-t border-slate-100">
+                  <span className="text-[#5B6B8C]">Labour Wages Subtotal (Daily Basis):</span>
+                  <span className="font-mono-num font-extrabold text-[#16A34A] text-sm">
+                    ₹{(estimateCalculation.workerSubtotal / 100).toLocaleString('en-IN')}
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Combine Machinery option */}
-          <div className="space-y-3 pt-2 border-t border-[#EAF2FF]">
+          {/* Combine Machinery option (Hourly Basis Wages) */}
+          <div className="space-y-3 pt-3 border-t border-[#EAF2FF]">
             <label className="flex items-center gap-2 text-sm font-bold text-[#0A1F5C] cursor-pointer">
               <input
                 type="checkbox"
@@ -438,68 +613,138 @@ export function AgricultureFlowPage({ entryPath }: { entryPath: 'workers' | 'ser
                 onChange={(e) => setCombineMachinery(e.target.checked)}
                 className="w-4 h-4 accent-[#16A34A]"
               />
-              <span>Include / Rent Agricultural Machinery</span>
+              <span className="flex items-center gap-1.5">
+                <Wrench className="w-4 h-4 text-[#16A34A]" />
+                <span>Include / Rent Agricultural Machinery (Hourly Basis)</span>
+              </span>
             </label>
 
             {(mode === 'MACHINERY' || combineMachinery) && (
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 rounded-2xl bg-[#F5F9FF]">
-                <div className="sm:col-span-2">
-                  <label htmlFor="ag-mach" className="block text-xs font-semibold text-[#0A1F5C] mb-1">
-                    Machinery Type
-                  </label>
-                  <select
-                    id="ag-mach"
-                    value={selectedMachineId}
-                    onChange={(e) => setSelectedMachineId(e.target.value)}
-                    className="w-full min-h-[44px] px-3 rounded-xl border border-[#DCE7F9] text-sm bg-white"
-                  >
-                    {machinery.map((m) => (
-                      <option key={m.id} value={m.id}>
-                        {m.name}
-                      </option>
-                    ))}
-                  </select>
+              <div className="p-4 sm:p-5 rounded-2xl bg-[#F5F9FF] border border-[#DCE7F9] space-y-4">
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <span className="text-xs font-bold text-[#0A1F5C]">Machinery Rental & Hourly Operator Wage</span>
+                  <span className="px-2.5 py-0.5 rounded-full bg-blue-100 text-[#0B5FD9] text-[11px] font-bold">
+                    Hourly Basis Preferred
+                  </span>
                 </div>
-                <div>
-                  <label htmlFor="ag-mbill" className="block text-xs font-semibold text-[#0A1F5C] mb-1">
-                    Rate Mode
-                  </label>
-                  <select
-                    id="ag-mbill"
-                    value={machineryBilling}
-                    onChange={(e) => setMachineryBilling(e.target.value as 'HOURLY' | 'DAILY' | 'PER_ACRE')}
-                    className="w-full min-h-[44px] px-3 rounded-xl border border-[#DCE7F9] text-sm bg-white"
-                  >
-                    <option value="PER_ACRE">Per Acre</option>
-                    <option value="HOURLY">Hourly</option>
-                    <option value="DAILY">Daily</option>
-                  </select>
-                </div>
-                {machineryBilling !== 'PER_ACRE' && (
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="sm:col-span-2">
+                    <label htmlFor="ag-mach" className="block text-xs font-semibold text-[#0A1F5C] mb-1">
+                      Machinery Model
+                    </label>
+                    <select
+                      id="ag-mach"
+                      value={selectedMachineId}
+                      onChange={(e) => setSelectedMachineId(e.target.value)}
+                      className="w-full min-h-[44px] px-3 rounded-xl border border-[#DCE7F9] text-sm bg-white font-semibold text-[#0A1F5C]"
+                    >
+                      {machinery.map((m) => (
+                        <option key={m.id} value={m.id}>
+                          {m.name} — ₹{Math.round(m.hourlyRatePaise / 100)}/hr (Hourly Basis)
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
                   <div>
-                    <label htmlFor="ag-mdur" className="block text-xs font-semibold text-[#0A1F5C] mb-1">
-                      Hours / Days
+                    <label htmlFor="ag-mbill" className="block text-xs font-semibold text-[#0A1F5C] mb-1">
+                      Billing Basis
+                    </label>
+                    <select
+                      id="ag-mbill"
+                      value={machineryBilling}
+                      onChange={(e) => setMachineryBilling(e.target.value as 'HOURLY' | 'DAILY' | 'PER_ACRE')}
+                      className="w-full min-h-[44px] px-3 rounded-xl border border-[#DCE7F9] text-sm bg-white font-semibold text-[#0A1F5C]"
+                    >
+                      <option value="HOURLY">Hourly Basis (Recommended)</option>
+                      <option value="DAILY">Daily Basis</option>
+                      <option value="PER_ACRE">Per Acre Basis</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Hourly Duration Selector */}
+                {machineryBilling === 'HOURLY' && (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between flex-wrap gap-2">
+                      <label htmlFor="ag-mdur" className="text-xs font-bold text-[#0A1F5C]">
+                        Machinery Hours (Hourly Basis)
+                      </label>
+                      <div className="flex gap-1.5">
+                        {[2, 4, 6, 8].map((hrs) => (
+                          <button
+                            key={hrs}
+                            type="button"
+                            onClick={() => setMachineryDuration(hrs)}
+                            className={`min-h-[32px] px-2.5 rounded-lg text-xs font-bold cursor-pointer transition-all ${
+                              machineryDuration === hrs
+                                ? 'bg-[#0B5FD9] text-white shadow-xs'
+                                : 'bg-white border border-[#DCE7F9] text-[#5B6B8C] hover:text-[#0A1F5C]'
+                            }`}
+                          >
+                            {hrs} Hours
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      <input
+                        id="ag-mdur"
+                        type="number"
+                        min={1}
+                        max={100}
+                        value={machineryDuration}
+                        onChange={(e) => setMachineryDuration(Math.max(1, Number(e.target.value)))}
+                        className="w-32 min-h-[42px] px-3 rounded-xl border border-[#DCE7F9] text-sm font-mono-num font-bold text-[#0A1F5C] bg-white"
+                      />
+                      <span className="text-xs text-[#5B6B8C]">
+                        operational hours @ ₹{Math.round((activeMachine?.hourlyRatePaise || 90000) / 100)} / hr
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {machineryBilling === 'DAILY' && (
+                  <div>
+                    <label htmlFor="ag-mdur-daily" className="block text-xs font-semibold text-[#0A1F5C] mb-1">
+                      Machinery Duration (Days)
                     </label>
                     <input
-                      id="ag-mdur"
+                      id="ag-mdur-daily"
                       type="number"
                       min={1}
-                      max={100}
+                      max={60}
                       value={machineryDuration}
                       onChange={(e) => setMachineryDuration(Math.max(1, Number(e.target.value)))}
-                      className="w-full min-h-[42px] px-3 rounded-xl border border-[#DCE7F9] text-sm font-mono-num bg-white"
+                      className="w-32 min-h-[42px] px-3 rounded-xl border border-[#DCE7F9] text-sm font-mono-num font-bold text-[#0A1F5C] bg-white"
                     />
                   </div>
                 )}
-                <label className="sm:col-span-2 flex items-center gap-2 text-xs font-semibold text-[#0A1F5C] cursor-pointer pt-2">
-                  <input
-                    type="checkbox"
-                    checked={includeOperator}
-                    onChange={(e) => setIncludeOperator(e.target.checked)}
-                    className="w-4 h-4 accent-[#16A34A]"
-                  />
-                  <span>Operator included</span>
-                </label>
+
+                {/* Operator Checkbox with Hourly Operator Rate */}
+                <div className="pt-2 border-t border-blue-100 flex items-center justify-between flex-wrap gap-2">
+                  <label className="flex items-center gap-2 text-xs font-semibold text-[#0A1F5C] cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={includeOperator}
+                      onChange={(e) => setIncludeOperator(e.target.checked)}
+                      className="w-4 h-4 accent-[#0B5FD9]"
+                    />
+                    <span>Include Trained Machine Operator / Driver</span>
+                  </label>
+                  <span className="text-xs font-bold text-[#0B5FD9]">
+                    +₹{Math.round((activeMachine?.operatorFeePaise || 30000) / 100)} / hr operator wage
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between text-xs pt-1 border-t border-blue-100">
+                  <span className="text-[#5B6B8C]">Machinery + Operator Subtotal:</span>
+                  <span className="font-mono-num font-extrabold text-[#0B5FD9] text-sm">
+                    ₹{((estimateCalculation.machinerySubtotal + estimateCalculation.operatorSubtotal) / 100).toLocaleString('en-IN')}
+                  </span>
+                </div>
               </div>
             )}
           </div>
@@ -564,28 +809,101 @@ export function AgricultureFlowPage({ entryPath }: { entryPath: 'workers' | 'ser
           </div>
 
           <button type="submit" disabled={submitting} className="w-full serva-pill-btn">
-            <span>{submitting ? 'Submitting Request...' : 'Review Farm Estimate & Submit'}</span>
+            <span>{submitting ? 'Submitting Request...' : `Review Farm Estimate (₹${(estimateCalculation.totalPaise / 100).toLocaleString('en-IN')}) & Submit`}</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         </div>
 
-        <aside className="lg:col-span-4 serva-card p-6 space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold text-[#0A1F5C]">Farm Estimate</h2>
-            <span className="text-xs font-semibold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-full">
-              Estimated
+        {/* ── Farm Estimate Itemized Sidebar ── */}
+        <aside className="lg:col-span-4 serva-card p-6 space-y-5">
+          <div className="flex items-center justify-between border-b border-[#EAF2FF] pb-3">
+            <div>
+              <h2 className="text-lg font-bold text-[#0A1F5C]">Farm Estimate</h2>
+              <p className="text-[11px] text-[#5B6B8C]">Itemized daily & hourly basis calculation</p>
+            </div>
+            <span className="text-xs font-extrabold text-[#16A34A] bg-green-50 px-2.5 py-1 rounded-full border border-green-200">
+              Live Total
             </span>
           </div>
+
           <p className="text-xs text-[#5B6B8C]">
-            Crop: <strong className="text-[#0A1F5C]">{cropType}</strong> · Area:{' '}
+            Crop: <strong className="text-[#0A1F5C]">{cropType}</strong> &bull; Area:{' '}
             <strong className="text-[#0A1F5C]">
               {convertedArea.acres} ac ({convertedArea.guntas} guntas)
             </strong>
           </p>
-          <div className="p-3.5 rounded-xl bg-[#F5F9FF] border border-[#DCE7F9] text-xs text-[#5B6B8C] flex items-start gap-2">
+
+          {/* Itemized Line Items */}
+          <div className="space-y-3 pt-2 text-xs">
+            {estimateCalculation.activeWorkers > 0 && (
+              <div className="p-3 rounded-xl bg-[#F8FAFD] border border-[#EAF2FF] space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-[#0A1F5C]">Agricultural Labour (Daily Basis)</span>
+                  <span className="font-bold text-[#16A34A] font-mono-num">
+                    ₹{(estimateCalculation.workerSubtotal / 100).toLocaleString('en-IN')}
+                  </span>
+                </div>
+                <p className="text-[11px] text-[#5B6B8C]">
+                  {estimateCalculation.activeWorkers} workers &times; {workerDays} {workerDays === 1 ? 'day' : 'days'} @ ₹{Math.round(estimateCalculation.workerDailyRate / 100)}/day
+                </p>
+              </div>
+            )}
+
+            {mode === 'SERVICES' && selectedService && (
+              <div className="p-3 rounded-xl bg-[#F8FAFD] border border-[#EAF2FF] space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-[#0A1F5C]">Farm Service ({selectedService.name})</span>
+                  <span className="font-bold text-[#0B5FD9] font-mono-num">
+                    ₹{(estimateCalculation.serviceSubtotal / 100).toLocaleString('en-IN')}
+                  </span>
+                </div>
+                <p className="text-[11px] text-[#5B6B8C]">
+                  {convertedArea.acres} acres @ ₹{Math.round(selectedService.ratePaise / 100)} {selectedService.unitLabel}
+                </p>
+              </div>
+            )}
+
+            {(mode === 'MACHINERY' || combineMachinery) && (
+              <div className="p-3 rounded-xl bg-[#F8FAFD] border border-[#EAF2FF] space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-[#0A1F5C]">Machinery Rental ({machineryBilling === 'HOURLY' ? 'Hourly Basis' : machineryBilling})</span>
+                  <span className="font-bold text-[#0B5FD9] font-mono-num">
+                    ₹{((estimateCalculation.machinerySubtotal + estimateCalculation.operatorSubtotal) / 100).toLocaleString('en-IN')}
+                  </span>
+                </div>
+                <p className="text-[11px] text-[#5B6B8C]">
+                  {activeMachine?.name} &bull; {machineryDuration} {machineryBilling === 'HOURLY' ? 'hours' : 'units'} @ ₹{Math.round((activeMachine?.hourlyRatePaise || 90000) / 100)}/hr
+                  {includeOperator && ` (+ ₹${Math.round((activeMachine?.operatorFeePaise || 30000) / 100)}/hr operator)`}
+                </p>
+              </div>
+            )}
+
+            <div className="flex items-center justify-between text-[#5B6B8C] px-1">
+              <span>Farm Mobilization & Transport</span>
+              <span className="font-mono-num">₹{estimateCalculation.travelFee / 100}</span>
+            </div>
+
+            <div className="flex items-center justify-between text-[#5B6B8C] px-1">
+              <span>Platform Safety & Verification Fee</span>
+              <span className="font-mono-num">₹{estimateCalculation.platformFee / 100}</span>
+            </div>
+
+            {/* Total Estimated Cost */}
+            <div className="pt-3 border-t border-[#EAF2FF] flex items-center justify-between">
+              <div>
+                <span className="text-xs uppercase font-extrabold text-[#0A1F5C] block">Total Estimated Cost</span>
+                <span className="text-[10px] text-[#5B6B8C]">Inclusive of daily & hourly wages</span>
+              </div>
+              <span className="text-2xl font-black text-[#16A34A] font-mono-num">
+                ₹{(estimateCalculation.totalPaise / 100).toLocaleString('en-IN')}
+              </span>
+            </div>
+          </div>
+
+          <div className="p-3.5 rounded-xl bg-[#F5F9FF] border border-[#DCE7F9] text-[11px] text-[#5B6B8C] flex items-start gap-2">
             <Info className="w-4 h-4 text-[#16A34A] shrink-0 mt-0.5" />
             <span>
-              Separate line items for labour, machinery rental, operator, travel, and platform fee are computed server-side upon submission. Final quotation requires your approval.
+              Wages are calibrated with SERVA Rythu labour contractors. Workers receive approved daily basis shifts, and machinery is billed by operating hour.
             </span>
           </div>
         </aside>
