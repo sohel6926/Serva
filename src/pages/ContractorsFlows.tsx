@@ -7,9 +7,13 @@ import {
   HardHat,
   Info,
   Sofa,
+  Sparkles,
   Truck,
+  X,
 } from 'lucide-react';
 import { PortfolioGallery } from '../components/gallery/PortfolioGallery.tsx';
+import { InteriorDesignersDirectory } from '../components/contractors/InteriorDesignersDirectory.tsx';
+import type { InteriorDesigner } from '../data/interiorDesignersData.ts';
 import { useAuth } from '../context/AuthContext.tsx';
 import { Link, useRouter } from '../lib/router.tsx';
 
@@ -60,6 +64,7 @@ export function ContractorsSectionPage({ section }: { section: string }) {
   const [operatorRequired, setOperatorRequired] = useState(true);
 
   // Interior / Furniture state
+  const [selectedDesigner, setSelectedDesigner] = useState<InteriorDesigner | null>(null);
   const [interiorRoomType, setInteriorRoomType] = useState('Full 3 BHK Home');
   const [furnitureCategory, setFurnitureCategory] = useState('Sofa');
 
@@ -233,14 +238,29 @@ export function ContractorsSectionPage({ section }: { section: string }) {
       </section>
 
       {/* Portfolio showcase for Interior, Furniture, and Home Construction */}
-      {(section === 'interior-design' || section === 'furniture' || section === 'home-construction') && (
+      {section === 'interior-design' ? (
+        <InteriorDesignersDirectory
+          onSelectDesignerForForm={(designer) => {
+            setSelectedDesigner(designer);
+            setNotes((prev) => {
+              const prefix = `Selected Verified Designer: ${designer.name} (${designer.businessName || designer.firmName}, ${designer.locality || designer.area})`;
+              if (prev.includes(designer.name)) return prev;
+              return prev ? `${prefix}\n${prev}` : prefix;
+            });
+            const formEl = document.getElementById('contractor-booking-form');
+            if (formEl) {
+              formEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+          }}
+        />
+      ) : (section === 'furniture' || section === 'home-construction') ? (
         <PortfolioGallery
           category="contractors"
           subCategory={section}
           heading={`${meta.title} Portfolio`}
           subtitle="Verified photos and walkthrough videos uploaded by SERVA Contractors"
         />
-      )}
+      ) : null}
 
       {/* HOME CONSTRUCTION ENQUIRY FORM (NO PAYMENT STEP — Test 12) */}
       {section === 'home-construction' ? (
@@ -362,7 +382,7 @@ export function ContractorsSectionPage({ section }: { section: string }) {
       ) : (
         /* BOOKABLE CONTRACTOR SECTIONS: Workers, Vehicles, Interior, Furniture */
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-          <form onSubmit={submitContractorBooking} className="lg:col-span-7 serva-card p-6 space-y-5">
+          <form id="contractor-booking-form" onSubmit={submitContractorBooking} className="lg:col-span-7 serva-card p-6 space-y-5">
             {error && (
               <div role="alert" className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-sm text-[#DC2626] font-semibold">
                 {error}
@@ -522,21 +542,57 @@ export function ContractorsSectionPage({ section }: { section: string }) {
             )}
 
             {section === 'interior-design' && (
-              <div>
-                <label htmlFor="int-room" className="block text-xs font-semibold text-[#0A1F5C] mb-1">
-                  Interior Scope
-                </label>
-                <select
-                  id="int-room"
-                  value={interiorRoomType}
-                  onChange={(e) => setInteriorRoomType(e.target.value)}
-                  className="w-full min-h-[44px] px-3.5 rounded-xl border border-[#DCE7F9] text-sm bg-white"
-                >
-                  <option>Full 3 BHK Home</option>
-                  <option>Modular Kitchen Only</option>
-                  <option>Living & Dining Room</option>
-                  <option>Office / Commercial Interior</option>
-                </select>
+              <div className="space-y-4">
+                {selectedDesigner && (
+                  <div className="p-3.5 rounded-2xl bg-gradient-to-r from-[#EAF2FF] to-blue-50 border border-blue-200 flex items-center justify-between gap-3 shadow-xs">
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={selectedDesigner.avatar || selectedDesigner.avatarUrl}
+                        alt={selectedDesigner.name}
+                        className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-xs"
+                      />
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-[#0B5FD9] text-white">
+                            Selected Designer
+                          </span>
+                          <span className="text-xs text-[#5B6B8C] font-semibold">
+                            {selectedDesigner.distanceKm} km away
+                          </span>
+                        </div>
+                        <h4 className="text-sm font-bold text-[#0A1F5C] mt-0.5">{selectedDesigner.name}</h4>
+                        <p className="text-xs text-[#5B6B8C]">
+                          {selectedDesigner.businessName || selectedDesigner.firmName} &bull; {selectedDesigner.completedProjects} Completed Projects ({selectedDesigner.onTimeRate || `${selectedDesigner.onTimeDeliveryRate}%`} On-Time)
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedDesigner(null)}
+                      className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-white transition-all cursor-pointer"
+                      title="Clear selected designer"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
+
+                <div>
+                  <label htmlFor="int-room" className="block text-xs font-semibold text-[#0A1F5C] mb-1">
+                    Interior Scope
+                  </label>
+                  <select
+                    id="int-room"
+                    value={interiorRoomType}
+                    onChange={(e) => setInteriorRoomType(e.target.value)}
+                    className="w-full min-h-[44px] px-3.5 rounded-xl border border-[#DCE7F9] text-sm bg-white"
+                  >
+                    <option>Full 3 BHK Home</option>
+                    <option>Modular Kitchen Only</option>
+                    <option>Living & Dining Room</option>
+                    <option>Office / Commercial Interior</option>
+                  </select>
+                </div>
               </div>
             )}
 

@@ -50,10 +50,19 @@ import {
   Wallet,
   Wrench,
   X,
+  Play,
+  Image as ImageIcon,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.tsx';
 import { Link, useRouter } from '../lib/router.tsx';
 import { BrandLogo } from '../components/common/BrandLogo.tsx';
+import {
+  INTERIOR_DESIGNERS_DATA,
+  INITIAL_DESIGNER_INQUIRIES,
+  type InteriorDesigner,
+  type DesignerPortfolioMedia,
+  type DesignerInquiry,
+} from '../data/interiorDesignersData.ts';
 
 /* Types for Admin Panel */
 type AdminTab =
@@ -980,6 +989,33 @@ export function AdminDashboardPage() {
   const [selectedOrderForDetail, setSelectedOrderForDetail] = useState<AdminOrder | null>(null);
   const [reassignModalOrder, setReassignModalOrder] = useState<AdminOrder | null>(null);
   const [selectedNewPartnerId, setSelectedNewPartnerId] = useState<string>('');
+
+  // Interior Designers & Inquiries State
+  const [designerInquiries, setDesignerInquiries] = useState<DesignerInquiry[]>(() => {
+    try {
+      const saved = localStorage.getItem('serva_designer_inquiries');
+      if (saved) return JSON.parse(saved);
+    } catch {
+      // fallback
+    }
+    return INITIAL_DESIGNER_INQUIRIES;
+  });
+
+  const [partnerSubTab, setPartnerSubTab] = useState<'all' | 'interior_design'>('all');
+  const [selectedDesignerForPortfolioModal, setSelectedDesignerForPortfolioModal] = useState<InteriorDesigner | null>(null);
+  const [adminInquiryStatusFilter, setAdminInquiryStatusFilter] = useState<string>('ALL');
+
+  const handleAdminUpdateInquiry = (id: string, updates: Partial<DesignerInquiry>) => {
+    const updated = designerInquiries.map((inq) =>
+      inq.id === id ? { ...inq, ...updates } : inq
+    );
+    setDesignerInquiries(updated);
+    try {
+      localStorage.setItem('serva_designer_inquiries', JSON.stringify(updated));
+    } catch {
+      // ignore
+    }
+  };
 
   // Commission Setup State
   const [globalCommissionPercent, setGlobalCommissionPercent] = useState<number>(10);
@@ -2678,11 +2714,12 @@ export function AdminDashboardPage() {
             {/* ===================== TAB 6: PARTNERS DIRECTORY ===================== */}
             {activeTab === 'partners' && (
               <div className="space-y-6">
+                {/* Header & Sub-tab Switcher */}
                 <div className="bg-white rounded-2xl p-6 border border-[#DCE7F9] shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                   <div>
                     <h2 className="text-lg font-bold text-[#0A1F5C]">Partner Directory & Performance</h2>
                     <p className="text-xs text-[#5B6B8C]">
-                      Category-wise partners, sales, commission paid to platform, ratings, and account status.
+                      Manage service partners, commission payouts, and verified interior designer portfolios and consultation inquiries.
                     </p>
                   </div>
 
@@ -2697,66 +2734,504 @@ export function AdminDashboardPage() {
                   </div>
                 </div>
 
-                <div className="bg-white rounded-2xl border border-[#DCE7F9] shadow-sm overflow-hidden">
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse text-xs">
-                      <thead>
-                        <tr className="bg-[#F8FAFD] border-b border-[#EAF2FF] text-[#5B6B8C] font-bold uppercase text-[10px]">
-                          <th className="py-3 px-4">Partner / Business</th>
-                          <th className="py-3 px-4">Category</th>
-                          <th className="py-3 px-4">Completed Jobs</th>
-                          <th className="py-3 px-4">Gross Sales</th>
-                          <th className="py-3 px-4">Commission Paid</th>
-                          <th className="py-3 px-4">Rating</th>
-                          <th className="py-3 px-4">Status</th>
-                          <th className="py-3 px-4 text-right">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-[#EAF2FF]">
-                        {partnersList.map((p) => (
-                          <tr key={p.id} className="hover:bg-[#F9FBFF]">
-                            <td className="py-3.5 px-4">
-                              <div className="font-bold text-[#0A1F5C]">{p.businessName}</div>
-                              <div className="text-[11px] text-[#5B6B8C]">
-                                {p.ownerName} &bull; {p.mobile}
-                              </div>
-                            </td>
-                            <td className="py-3.5 px-4 font-semibold text-[#0B5FD9]">{p.category}</td>
-                            <td className="py-3.5 px-4 font-semibold text-[#0A1F5C]">{p.completedJobs}</td>
-                            <td className="py-3.5 px-4 font-bold text-gray-900">{formatInr(p.totalSalesPaise)}</td>
-                            <td className="py-3.5 px-4 font-bold text-[#0B5FD9]">{formatInr(p.commissionPaidPaise)}</td>
-                            <td className="py-3.5 px-4">
-                              <span className="inline-flex items-center gap-1 font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md">
-                                <Star className="w-3 h-3 fill-amber-400 text-amber-500" />
-                                <span>{p.rating}</span>
-                              </span>
-                            </td>
-                            <td className="py-3.5 px-4">
-                              <span
-                                className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${p.status === 'ACTIVE'
-                                  ? 'bg-emerald-100 text-emerald-800'
-                                  : 'bg-red-100 text-red-800'
-                                  }`}
-                              >
-                                {p.status}
-                              </span>
-                            </td>
-                            <td className="py-3.5 px-4 text-right">
-                              <button
-                                type="button"
-                                onClick={() => handleTogglePartnerBlock(p.id)}
-                                className={`px-3 py-1 rounded-lg text-xs font-semibold ${p.status === 'ACTIVE'
-                                  ? 'border border-red-200 text-red-600 hover:bg-red-50'
-                                  : 'border border-emerald-200 text-emerald-600 hover:bg-emerald-50'
-                                  }`}
-                              >
-                                {p.status === 'ACTIVE' ? 'Suspend' : 'Activate'}
-                              </button>
-                            </td>
+                {/* Sub-Navigation: All Partners vs Interior Design Hub */}
+                <div className="flex items-center gap-2 border-b border-[#EAF2FF] pb-2">
+                  <button
+                    type="button"
+                    onClick={() => setPartnerSubTab('all')}
+                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                      partnerSubTab === 'all'
+                        ? 'bg-[#0B5FD9] text-white shadow-xs'
+                        : 'bg-white border border-[#DCE7F9] text-[#5B6B8C] hover:text-[#0A1F5C]'
+                    }`}
+                  >
+                    All Service Partners ({partnersList.length})
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setPartnerSubTab('interior_design')}
+                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
+                      partnerSubTab === 'interior_design'
+                        ? 'bg-[#0A1F5C] text-white shadow-xs'
+                        : 'bg-white border border-[#DCE7F9] text-[#5B6B8C] hover:text-[#0A1F5C]'
+                    }`}
+                  >
+                    <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Interior Design & Portfolios Hub (6 Designers)</span>
+                    <span className="px-2 py-0.5 rounded-full bg-amber-400 text-slate-900 text-[10px] font-extrabold">
+                      {designerInquiries.length} Leads
+                    </span>
+                  </button>
+                </div>
+
+                {/* SUB-VIEW 1: Standard Partner Directory */}
+                {partnerSubTab === 'all' && (
+                  <div className="bg-white rounded-2xl border border-[#DCE7F9] shadow-sm overflow-hidden">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left border-collapse text-xs">
+                        <thead>
+                          <tr className="bg-[#F8FAFD] border-b border-[#EAF2FF] text-[#5B6B8C] font-bold uppercase text-[10px]">
+                            <th className="py-3 px-4">Partner / Business</th>
+                            <th className="py-3 px-4">Category</th>
+                            <th className="py-3 px-4">Completed Jobs</th>
+                            <th className="py-3 px-4">Gross Sales</th>
+                            <th className="py-3 px-4">Commission Paid</th>
+                            <th className="py-3 px-4">Rating</th>
+                            <th className="py-3 px-4">Status</th>
+                            <th className="py-3 px-4 text-right">Actions</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody className="divide-y divide-[#EAF2FF]">
+                          {partnersList.map((p) => (
+                            <tr key={p.id} className="hover:bg-[#F9FBFF]">
+                              <td className="py-3.5 px-4">
+                                <div className="font-bold text-[#0A1F5C]">{p.businessName}</div>
+                                <div className="text-[11px] text-[#5B6B8C]">
+                                  {p.ownerName} &bull; {p.mobile}
+                                </div>
+                              </td>
+                              <td className="py-3.5 px-4 font-semibold text-[#0B5FD9]">{p.category}</td>
+                              <td className="py-3.5 px-4 font-semibold text-[#0A1F5C]">{p.completedJobs}</td>
+                              <td className="py-3.5 px-4 font-bold text-gray-900">{formatInr(p.totalSalesPaise)}</td>
+                              <td className="py-3.5 px-4 font-bold text-[#0B5FD9]">{formatInr(p.commissionPaidPaise)}</td>
+                              <td className="py-3.5 px-4">
+                                <span className="inline-flex items-center gap-1 font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md">
+                                  <Star className="w-3 h-3 fill-amber-400 text-amber-500" />
+                                  <span>{p.rating}</span>
+                                </span>
+                              </td>
+                              <td className="py-3.5 px-4">
+                                <span
+                                  className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                                    p.status === 'ACTIVE'
+                                      ? 'bg-emerald-100 text-emerald-800'
+                                      : 'bg-red-100 text-red-800'
+                                  }`}
+                                >
+                                  {p.status}
+                                </span>
+                              </td>
+                              <td className="py-3.5 px-4 text-right">
+                                <button
+                                  type="button"
+                                  onClick={() => handleTogglePartnerBlock(p.id)}
+                                  className={`px-3 py-1 rounded-lg text-xs font-semibold ${
+                                    p.status === 'ACTIVE'
+                                      ? 'border border-red-200 text-red-600 hover:bg-red-50'
+                                      : 'border border-emerald-200 text-emerald-600 hover:bg-emerald-50'
+                                  }`}
+                                >
+                                  {p.status === 'ACTIVE' ? 'Suspend' : 'Activate'}
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+
+                {/* SUB-VIEW 2: Interior Design & Portfolio Hub */}
+                {partnerSubTab === 'interior_design' && (
+                  <div className="space-y-6">
+                    {/* Top KPI Scorecards */}
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                      <div className="bg-white rounded-2xl border border-[#DCE7F9] p-4 shadow-sm">
+                        <span className="text-[10px] font-bold uppercase text-[#5B6B8C]">Verified Designers</span>
+                        <p className="text-2xl font-extrabold text-[#0A1F5C] mt-1 font-mono-num">6</p>
+                        <span className="text-[11px] font-semibold text-emerald-600 mt-1 block">
+                          Hyderabad Top Hubs
+                        </span>
+                      </div>
+
+                      <div className="bg-white rounded-2xl border border-[#DCE7F9] p-4 shadow-sm">
+                        <span className="text-[10px] font-bold uppercase text-[#5B6B8C]">Total Handover Works</span>
+                        <p className="text-2xl font-extrabold text-blue-600 mt-1 font-mono-num">586</p>
+                        <span className="text-[11px] font-semibold text-[#5B6B8C] mt-1 block">
+                          Avg. 98.4% On-Time Delivery
+                        </span>
+                      </div>
+
+                      <div className="bg-white rounded-2xl border border-[#DCE7F9] p-4 shadow-sm">
+                        <span className="text-[10px] font-bold uppercase text-[#5B6B8C]">Avg. Turnaround</span>
+                        <p className="text-2xl font-extrabold text-[#0A1F5C] mt-1 font-mono-num">35 Days</p>
+                        <span className="text-[11px] font-semibold text-[#5B6B8C] mt-1 block">
+                          3 BHK Full Modular Finish
+                        </span>
+                      </div>
+
+                      <div className="bg-white rounded-2xl border border-[#DCE7F9] p-4 shadow-sm">
+                        <span className="text-[10px] font-bold uppercase text-[#5B6B8C]">Customer Inquiries</span>
+                        <p className="text-2xl font-extrabold text-[#0B5FD9] mt-1 font-mono-num">
+                          {designerInquiries.length}
+                        </p>
+                        <span className="text-[11px] font-bold text-rose-600 mt-1 block">
+                          {designerInquiries.filter(i => i.status === 'NEW').length} Pending Dispatch
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Section 1: Verified Designers Directory & Portfolios Table */}
+                    <div className="bg-white rounded-2xl border border-[#DCE7F9] shadow-sm overflow-hidden">
+                      <div className="p-5 border-b border-[#EAF2FF] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div>
+                          <h3 className="text-base font-bold text-[#0A1F5C]">Verified Interior Designers & Past Performance</h3>
+                          <p className="text-xs text-[#5B6B8C]">
+                            Real-time ratings, project completion numbers, pricing, and photo/video portfolios.
+                          </p>
+                        </div>
+                        <span className="text-xs font-bold text-[#0B5FD9] bg-[#EAF2FF] px-3 py-1 rounded-full">
+                          6 Active Designers
+                        </span>
+                      </div>
+
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse text-xs">
+                          <thead>
+                            <tr className="bg-[#F8FAFD] border-b border-[#EAF2FF] text-[#5B6B8C] font-bold uppercase text-[10px]">
+                              <th className="py-3 px-4">Designer & Studio</th>
+                              <th className="py-3 px-4">Operating Area</th>
+                              <th className="py-3 px-4">Experience & Rating</th>
+                              <th className="py-3 px-4">Completed Projects</th>
+                              <th className="py-3 px-4">On-Time %</th>
+                              <th className="py-3 px-4">Avg. Turnaround</th>
+                              <th className="py-3 px-4">Rates</th>
+                              <th className="py-3 px-4">Portfolio Media</th>
+                              <th className="py-3 px-4 text-right">Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-[#EAF2FF]">
+                            {INTERIOR_DESIGNERS_DATA.map((d: InteriorDesigner) => (
+                              <tr key={d.id} className="hover:bg-[#F9FBFF]">
+                                <td className="py-3.5 px-4">
+                                  <div className="flex items-center gap-3">
+                                    <img
+                                      src={d.avatar || d.avatarUrl}
+                                      alt={d.name}
+                                      className="w-9 h-9 rounded-full object-cover border border-[#DCE7F9]"
+                                    />
+                                    <div>
+                                      <div className="font-bold text-[#0A1F5C]">{d.name}</div>
+                                      <div className="text-[11px] text-[#5B6B8C]">{d.businessName || d.firmName}</div>
+                                      <span className="text-[10px] text-slate-400 font-mono">{d.partnerId}</span>
+                                    </div>
+                                  </div>
+                                </td>
+                                <td className="py-3.5 px-4">
+                                  <div className="font-semibold text-[#0A1F5C]">{d.locality || d.area}</div>
+                                  <div className="text-[11px] text-[#5B6B8C]">{d.distanceKm} km from center</div>
+                                </td>
+                                <td className="py-3.5 px-4">
+                                  <div className="flex items-center gap-1 font-bold text-amber-600">
+                                    <Star className="w-3 h-3 fill-amber-400 text-amber-500" />
+                                    <span>{d.rating}</span>
+                                    <span className="text-[11px] text-[#5B6B8C]">({d.reviewCount})</span>
+                                  </div>
+                                  <span className="text-[11px] text-[#5B6B8C]">{d.experienceYears} Years Exp.</span>
+                                </td>
+                                <td className="py-3.5 px-4 font-extrabold text-[#0A1F5C] font-mono-num">
+                                  {d.completedProjects}
+                                </td>
+                                <td className="py-3.5 px-4 font-bold text-emerald-600 font-mono-num">
+                                  {d.onTimeRate || `${d.onTimeDeliveryRate}%`}
+                                </td>
+                                <td className="py-3.5 px-4 text-[#5B6B8C] font-medium">
+                                  {d.avgTurnaroundDays || d.turnaroundDays} Days
+                                </td>
+                                <td className="py-3.5 px-4 font-bold text-[#0B5FD9]">
+                                  {d.pricePerSqFt}
+                                </td>
+                                <td className="py-3.5 px-4">
+                                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-blue-50 text-[#0B5FD9] font-bold text-[11px]">
+                                    {d.portfolio.length} Projects ({d.portfolio.filter((p: DesignerPortfolioMedia) => p.mediaType === 'VIDEO' || p.type === 'video').length} Videos)
+                                  </span>
+                                </td>
+                                <td className="py-3.5 px-4 text-right">
+                                  <button
+                                    type="button"
+                                    onClick={() => setSelectedDesignerForPortfolioModal(d)}
+                                    className="px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-[#0B5FD9] font-bold text-xs transition-all cursor-pointer"
+                                  >
+                                    Inspect Portfolio
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+                    {/* Section 2: Customer Interior Consultation Inquiries & Dispatch Ledger */}
+                    <div className="bg-white rounded-2xl border border-[#DCE7F9] shadow-sm overflow-hidden">
+                      <div className="p-5 border-b border-[#EAF2FF] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div>
+                          <h3 className="text-base font-bold text-[#0A1F5C]">Customer Consultation Inquiries & Dispatch</h3>
+                          <p className="text-xs text-[#5B6B8C]">
+                            Inquiries captured from the &quot;Contact Designer&quot; customer view, with real-time designer re-assignment.
+                          </p>
+                        </div>
+
+                        {/* Status Filter */}
+                        <div className="flex items-center gap-1.5 overflow-x-auto">
+                          {['ALL', 'NEW', 'CONTACTED', 'SITE_VISIT_BOOKED', 'CONVERTED'].map((st) => (
+                            <button
+                              key={st}
+                              type="button"
+                              onClick={() => setAdminInquiryStatusFilter(st)}
+                              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                                adminInquiryStatusFilter === st
+                                  ? 'bg-[#0B5FD9] text-white shadow-xs'
+                                  : 'bg-[#F1F6FF] text-[#5B6B8C] hover:text-[#0A1F5C]'
+                              }`}
+                            >
+                              {st === 'ALL' ? 'All Leads' : st.replace(/_/g, ' ')}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse text-xs">
+                          <thead>
+                            <tr className="bg-[#F8FAFD] border-b border-[#EAF2FF] text-[#5B6B8C] font-bold uppercase text-[10px]">
+                              <th className="py-3 px-4">Lead ID & Customer</th>
+                              <th className="py-3 px-4">Mobile & Area</th>
+                              <th className="py-3 px-4">Interior Scope</th>
+                              <th className="py-3 px-4">Target Date</th>
+                              <th className="py-3 px-4">Budget Range</th>
+                              <th className="py-3 px-4">Assigned Designer</th>
+                              <th className="py-3 px-4">Status</th>
+                              <th className="py-3 px-4 text-right">Contact / Dispatch</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-[#EAF2FF]">
+                            {designerInquiries
+                              .filter((inq: DesignerInquiry) => adminInquiryStatusFilter === 'ALL' || inq.status === adminInquiryStatusFilter)
+                              .map((inq: DesignerInquiry) => (
+                                <tr key={inq.id} className="hover:bg-[#F9FBFF]">
+                                  <td className="py-3.5 px-4">
+                                    <div className="font-bold text-[#0A1F5C]">{inq.customerName}</div>
+                                    <div className="text-[10px] text-slate-400 font-mono">{inq.id} &bull; {inq.createdAt || inq.submittedAt || 'Recently'}</div>
+                                  </td>
+                                  <td className="py-3.5 px-4">
+                                    <div className="font-semibold text-[#0A1F5C]">{inq.customerMobile}</div>
+                                    <div className="text-[11px] text-[#5B6B8C]">{inq.customerAddress || inq.customerArea || 'Hyderabad'}</div>
+                                  </td>
+                                  <td className="py-3.5 px-4 font-bold text-[#0B5FD9]">
+                                    {inq.scope || inq.roomType}
+                                  </td>
+                                  <td className="py-3.5 px-4 text-[#5B6B8C]">
+                                    {inq.preferredDate || inq.scheduledDate}
+                                  </td>
+                                  <td className="py-3.5 px-4 font-mono-num font-bold text-[#0A1F5C]">
+                                    {inq.estimatedBudget || inq.budgetRange}
+                                  </td>
+                                  <td className="py-3.5 px-4">
+                                    {/* Real-time Designer Reassignment */}
+                                    <select
+                                      value={inq.designerId}
+                                      onChange={(e) => {
+                                        const newDesigner = INTERIOR_DESIGNERS_DATA.find((d: InteriorDesigner) => d.id === e.target.value);
+                                        if (newDesigner) {
+                                          handleAdminUpdateInquiry(inq.id, {
+                                            designerId: newDesigner.id,
+                                            designerName: newDesigner.name,
+                                          });
+                                        }
+                                      }}
+                                      className="p-1.5 rounded-lg border border-[#DCE7F9] bg-white text-xs font-semibold text-[#0A1F5C]"
+                                    >
+                                      {INTERIOR_DESIGNERS_DATA.map((d: InteriorDesigner) => (
+                                        <option key={d.id} value={d.id}>
+                                          {d.name} ({d.businessName || d.firmName})
+                                        </option>
+                                      ))}
+                                    </select>
+                                  </td>
+                                  <td className="py-3.5 px-4">
+                                    <select
+                                      value={inq.status}
+                                      onChange={(e) =>
+                                        handleAdminUpdateInquiry(inq.id, {
+                                          status: e.target.value as DesignerInquiry['status'],
+                                        })
+                                      }
+                                      className="p-1.5 rounded-lg border border-[#DCE7F9] bg-white text-xs font-bold"
+                                    >
+                                      <option value="NEW">NEW</option>
+                                      <option value="CONTACTED">CONTACTED</option>
+                                      <option value="SITE_VISIT_BOOKED">SITE VISIT</option>
+                                      <option value="CONVERTED">CONVERTED</option>
+                                    </select>
+                                  </td>
+                                  <td className="py-3.5 px-4 text-right">
+                                    <div className="flex items-center justify-end gap-1.5">
+                                      <a
+                                        href={`tel:${inq.customerMobile}`}
+                                        className="p-1.5 rounded-lg border border-blue-200 text-[#0B5FD9] hover:bg-blue-50"
+                                        title="Call Customer"
+                                      >
+                                        <Phone className="w-3.5 h-3.5" />
+                                      </a>
+                                      <a
+                                        href={`https://wa.me/91${inq.customerMobile.replace(/\D/g, '')}?text=${encodeURIComponent(
+                                          `Hello ${inq.customerName}, this is SERVA Admin dispatch regarding your interior design consultation with ${inq.designerName}.`
+                                        )}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="p-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white"
+                                        title="WhatsApp Customer"
+                                      >
+                                        <Send className="w-3.5 h-3.5" />
+                                      </a>
+                                    </div>
+                                  </td>
+                                </tr>
+                              ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Modal: Admin Inspect Designer Portfolio Media */}
+            {selectedDesignerForPortfolioModal && (
+              <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+                <div className="bg-white rounded-3xl border border-[#DCE7F9] max-w-4xl w-full p-6 sm:p-7 shadow-2xl space-y-5 animate-scale-up max-h-[90vh] overflow-y-auto">
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={selectedDesignerForPortfolioModal.avatar || selectedDesignerForPortfolioModal.avatarUrl}
+                        alt={selectedDesignerForPortfolioModal.name}
+                        className="w-12 h-12 rounded-full object-cover border-2 border-[#0B5FD9]"
+                      />
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-lg font-bold text-[#0A1F5C]">
+                            {selectedDesignerForPortfolioModal.name}
+                          </h3>
+                          <span className="text-xs font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md flex items-center gap-1">
+                            <Star className="w-3 h-3 fill-amber-400 text-amber-500" />
+                            {selectedDesignerForPortfolioModal.rating}
+                          </span>
+                        </div>
+                        <p className="text-xs text-[#5B6B8C]">
+                          {selectedDesignerForPortfolioModal.businessName || selectedDesignerForPortfolioModal.firmName} &bull; {selectedDesignerForPortfolioModal.locality || selectedDesignerForPortfolioModal.area} ({selectedDesignerForPortfolioModal.distanceKm} km away)
+                        </p>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setSelectedDesignerForPortfolioModal(null)}
+                      className="p-2 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 cursor-pointer"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+
+                  {/* Designer Performance Breakdown */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 rounded-2xl bg-[#F8FAFD] border border-[#EAF2FF] text-xs">
+                    <div>
+                      <span className="text-[10px] uppercase font-bold text-[#5B6B8C] block">Completed Works</span>
+                      <span className="font-extrabold text-[#0A1F5C] text-sm">{selectedDesignerForPortfolioModal.completedProjects} Projects</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] uppercase font-bold text-[#5B6B8C] block">On-Time Handover</span>
+                      <span className="font-extrabold text-emerald-600 text-sm">{selectedDesignerForPortfolioModal.onTimeRate || `${selectedDesignerForPortfolioModal.onTimeDeliveryRate}%`}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] uppercase font-bold text-[#5B6B8C] block">Avg. Turnaround</span>
+                      <span className="font-extrabold text-[#0A1F5C] text-sm">{selectedDesignerForPortfolioModal.avgTurnaroundDays || selectedDesignerForPortfolioModal.turnaroundDays} Days</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] uppercase font-bold text-[#5B6B8C] block">Starting Rate</span>
+                      <span className="font-extrabold text-[#0B5FD9] text-sm">{selectedDesignerForPortfolioModal.pricePerSqFt}</span>
+                    </div>
+                  </div>
+
+                  {/* Portfolio Projects Reel (Photos & Walkthrough Videos) */}
+                  <div className="space-y-3">
+                    <h4 className="text-sm font-bold text-[#0A1F5C] flex items-center gap-1.5">
+                      <ImageIcon className="w-4 h-4 text-[#0B5FD9]" />
+                      <span>Verified Media Reel ({selectedDesignerForPortfolioModal.portfolio.length} Projects)</span>
+                    </h4>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {selectedDesignerForPortfolioModal.portfolio.map((media: DesignerPortfolioMedia) => (
+                        <div
+                          key={media.id}
+                          className="rounded-2xl border border-[#EAF2FF] overflow-hidden bg-white shadow-xs space-y-2.5 p-3"
+                        >
+                          <div className="relative aspect-video rounded-xl bg-slate-900 overflow-hidden">
+                            {(media.type === 'video' || media.mediaType === 'VIDEO') ? (
+                              <video
+                                src={media.mediaUrl}
+                                poster={media.thumbnailUrl}
+                                controls
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <img
+                                src={media.mediaUrl}
+                                alt={media.title}
+                                className="w-full h-full object-cover"
+                              />
+                            )}
+
+                            <span className="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-black/75 text-white text-[10px] font-bold flex items-center gap-1">
+                              {(media.type === 'video' || media.mediaType === 'VIDEO') ? (
+                                <>
+                                  <Play className="w-3 h-3 fill-white" />
+                                  <span>Walkthrough ({media.videoDuration || media.duration || '2:15'})</span>
+                                </>
+                              ) : (
+                                <>
+                                  <ImageIcon className="w-3 h-3" />
+                                  <span>Photo</span>
+                                </>
+                              )}
+                            </span>
+                          </div>
+
+                          <div>
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="text-[10px] font-bold text-[#0B5FD9] bg-[#EAF2FF] px-2 py-0.5 rounded-md">
+                                {media.roomType}
+                              </span>
+                              <span className="text-[10px] font-semibold text-[#5B6B8C] bg-slate-100 px-2 py-0.5 rounded-md">
+                                {media.style}
+                              </span>
+                              {(media.budgetEst || media.budget) && (
+                                <span className="text-[10px] font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md">
+                                  {media.budgetEst || media.budget}
+                                </span>
+                              )}
+                            </div>
+                            <h5 className="text-xs font-bold text-[#0A1F5C] mt-1">{media.title}</h5>
+                            {media.description && (
+                              <p className="text-[11px] text-[#5B6B8C] mt-0.5">{media.description}</p>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end pt-3 border-t border-slate-100">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedDesignerForPortfolioModal(null)}
+                      className="px-5 py-2 rounded-xl bg-[#0A1F5C] text-white text-xs font-bold cursor-pointer hover:bg-slate-800"
+                    >
+                      Close Inspector
+                    </button>
                   </div>
                 </div>
               </div>

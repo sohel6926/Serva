@@ -44,14 +44,25 @@ import {
   Wallet,
   X,
   Zap,
+  Play,
+  Image as ImageIcon,
+  PlusCircle,
+  FolderKanban,
+  Filter,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.tsx';
 import { Link, useRouter } from '../lib/router.tsx';
 import { BrandLogo } from '../components/common/BrandLogo.tsx';
 import { PartnerJobDetailPage } from '../components/partner/PartnerJobDetailPage.tsx';
+import {
+  INTERIOR_DESIGNERS_DATA,
+  INITIAL_DESIGNER_INQUIRIES,
+  type DesignerPortfolioMedia,
+  type DesignerInquiry,
+} from '../data/interiorDesignersData.ts';
 
 /* Types for Partner Panel */
-type PanelTab = 'overview' | 'jobs' | 'wallet' | 'kyc' | 'profile' | 'reviews' | 'support';
+type PanelTab = 'overview' | 'jobs' | 'wallet' | 'kyc' | 'profile' | 'reviews' | 'support' | 'portfolio';
 
 interface PartnerJob {
   id: string;
@@ -1062,6 +1073,109 @@ export function PartnerPanelPage() {
   const [profileNotice, setProfileNotice] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState(false);
 
+  // Interior Designer Portfolio & Consultation Inquiries State
+  const [designerInquiries, setDesignerInquiries] = useState<DesignerInquiry[]>(() => {
+    try {
+      const saved = localStorage.getItem('serva_designer_inquiries');
+      if (saved) return JSON.parse(saved);
+    } catch {
+      // fallback
+    }
+    return INITIAL_DESIGNER_INQUIRIES;
+  });
+
+  const [portfolioMediaList, setPortfolioMediaList] = useState<DesignerPortfolioMedia[]>(() => {
+    try {
+      const saved = localStorage.getItem('serva_partner_portfolio');
+      if (saved) return JSON.parse(saved);
+    } catch {
+      // fallback
+    }
+    return INTERIOR_DESIGNERS_DATA[0].portfolio;
+  });
+
+  const [inquiryStatusFilter, setInquiryStatusFilter] = useState<string>('ALL');
+  const [portfolioMediaFilter, setPortfolioMediaFilter] = useState<'all' | 'photo' | 'video'>('all');
+  const [newProjectTitle, setNewProjectTitle] = useState('');
+  const [newProjectRoom, setNewProjectRoom] = useState('Living & Dining');
+  const [newProjectStyle, setNewProjectStyle] = useState('Contemporary Luxury');
+  const [newProjectBudget, setNewProjectBudget] = useState('₹8.5 Lakhs');
+  const [newProjectType, setNewProjectType] = useState<'photo' | 'video'>('photo');
+  const [newProjectUrl, setNewProjectUrl] = useState('');
+  const [newProjectDuration, setNewProjectDuration] = useState('1:45');
+  const [newProjectDesc, setNewProjectDesc] = useState('');
+  const [showAddProjectModal, setShowAddProjectModal] = useState(false);
+  const [projectSuccessMsg, setProjectSuccessMsg] = useState<string | null>(null);
+
+  // Sync inquiries with localStorage changes across tabs / customer submissions
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'serva_designer_inquiries' && e.newValue) {
+        try {
+          setDesignerInquiries(JSON.parse(e.newValue));
+        } catch {
+          // ignore
+        }
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
+  const handleUpdateInquiryStatus = (id: string, newStatus: DesignerInquiry['status']) => {
+    const updated = designerInquiries.map((inq) =>
+      inq.id === id ? { ...inq, status: newStatus } : inq
+    );
+    setDesignerInquiries(updated);
+    try {
+      localStorage.setItem('serva_designer_inquiries', JSON.stringify(updated));
+    } catch {
+      // ignore
+    }
+  };
+
+  const handleAddPortfolioProject = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newProjectTitle.trim()) return;
+
+    const fallbackUrl = newProjectType === 'video'
+      ? '/media/interior_showcase.mp4'
+      : 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=1200&q=80';
+
+    const newItem: DesignerPortfolioMedia = {
+      id: `media-${Date.now()}`,
+      type: newProjectType,
+      mediaType: newProjectType === 'video' ? 'VIDEO' : 'IMAGE',
+      title: newProjectTitle.trim(),
+      roomType: newProjectRoom,
+      style: newProjectStyle,
+      thumbnailUrl: newProjectType === 'video'
+        ? 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=800&q=80'
+        : (newProjectUrl.trim() || fallbackUrl),
+      mediaUrl: newProjectUrl.trim() || fallbackUrl,
+      videoDuration: newProjectType === 'video' ? newProjectDuration : undefined,
+      duration: newProjectType === 'video' ? newProjectDuration : undefined,
+      budgetEst: newProjectBudget.trim() || undefined,
+      budget: newProjectBudget.trim() || undefined,
+      description: newProjectDesc.trim() || `${newProjectStyle} interior execution with custom carpentry & warm layered LED lighting.`,
+    };
+
+    const updated = [newItem, ...portfolioMediaList];
+    setPortfolioMediaList(updated);
+    try {
+      localStorage.setItem('serva_partner_portfolio', JSON.stringify(updated));
+    } catch {
+      // ignore
+    }
+
+    setNewProjectTitle('');
+    setNewProjectUrl('');
+    setNewProjectDesc('');
+    setShowAddProjectModal(false);
+    setProjectSuccessMsg('New portfolio project published to customer showcase!');
+    setTimeout(() => setProjectSuccessMsg(null), 4000);
+  };
+
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
     setProfileMobile(editFormMobile);
@@ -1518,6 +1632,7 @@ Verification Portal: https://serva.in/verify/PTR-8821
             {[
               { id: 'overview' as const, label: 'Overview', icon: TrendingUp },
               { id: 'jobs' as const, label: `Service Jobs (${activeJobs.length})`, icon: Clock, badge: pendingRequests.length > 0 ? pendingRequests.length : undefined },
+              { id: 'portfolio' as const, label: `Portfolio & Leads (${designerInquiries.length})`, icon: Sparkles, badge: designerInquiries.filter(i => i.status === 'NEW').length > 0 ? designerInquiries.filter(i => i.status === 'NEW').length : undefined },
               { id: 'wallet' as const, label: 'Wallet & Withdrawals', icon: Wallet },
               { id: 'profile' as const, label: 'Partner Profile & KYC', icon: UserCheck },
               { id: 'reviews' as const, label: `Reviews (${reviews.length})`, icon: Star },
@@ -2921,6 +3036,508 @@ Verification Portal: https://serva.in/verify/PTR-8821
         </div>
       )}
 
+      {/* ═══════════════════════════════════════════════
+       *  TAB 7: PORTFOLIO & INTERIOR LEADS HUB
+       * ═══════════════════════════════════════════════ */}
+      {activeTab === 'portfolio' && (
+        <div className="space-y-6">
+          {/* Header Banner */}
+          <div className="bg-white rounded-3xl border border-[#DCE7F9] p-6 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-extrabold uppercase px-2.5 py-0.5 rounded-full bg-[#EAF2FF] text-[#0B5FD9]">
+                  Verified Interior Designer Portal
+                </span>
+                <span className="text-xs text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-full flex items-center gap-1">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Live on SERVA Directory
+                </span>
+              </div>
+              <h2 className="text-xl font-bold text-[#0A1F5C] mt-1">Portfolio & Consultation Leads Hub</h2>
+              <p className="text-xs text-[#5B6B8C] mt-0.5">
+                Manage your past project showcases (photos & video walkthroughs), review performance metrics, and respond to incoming customer consultation leads.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2.5">
+              <button
+                type="button"
+                onClick={() => setShowAddProjectModal(true)}
+                className="px-4 py-2.5 rounded-xl bg-[#0B5FD9] hover:bg-[#094FB6] text-white text-xs font-bold flex items-center gap-2 shadow-sm transition-all cursor-pointer"
+              >
+                <PlusCircle className="w-4 h-4" />
+                <span>Add Project Media</span>
+              </button>
+            </div>
+          </div>
+
+          {projectSuccessMsg && (
+            <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold flex items-center gap-2 animate-fade-in">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span>{projectSuccessMsg}</span>
+            </div>
+          )}
+
+          {/* Past Performance Scorecard Strip */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            <div className="bg-white rounded-2xl border border-[#DCE7F9] p-4 shadow-sm">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#5B6B8C]">Completed Projects</span>
+              <p className="text-2xl font-extrabold text-[#0A1F5C] mt-1 font-mono-num">124</p>
+              <span className="text-[11px] font-bold text-emerald-600 flex items-center gap-1 mt-1">
+                <TrendingUp className="w-3 h-3" /> 100% Verified Handover
+              </span>
+            </div>
+
+            <div className="bg-white rounded-2xl border border-[#DCE7F9] p-4 shadow-sm">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#5B6B8C]">On-Time Handover Rate</span>
+              <p className="text-2xl font-extrabold text-blue-600 mt-1 font-mono-num">98.6%</p>
+              <span className="text-[11px] font-semibold text-[#5B6B8C] mt-1 block">
+                Avg. Turnaround: 35 Days
+              </span>
+            </div>
+
+            <div className="bg-white rounded-2xl border border-[#DCE7F9] p-4 shadow-sm">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#5B6B8C]">Client Rating</span>
+              <div className="flex items-center gap-1.5 mt-1">
+                <Star className="w-5 h-5 fill-amber-400 text-amber-500" />
+                <span className="text-2xl font-extrabold text-[#0A1F5C] font-mono-num">4.92</span>
+                <span className="text-xs text-[#5B6B8C]">/ 5.0</span>
+              </div>
+              <span className="text-[11px] text-[#5B6B8C] font-semibold mt-1 block">
+                Based on 88 verified reviews
+              </span>
+            </div>
+
+            <div className="bg-white rounded-2xl border border-[#DCE7F9] p-4 shadow-sm">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#5B6B8C]">Consultation Leads</span>
+              <p className="text-2xl font-extrabold text-[#0B5FD9] mt-1 font-mono-num">
+                {designerInquiries.length}
+              </p>
+              <span className="text-[11px] font-bold text-rose-600 mt-1 block">
+                {designerInquiries.filter(i => i.status === 'NEW').length} New Pending Contact
+              </span>
+            </div>
+          </div>
+
+          {/* ── Section 1: Customer Consultation Leads ── */}
+          <div className="bg-white rounded-3xl border border-[#DCE7F9] p-6 shadow-sm space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#EAF2FF] pb-4">
+              <div>
+                <h3 className="text-base font-bold text-[#0A1F5C] flex items-center gap-2">
+                  <MessageSquare className="w-4 h-4 text-[#0B5FD9]" />
+                  <span>Incoming Customer Consultation Leads</span>
+                  <span className="px-2 py-0.5 rounded-full bg-[#EAF2FF] text-[#0B5FD9] text-xs font-bold">
+                    {designerInquiries.length} Total
+                  </span>
+                </h3>
+                <p className="text-xs text-[#5B6B8C] mt-0.5">
+                  Customers who submitted &quot;Contact Designer&quot; requests on the SERVA Contractors Directory.
+                </p>
+              </div>
+
+              {/* Status Filter */}
+              <div className="flex items-center gap-1.5 overflow-x-auto">
+                {['ALL', 'NEW', 'CONTACTED', 'SITE_VISIT_BOOKED', 'CONVERTED'].map((st) => (
+                  <button
+                    key={st}
+                    type="button"
+                    onClick={() => setInquiryStatusFilter(st)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                      inquiryStatusFilter === st
+                        ? 'bg-[#0A1F5C] text-white shadow-xs'
+                        : 'bg-[#F1F6FF] text-[#5B6B8C] hover:text-[#0A1F5C]'
+                    }`}
+                  >
+                    {st === 'ALL' ? 'All Leads' : st.replace(/_/g, ' ')}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {designerInquiries.length === 0 ? (
+              <div className="text-center py-10 text-xs text-[#5B6B8C]">
+                No customer inquiries yet. When clients click &quot;Contact Designer&quot;, their leads will arrive here instantly.
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {designerInquiries
+                  .filter((inq) => inquiryStatusFilter === 'ALL' || inq.status === inquiryStatusFilter)
+                  .map((inq) => (
+                    <div
+                      key={inq.id}
+                      className="p-4 sm:p-5 rounded-2xl border border-[#EAF2FF] hover:border-blue-200 bg-[#FAFCFF] transition-all space-y-3"
+                    >
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-blue-100 text-[#0B5FD9] font-bold text-sm flex items-center justify-center shrink-0">
+                            {inq.customerName.charAt(0)}
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <h4 className="text-sm font-bold text-[#0A1F5C]">{inq.customerName}</h4>
+                              <span
+                                className={`text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full ${
+                                  inq.status === 'NEW'
+                                    ? 'bg-rose-100 text-rose-700 animate-pulse'
+                                    : inq.status === 'CONTACTED'
+                                    ? 'bg-amber-100 text-amber-700'
+                                    : (inq.status === 'SITE_VISIT_BOOKED' || inq.status === 'SITE_VISIT_SCHEDULED')
+                                    ? 'bg-blue-100 text-[#0B5FD9]'
+                                    : 'bg-emerald-100 text-emerald-700'
+                                }`}
+                              >
+                                {inq.status.replace(/_/g, ' ')}
+                              </span>
+                            </div>
+                            <p className="text-xs text-[#5B6B8C]">
+                              {inq.customerMobile} &bull; {inq.customerAddress || inq.customerArea || 'Hyderabad'} &bull; Submitted {inq.createdAt || inq.submittedAt || 'Recently'}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          {/* Direct Call */}
+                          <a
+                            href={`tel:${inq.customerMobile}`}
+                            className="px-3 py-1.5 rounded-xl border border-blue-200 text-[#0B5FD9] hover:bg-blue-50 text-xs font-bold flex items-center gap-1.5"
+                          >
+                            <Phone className="w-3.5 h-3.5" />
+                            <span>Call</span>
+                          </a>
+
+                          {/* WhatsApp */}
+                          <a
+                            href={`https://wa.me/91${inq.customerMobile.replace(/\D/g, '')}?text=${encodeURIComponent(
+                              `Hello ${inq.customerName}, this is regarding your interior design inquiry for ${inq.scope || inq.roomType || 'Interior Design'} on SERVA!`
+                            )}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5"
+                          >
+                            <Send className="w-3.5 h-3.5" />
+                            <span>WhatsApp</span>
+                          </a>
+
+                          {/* Status Updater */}
+                          <select
+                            value={inq.status}
+                            onChange={(e) => handleUpdateInquiryStatus(inq.id, e.target.value as DesignerInquiry['status'])}
+                            className="px-2.5 py-1.5 rounded-xl border border-[#DCE7F9] bg-white text-xs font-bold text-[#0A1F5C] cursor-pointer"
+                          >
+                            <option value="NEW">Status: New</option>
+                            <option value="CONTACTED">Status: Contacted</option>
+                            <option value="SITE_VISIT_SCHEDULED">Status: Site Visit</option>
+                            <option value="COMPLETED">Status: Completed</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      {/* Lead Details Grid */}
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 p-3 rounded-xl bg-white border border-[#EAF2FF] text-xs">
+                        <div>
+                          <span className="text-[10px] uppercase font-bold text-[#5B6B8C] block">Interior Scope</span>
+                          <span className="font-bold text-[#0A1F5C]">{inq.scope || inq.roomType}</span>
+                        </div>
+                        <div>
+                          <span className="text-[10px] uppercase font-bold text-[#5B6B8C] block">Target Date</span>
+                          <span className="font-bold text-[#0A1F5C]">{inq.preferredDate || inq.scheduledDate}</span>
+                        </div>
+                        <div>
+                          <span className="text-[10px] uppercase font-bold text-[#5B6B8C] block">Budget Estimate</span>
+                          <span className="font-bold text-[#0B5FD9]">{inq.estimatedBudget || inq.budgetRange}</span>
+                        </div>
+                        <div>
+                          <span className="text-[10px] uppercase font-bold text-[#5B6B8C] block">Assigned Designer</span>
+                          <span className="font-bold text-[#0A1F5C] truncate block">{inq.designerName}</span>
+                        </div>
+                      </div>
+
+                      {inq.notes && (
+                        <p className="text-xs text-[#5B6B8C] bg-white p-2.5 rounded-xl border border-[#EAF2FF]">
+                          <span className="font-bold text-[#0A1F5C]">Customer Notes:</span> {inq.notes}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+              </div>
+            )}
+          </div>
+
+          {/* ── Section 2: Verified Portfolio Media Reel ── */}
+          <div className="bg-white rounded-3xl border border-[#DCE7F9] p-6 shadow-sm space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#EAF2FF] pb-4">
+              <div>
+                <h3 className="text-base font-bold text-[#0A1F5C] flex items-center gap-2">
+                  <ImageIcon className="w-4 h-4 text-[#0B5FD9]" />
+                  <span>Verified Portfolio Media ({portfolioMediaList.length} Items)</span>
+                </h3>
+                <p className="text-xs text-[#5B6B8C] mt-0.5">
+                  High-res photos and video walkthroughs displayed to prospective clients on your public portfolio card.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                {(['all', 'photo', 'video'] as const).map((mode) => (
+                  <button
+                    key={mode}
+                    type="button"
+                    onClick={() => setPortfolioMediaFilter(mode)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                      portfolioMediaFilter === mode
+                        ? 'bg-[#0B5FD9] text-white shadow-xs'
+                        : 'bg-[#F1F6FF] text-[#5B6B8C] hover:text-[#0A1F5C]'
+                    }`}
+                  >
+                    {mode === 'all' ? 'All Media' : mode === 'photo' ? 'Photos Only' : 'Videos Only'}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {portfolioMediaList
+                .filter((item) => portfolioMediaFilter === 'all' || (portfolioMediaFilter === 'video' ? (item.type === 'video' || item.mediaType === 'VIDEO') : (item.type === 'photo' || item.mediaType === 'IMAGE')))
+                .map((item) => (
+                  <div
+                    key={item.id}
+                    className="rounded-2xl border border-[#EAF2FF] overflow-hidden bg-white shadow-xs hover:shadow-md transition-all group flex flex-col justify-between"
+                  >
+                    <div className="relative aspect-video bg-slate-900 overflow-hidden">
+                      {(item.type === 'video' || item.mediaType === 'VIDEO') ? (
+                        <video
+                          src={item.mediaUrl}
+                          poster={item.thumbnailUrl}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          muted
+                          loop
+                          playsInline
+                          onMouseEnter={(e) => (e.currentTarget as HTMLVideoElement).play().catch(() => {})}
+                          onMouseLeave={(e) => (e.currentTarget as HTMLVideoElement).pause()}
+                        />
+                      ) : (
+                        <img
+                          src={item.mediaUrl}
+                          alt={item.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                      )}
+
+                      {/* Type Badge */}
+                      <span className="absolute top-2.5 left-2.5 px-2.5 py-1 rounded-lg bg-black/75 backdrop-blur-xs text-white text-[10px] font-bold flex items-center gap-1">
+                        {(item.type === 'video' || item.mediaType === 'VIDEO') ? (
+                          <>
+                            <Play className="w-3 h-3 fill-white text-white" />
+                            <span>Walkthrough ({item.videoDuration || item.duration || '2:15'})</span>
+                          </>
+                        ) : (
+                          <>
+                            <ImageIcon className="w-3 h-3" />
+                            <span>Photo</span>
+                          </>
+                        )}
+                      </span>
+
+                      {(item.budgetEst || item.budget) && (
+                        <span className="absolute bottom-2.5 right-2.5 px-2 py-0.5 rounded-lg bg-white/90 backdrop-blur-xs text-[#0A1F5C] text-[10px] font-mono-num font-bold">
+                          {item.budgetEst || item.budget}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="p-4 space-y-2 flex-1 flex flex-col justify-between">
+                      <div>
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="text-[10px] font-bold text-[#0B5FD9] bg-[#EAF2FF] px-2 py-0.5 rounded-md">
+                            {item.roomType}
+                          </span>
+                          <span className="text-[10px] font-semibold text-[#5B6B8C] bg-slate-100 px-2 py-0.5 rounded-md">
+                            {item.style}
+                          </span>
+                        </div>
+                        <h4 className="text-sm font-bold text-[#0A1F5C] mt-1.5">{item.title}</h4>
+                        {item.description && (
+                          <p className="text-xs text-[#5B6B8C] mt-1 line-clamp-2">{item.description}</p>
+                        )}
+                      </div>
+
+                      <div className="pt-3 border-t border-[#EAF2FF] flex items-center justify-between">
+                        <span className="text-[10px] text-emerald-600 font-bold flex items-center gap-1">
+                          <CheckCircle2 className="w-3 h-3" /> Verified by SERVA
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const updated = portfolioMediaList.filter((m) => m.id !== item.id);
+                            setPortfolioMediaList(updated);
+                            try {
+                              localStorage.setItem('serva_partner_portfolio', JSON.stringify(updated));
+                            } catch {
+                              // ignore
+                            }
+                          }}
+                          className="text-xs font-semibold text-rose-600 hover:text-rose-700 hover:underline"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Add Project Media Modal ── */}
+      {showAddProjectModal && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl border border-[#DCE7F9] max-w-lg w-full p-6 sm:p-7 shadow-2xl space-y-5 animate-scale-up">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-blue-50 text-[#0B5FD9] flex items-center justify-center">
+                  <PlusCircle className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-[#0A1F5C]">Add Portfolio Project Media</h3>
+                  <p className="text-xs text-[#5B6B8C]">Upload photos or video walkthroughs of your completed works.</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowAddProjectModal(false)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleAddPortfolioProject} className="space-y-4 text-xs">
+              <div>
+                <label className="block font-bold text-[#0A1F5C] mb-1">Project Title</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. 3 BHK Modern Living & Dining at Banjara Hills"
+                  value={newProjectTitle}
+                  onChange={(e) => setNewProjectTitle(e.target.value)}
+                  className="w-full p-2.5 rounded-xl border border-[#DCE7F9] font-medium text-xs focus:outline-none focus:border-[#0B5FD9]"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-[#0A1F5C] mb-1">Media Type</label>
+                  <select
+                    value={newProjectType}
+                    onChange={(e) => setNewProjectType(e.target.value as 'photo' | 'video')}
+                    className="w-full p-2.5 rounded-xl border border-[#DCE7F9] font-medium text-xs bg-white"
+                  >
+                    <option value="photo">High-Res Photo</option>
+                    <option value="video">Walkthrough Video</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block font-bold text-[#0A1F5C] mb-1">Room / Space Type</label>
+                  <select
+                    value={newProjectRoom}
+                    onChange={(e) => setNewProjectRoom(e.target.value)}
+                    className="w-full p-2.5 rounded-xl border border-[#DCE7F9] font-medium text-xs bg-white"
+                  >
+                    <option>Living & Dining</option>
+                    <option>Modular Kitchen</option>
+                    <option>Master Suite</option>
+                    <option>Full 3 BHK Home</option>
+                    <option>Full 4 BHK Villa</option>
+                    <option>Commercial / Studio</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-[#0A1F5C] mb-1">Interior Style</label>
+                  <input
+                    type="text"
+                    value={newProjectStyle}
+                    onChange={(e) => setNewProjectStyle(e.target.value)}
+                    placeholder="e.g. Scandinavian, Minimalist"
+                    className="w-full p-2.5 rounded-xl border border-[#DCE7F9] font-medium text-xs"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-[#0A1F5C] mb-1">Project Budget / Cost</label>
+                  <input
+                    type="text"
+                    value={newProjectBudget}
+                    onChange={(e) => setNewProjectBudget(e.target.value)}
+                    placeholder="e.g. ₹9.5 Lakhs"
+                    className="w-full p-2.5 rounded-xl border border-[#DCE7F9] font-medium text-xs"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-bold text-[#0A1F5C] mb-1">
+                  {newProjectType === 'video' ? 'Video URL (MP4 / WebM / Local)' : 'Photo URL (Image)'}
+                </label>
+                <input
+                  type="text"
+                  placeholder={
+                    newProjectType === 'video'
+                      ? 'Default uses /media/interior_showcase.mp4'
+                      : 'Leave blank to use default curated high-res interior photo'
+                  }
+                  value={newProjectUrl}
+                  onChange={(e) => setNewProjectUrl(e.target.value)}
+                  className="w-full p-2.5 rounded-xl border border-[#DCE7F9] font-medium text-xs"
+                />
+              </div>
+
+              {newProjectType === 'video' && (
+                <div>
+                  <label className="block font-bold text-[#0A1F5C] mb-1">Video Duration Tag</label>
+                  <input
+                    type="text"
+                    value={newProjectDuration}
+                    onChange={(e) => setNewProjectDuration(e.target.value)}
+                    placeholder="e.g. 1:45"
+                    className="w-full p-2.5 rounded-xl border border-[#DCE7F9] font-medium text-xs"
+                  />
+                </div>
+              )}
+
+              <div>
+                <label className="block font-bold text-[#0A1F5C] mb-1">Description & Material Specs (Optional)</label>
+                <textarea
+                  rows={2}
+                  value={newProjectDesc}
+                  onChange={(e) => setNewProjectDesc(e.target.value)}
+                  placeholder="e.g. HDHMR board with anti-scratch acrylic laminate, profile LED lighting..."
+                  className="w-full p-2.5 rounded-xl border border-[#DCE7F9] font-medium text-xs"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setShowAddProjectModal(false)}
+                  className="px-4 py-2 rounded-xl border border-[#DCE7F9] text-[#5B6B8C] text-xs font-semibold hover:bg-slate-50 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 rounded-xl bg-[#0B5FD9] hover:bg-[#094FB6] text-white text-xs font-bold shadow-sm cursor-pointer"
+                >
+                  Publish to Portfolio
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* ── Edit Profile Modal ── */}
       {isEditingProfile && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
@@ -3027,6 +3644,7 @@ Verification Portal: https://serva.in/verify/PTR-8821
         {[
           { id: 'overview' as const, label: 'Overview', icon: TrendingUp },
           { id: 'jobs' as const, label: 'Jobs', icon: Clock, badge: pendingRequests.length > 0 ? pendingRequests.length : undefined },
+          { id: 'portfolio' as const, label: 'Portfolio', icon: Sparkles, badge: designerInquiries.filter(i => i.status === 'NEW').length > 0 ? designerInquiries.filter(i => i.status === 'NEW').length : undefined },
           { id: 'wallet' as const, label: 'Wallet', icon: Wallet },
           { id: 'reviews' as const, label: 'Reviews', icon: Star },
           { id: 'support' as const, label: 'Support', icon: HelpCircle },
