@@ -20,13 +20,9 @@ import {
 import { ContractorsSectionPage } from './pages/ContractorsFlows.tsx';
 import { EventServiceFlowPage, EventsPlanPage } from './pages/EventsFlows.tsx';
 import { HomePage } from './pages/HomePage.tsx';
-import {
-  CleaningPage,
-  CookingPage,
-  PaintingPage,
-  RepairingPage,
-} from './pages/HomeServicesFlows.tsx';
+import { RepairingPage, CleaningPage, CookingPage, PaintingPage } from './pages/HomeServicesFlows.tsx';
 import { AgricultureFlowPage } from './pages/AgricultureFlowPage.tsx';
+import { InteriorDesignerDetailPage } from './pages/InteriorDesignerDetailPage.tsx';
 import { LoginPage } from './pages/LoginPage.tsx';
 import { MovingFlowPage } from './pages/MovingFlowPage.tsx';
 import { MyBookingsPage } from './pages/MyBookingsPage.tsx';
@@ -160,6 +156,10 @@ function AppRoutes() {
         bookTo={`/book/home-services/${sub}`}
       />
     );
+  } else if (pathname.startsWith('/contractors/interior-design/designer/') || pathname.startsWith('/interior-designer/')) {
+    const parts = pathname.split('/').filter(Boolean);
+    const designerId = parts[parts.length - 1] || 'dsg-1';
+    content = <InteriorDesignerDetailPage designerId={designerId} />;
   } else if (pathname === '/contractors') {
     content = <ContractorsLandingPage />;
   } else if (pathname.startsWith('/contractors/')) {

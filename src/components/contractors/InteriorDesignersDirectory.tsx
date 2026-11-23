@@ -31,12 +31,15 @@ import {
   INITIAL_INTERIOR_DESIGNERS,
   DesignerInquiry,
 } from '../../data/interiorDesignersData.ts';
+import { Link, useRouter } from '../../lib/router.tsx';
 
 interface InteriorDesignersDirectoryProps {
   onSelectDesignerForForm?: (designer: InteriorDesigner) => void;
 }
 
 export function InteriorDesignersDirectory({ onSelectDesignerForForm }: InteriorDesignersDirectoryProps) {
+  const { navigate } = useRouter();
+
   // Designers List
   const [designers] = useState<InteriorDesigner[]>(INITIAL_INTERIOR_DESIGNERS);
 
@@ -266,29 +269,38 @@ export function InteriorDesignersDirectory({ onSelectDesignerForForm }: Interior
             >
               {/* Designer Card Header */}
               <div className="p-5 sm:p-6 bg-gradient-to-r from-[#F9FBFF] via-white to-[#F6F9FD] border-b border-[#EAF2FF]">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                  <div className="flex items-center gap-3.5">
-                    <div className="relative">
+                <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
+                  <div className="flex items-start gap-3.5 flex-1">
+                    <div 
+                      className="relative cursor-pointer shrink-0 group"
+                      onClick={() => navigate(`/contractors/interior-design/designer/${designer.id}`)}
+                      title={`View ${designer.name}'s Full Profile`}
+                    >
                       <img
                         src={designer.avatar}
                         alt={designer.name}
-                        className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl object-cover border-2 border-white shadow-md"
+                        className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl object-cover border-2 border-white shadow-md group-hover:scale-105 transition-transform"
                       />
                       <span className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center border-2 border-white shadow-xs">
                         <ShieldCheck className="w-3.5 h-3.5" />
                       </span>
                     </div>
 
-                    <div>
+                    <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <h3 className="text-base sm:text-lg font-black text-[#0A1F5C] leading-snug">
-                          {designer.name}
-                        </h3>
+                        <Link
+                          to={`/contractors/interior-design/designer/${designer.id}`}
+                          className="text-base sm:text-lg font-black text-[#0A1F5C] hover:text-[#0B5FD9] transition-colors leading-snug flex items-center gap-1 group"
+                        >
+                          <span>{designer.name}</span>
+                          <ChevronRight className="w-4 h-4 text-[#0B5FD9] group-hover:translate-x-0.5 transition-transform" />
+                        </Link>
                         <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-[#0B5FD9]">
                           {designer.badges[0]}
                         </span>
                       </div>
                       <p className="text-xs font-bold text-[#0B5FD9]">{designer.businessName}</p>
+                      
                       <div className="flex items-center gap-2 text-xs text-[#5B6B8C] mt-1 flex-wrap">
                         <span className="flex items-center gap-1 font-semibold text-[#0A1F5C]">
                           <MapPin className="w-3.5 h-3.5 text-rose-500" />
@@ -301,15 +313,59 @@ export function InteriorDesignersDirectory({ onSelectDesignerForForm }: Interior
                         <span>&bull;</span>
                         <span className="font-semibold">{designer.experienceYears} Years Exp.</span>
                       </div>
+
+                      {/* Bio snippet for instant preview */}
+                      <p className="text-xs text-[#475569] mt-2 line-clamp-2 leading-relaxed">
+                        {designer.bio}
+                      </p>
+
+                      {/* Turnkey Package Estimates */}
+                      <div className="mt-2.5 flex flex-wrap items-center gap-1.5 text-[11px]">
+                        <span className="font-bold text-[#5B6B8C] mr-1">Turnkey:</span>
+                        <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 font-extrabold border border-emerald-200">
+                          2 BHK from ₹9.5L
+                        </span>
+                        <span className="px-2 py-0.5 rounded-md bg-blue-50 text-[#0B5FD9] font-extrabold border border-blue-200">
+                          3 BHK from ₹14.5L
+                        </span>
+                        <span className="px-2 py-0.5 rounded-md bg-purple-50 text-purple-700 font-extrabold border border-purple-200">
+                          4 BHK/Villa from ₹24L
+                        </span>
+                      </div>
+
+                      {/* Guarantees & Features */}
+                      <div className="mt-2 flex flex-wrap items-center gap-3 text-[11px] text-[#5B6B8C]">
+                        <span className="inline-flex items-center gap-1 font-semibold text-emerald-700">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                          10-Yr Material Warranty
+                        </span>
+                        <span className="inline-flex items-center gap-1 font-semibold text-[#0B5FD9]">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-[#0B5FD9]" />
+                          Free 3D Layout Consultation
+                        </span>
+                        <span className="inline-flex items-center gap-1 font-semibold text-purple-700">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-purple-500" />
+                          SERVA Milestone Escrow
+                        </span>
+                      </div>
                     </div>
                   </div>
 
-                  {/* Primary "Contact Designer" Button */}
-                  <div className="w-full sm:w-auto shrink-0 flex items-center gap-2">
+                  {/* Action Buttons: "View Full Profile" and "Contact Designer" */}
+                  <div className="w-full lg:w-auto shrink-0 flex flex-col sm:flex-row lg:flex-col items-stretch gap-2 mt-2 lg:mt-0">
+                    <Link
+                      to={`/contractors/interior-design/designer/${designer.id}`}
+                      className="px-5 py-2.5 rounded-2xl bg-white border-2 border-[#0B5FD9] text-[#0B5FD9] hover:bg-blue-50 text-xs sm:text-sm font-black transition-all flex items-center justify-center gap-1.5 shadow-xs cursor-pointer"
+                    >
+                      <Eye className="w-4 h-4 text-[#0B5FD9]" />
+                      <span>View Full Profile</span>
+                      <ChevronRight className="w-4 h-4" />
+                    </Link>
+
                     <button
                       type="button"
                       onClick={() => handleOpenContactModal(designer)}
-                      className="w-full sm:w-auto px-5 py-3 rounded-2xl bg-[#0B5FD9] hover:bg-[#094FB6] text-white text-xs sm:text-sm font-black shadow-md shadow-blue-500/25 active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                      className="px-5 py-2.5 rounded-2xl bg-[#0B5FD9] hover:bg-[#094FB6] text-white text-xs sm:text-sm font-black shadow-md shadow-blue-500/25 active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
                     >
                       <MessageSquare className="w-4 h-4 text-blue-200" />
                       <span>Contact {designer.name.split(' ')[1] || 'Designer'}</span>
@@ -466,6 +522,23 @@ export function InteriorDesignersDirectory({ onSelectDesignerForForm }: Interior
                   </div>
                 )}
               </div>
+
+              {/* Bottom Card Banner: Navigates to dedicated page */}
+              <Link
+                to={`/contractors/interior-design/designer/${designer.id}`}
+                className="px-5 py-3 bg-gradient-to-r from-blue-50/80 via-indigo-50/50 to-blue-50/80 hover:from-blue-100 hover:to-indigo-100 border-t border-[#DCE7F9] flex items-center justify-between text-xs font-bold text-[#0B5FD9] transition-all group"
+              >
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-[#0B5FD9]" />
+                  <span className="text-[#0A1F5C]">
+                    Explore {designer.name}&apos;s full portfolio, turnkey packages, floor plans & reviews
+                  </span>
+                </div>
+                <span className="flex items-center gap-1 font-black text-[#0B5FD9] group-hover:translate-x-1 transition-transform shrink-0">
+                  <span>View Details & Packages</span>
+                  <ChevronRight className="w-4 h-4" />
+                </span>
+              </Link>
             </div>
           );
         })}
