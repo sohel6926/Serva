@@ -39,6 +39,9 @@ export interface EventPlanner {
   specialties: string[];
   phone: string;
   email: string;
+  bio?: string;
+  guestCapacityRange?: string;
+  setupGuarantee?: string;
   packages: Record<string, EventPreDecidedPackage>;
   portfolio: EventPortfolioMedia[];
 }
@@ -83,6 +86,9 @@ export const EVENT_PLANNERS_DATA: EventPlanner[] = [
     specialties: ['Grand Wedding Mandaps', 'Royal Reception Stages', 'Luxury Floral Installations', 'Live Concert AV'],
     phone: '9848012345',
     email: 'sandeep@grandroyalevents.com',
+    bio: 'Premier luxury wedding & large-scale celebration planner with over 12 years of experience crafting bespoke royal mandaps, celebrity receptions, and high-tech AV productions across Hyderabad and Telangana.',
+    guestCapacityRange: '100 – 5,000+ Guests',
+    setupGuarantee: '100% On-Time Setup Guarantee with dedicated event lead',
     packages: {
       'Marriage / Wedding': {
         eventType: 'Marriage / Wedding',
@@ -256,6 +262,9 @@ export const EVENT_PLANNERS_DATA: EventPlanner[] = [
     specialties: ['Sustainable Floral Decor', 'Haldi & Mehendi Thematics', 'Seemantham Cradles', 'Intimate Weddings'],
     phone: '9848123456',
     email: 'swathi@vibhaoccasions.in',
+    bio: 'Specializing in sustainable eco-chic celebrations, authentic South Indian temple floral mandaps, handcrafted seemantham cradles, and intimate bohemian birthday & haldi setups.',
+    guestCapacityRange: '50 – 1,200 Guests',
+    setupGuarantee: 'Zero-delay setup with fresh floral cold-chain guarantee',
     packages: {
       'Marriage / Wedding': {
         eventType: 'Marriage / Wedding',
@@ -354,6 +363,9 @@ export const EVENT_PLANNERS_DATA: EventPlanner[] = [
     specialties: ['Corporate Tech Conferences', 'Concert Stage & DJ Rigs', 'Mega Receptions', 'Celebrity Galas'],
     phone: '9848234567',
     email: 'karthik@celebratenow.com',
+    bio: 'High-energy celebration & corporate mega-event specialists equipped with in-house P3 curved LED walls, German trussing, JBL Line-Array sound systems, and synchronised cold pyrotechnics.',
+    guestCapacityRange: '200 – 8,000+ Guests',
+    setupGuarantee: 'Guaranteed 4-hour sound & light rig lock-in prior to event',
     packages: {
       'Corporate Events': {
         eventType: 'Corporate Events',
@@ -433,6 +445,9 @@ export const EVENT_PLANNERS_DATA: EventPlanner[] = [
     specialties: ['Hyderabadi Shahi Nikah', 'Live Mughlai Dum Biryani Counters', 'Mughal Dastarkhwan', 'Walima Receptions'],
     phone: '9848345678',
     email: 'zeeshan@nizamiahweddings.com',
+    bio: 'Custodians of authentic royal Hyderabadi wedding traditions, opulent Shahi Nikah stages, crystal chandelier walkways, and royal Dastarkhwan arrangements.',
+    guestCapacityRange: '150 – 3,500 Guests',
+    setupGuarantee: 'Royal protocol & zero-compromise on-time setup guarantee',
     packages: {
       'Marriage / Wedding': {
         eventType: 'Marriage / Wedding',
@@ -504,6 +519,9 @@ export const EVENT_PLANNERS_DATA: EventPlanner[] = [
     specialties: ['Traditional South Indian Weddings', 'Kalyanam Mandaps', 'Pooja & Homam Rituals', 'Catering Coordination'],
     phone: '9848456789',
     email: 'meenakshi@utsavevents.in',
+    bio: 'Dedicated to traditional Vedic weddings, South Indian Kalyanam mandaps, auspicious homams, and warm family Gruhapravesam decor with fresh temple blooms.',
+    guestCapacityRange: '50 – 1,000 Guests',
+    setupGuarantee: 'Auspicious Muhurtham timing alignment guarantee',
     packages: {
       'Marriage / Wedding': {
         eventType: 'Marriage / Wedding',
@@ -571,6 +589,9 @@ export const EVENT_PLANNERS_DATA: EventPlanner[] = [
     specialties: ['Trendy Theme Birthdays', 'Anniversary Dinners', 'Pastel Engagements', 'Farewell & Graduation Parties'],
     phone: '9848567890',
     email: 'rajeshwari@auracelebrations.com',
+    bio: 'Trendsetting aesthetic designer for dream pastel engagements, milestone birthdays, romantic anniversary dinners, and memorable graduation celebrations.',
+    guestCapacityRange: '30 – 800 Guests',
+    setupGuarantee: '100% theme fidelity & photo-ready guarantee',
     packages: {
       'Birthday Parties': {
         eventType: 'Birthday Parties',

@@ -24,6 +24,7 @@ import {
   XCircle,
   Users,
   Compass,
+  ChevronRight,
 } from 'lucide-react';
 import {
   EventPlanner,
@@ -32,6 +33,7 @@ import {
   EventInquiry,
   EVENT_PLANNERS_DATA,
 } from '../../data/eventPlannersData.ts';
+import { Link, useRouter } from '../../lib/router.tsx';
 
 interface EventPlannersDirectoryProps {
   selectedEventType?: string;
@@ -42,6 +44,7 @@ export function EventPlannersDirectory({
   selectedEventType = 'Marriage / Wedding',
   onSelectPlannerForQuote,
 }: EventPlannersDirectoryProps) {
+  const { navigate } = useRouter();
   const [planners] = useState<EventPlanner[]>(EVENT_PLANNERS_DATA);
 
   // Filters & State
@@ -273,22 +276,39 @@ export function EventPlannersDirectory({
               <div className="p-6 space-y-4">
                 {/* Top: Planner Header */}
                 <div className="flex items-start justify-between gap-4">
-                  <div className="flex items-center gap-3.5">
-                    <img
-                      src={planner.avatar}
-                      alt={planner.name}
-                      className="w-14 h-14 rounded-2xl object-cover border-2 border-[#0B5FD9] shadow-xs"
-                    />
-                    <div>
+                  <div className="flex items-start gap-3.5 flex-1 min-w-0">
+                    <div
+                      className="relative cursor-pointer shrink-0 group"
+                      onClick={() => navigate(`/events/planner/${planner.id}`)}
+                      title={`View ${planner.name}'s Full Profile`}
+                    >
+                      <img
+                        src={planner.avatar}
+                        alt={planner.name}
+                        className="w-14 h-14 rounded-2xl object-cover border-2 border-[#0B5FD9] shadow-xs group-hover:scale-105 transition-transform"
+                      />
+                      <span className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center border-2 border-white shadow-xs">
+                        <ShieldCheck className="w-3.5 h-3.5" />
+                      </span>
+                    </div>
+
+                    <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <h3 className="text-base font-bold text-[#0A1F5C] leading-snug">{planner.name}</h3>
+                        <Link
+                          to={`/events/planner/${planner.id}`}
+                          className="text-base font-bold text-[#0A1F5C] hover:text-[#0B5FD9] transition-colors leading-snug flex items-center gap-1 group"
+                        >
+                          <span>{planner.name}</span>
+                          <ChevronRight className="w-4 h-4 text-[#0B5FD9] group-hover:translate-x-0.5 transition-transform" />
+                        </Link>
                         <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
                           <ShieldCheck className="w-3 h-3 text-emerald-600" />
                           <span>Verified Planner</span>
                         </span>
                       </div>
                       <p className="text-xs font-semibold text-[#0B5FD9]">{planner.businessName}</p>
-                      <div className="flex items-center gap-2 mt-1 text-xs text-[#5B6B8C]">
+                      
+                      <div className="flex items-center gap-2 mt-1 text-xs text-[#5B6B8C] flex-wrap">
                         <span className="flex items-center gap-1 font-bold text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded">
                           <Star className="w-3 h-3 fill-amber-400 text-amber-500" />
                           <span>{planner.rating}</span>
@@ -299,6 +319,25 @@ export function EventPlannersDirectory({
                           <MapPin className="w-3 h-3 text-[#0B5FD9]" />
                           <span>{planner.locality}</span>
                           <strong className="text-[#0A1F5C]">({planner.distanceKm} km away)</strong>
+                        </span>
+                      </div>
+
+                      {/* Bio snippet */}
+                      {planner.bio && (
+                        <p className="text-xs text-[#475569] mt-2 line-clamp-2 leading-relaxed">
+                          {planner.bio}
+                        </p>
+                      )}
+
+                      {/* Capacity & Guarantees Bar */}
+                      <div className="mt-2.5 flex flex-wrap items-center gap-2 text-[11px]">
+                        <span className="inline-flex items-center gap-1 font-semibold text-purple-700 bg-purple-50 px-2 py-0.5 rounded-md border border-purple-200">
+                          <Users className="w-3 h-3 text-purple-600" />
+                          <span>{planner.guestCapacityRange || '100 – 5,000+ Guests'}</span>
+                        </span>
+                        <span className="inline-flex items-center gap-1 font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                          <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                          <span>100% On-Time Setup</span>
                         </span>
                       </div>
                     </div>
@@ -345,6 +384,16 @@ export function EventPlannersDirectory({
                         Customized theme decor, sound, lighting, and stage arrangements included.
                       </span>
                     )}
+                  </div>
+
+                  {/* Multiple package price preview */}
+                  <div className="flex flex-wrap items-center gap-1.5 pt-2 border-t border-[#DCE7F9]/60 text-[11px]">
+                    <span className="font-extrabold text-[#5B6B8C] text-[10px] uppercase">Other Packages:</span>
+                    {Object.entries(planner.packages).slice(0, 3).map(([type, pkg]) => (
+                      <span key={type} className="px-2 py-0.5 rounded-md bg-white/90 text-[#0A1F5C] font-black border border-[#DCE7F9] text-[10px]">
+                        {type.split('/')[0].trim()}: {pkg.priceDisplay}
+                      </span>
+                    ))}
                   </div>
                 </div>
 
@@ -396,21 +445,49 @@ export function EventPlannersDirectory({
               </div>
 
               {/* Bottom Actions */}
-              <div className="p-4 bg-[#F8FAFD] border-t border-[#EAF2FF] flex items-center justify-between gap-3">
+              <div className="p-4 bg-[#F8FAFD] border-t border-[#EAF2FF] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="text-xs text-[#5B6B8C] truncate">
                   <span>Specialties: </span>
                   <strong className="text-[#0A1F5C]">{planner.specialties.slice(0, 2).join(', ')}</strong>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => handleOpenQuoteModal(planner)}
-                  className="px-4 py-2.5 rounded-xl bg-[#0B5FD9] hover:bg-[#094FB6] text-white text-xs font-bold inline-flex items-center gap-1.5 shadow-sm transition-all shrink-0 cursor-pointer"
-                >
-                  <MessageSquare className="w-3.5 h-3.5" />
-                  <span>Ask for a Quote</span>
-                </button>
+                <div className="flex items-center gap-2 shrink-0">
+                  <Link
+                    to={`/events/planner/${planner.id}`}
+                    className="px-3.5 py-2.5 rounded-xl bg-white border border-[#0B5FD9] text-[#0B5FD9] hover:bg-blue-50 text-xs font-bold inline-flex items-center gap-1 shadow-2xs transition-all cursor-pointer"
+                  >
+                    <Eye className="w-3.5 h-3.5 text-[#0B5FD9]" />
+                    <span>View Full Profile</span>
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </Link>
+
+                  <button
+                    type="button"
+                    onClick={() => handleOpenQuoteModal(planner)}
+                    className="px-4 py-2.5 rounded-xl bg-[#0B5FD9] hover:bg-[#094FB6] text-white text-xs font-bold inline-flex items-center gap-1.5 shadow-sm transition-all shrink-0 cursor-pointer"
+                  >
+                    <MessageSquare className="w-3.5 h-3.5" />
+                    <span>Ask for a Quote</span>
+                  </button>
+                </div>
               </div>
+
+              {/* Full Width Bottom Card Banner */}
+              <Link
+                to={`/events/planner/${planner.id}`}
+                className="px-5 py-2.5 bg-gradient-to-r from-blue-50/80 via-indigo-50/50 to-blue-50/80 hover:from-blue-100 hover:to-indigo-100 border-t border-[#DCE7F9] flex items-center justify-between text-xs font-bold text-[#0B5FD9] transition-all group"
+              >
+                <div className="flex items-center gap-2 min-w-0">
+                  <Sparkles className="w-3.5 h-3.5 text-[#0B5FD9] shrink-0" />
+                  <span className="text-[#0A1F5C] truncate">
+                    Explore {planner.name}&apos;s full portfolio, packages, walkthrough videos &amp; guest reviews
+                  </span>
+                </div>
+                <span className="flex items-center gap-1 font-black text-[#0B5FD9] group-hover:translate-x-1 transition-transform shrink-0 ml-2">
+                  <span>Details &amp; Packages</span>
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </span>
+              </Link>
             </div>
           );
         })}

@@ -19,6 +19,7 @@ import {
 } from './pages/CategoryPages.tsx';
 import { ContractorsSectionPage } from './pages/ContractorsFlows.tsx';
 import { EventServiceFlowPage, EventsPlanPage } from './pages/EventsFlows.tsx';
+import { EventPlannerDetailPage } from './pages/EventPlannerDetailPage.tsx';
 import { HomePage } from './pages/HomePage.tsx';
 import { RepairingPage, CleaningPage, CookingPage, PaintingPage } from './pages/HomeServicesFlows.tsx';
 import { AgricultureFlowPage } from './pages/AgricultureFlowPage.tsx';
@@ -169,6 +170,10 @@ function AppRoutes() {
     content = <EventsLandingPage />;
   } else if (pathname === '/events/plan') {
     content = <EventsPlanPage />;
+  } else if (pathname.startsWith('/events/planner/') || pathname.startsWith('/events/planners/') || pathname.startsWith('/event-planner/')) {
+    const parts = pathname.split('/').filter(Boolean);
+    const plannerId = parts[parts.length - 1] || 'planner-1';
+    content = <EventPlannerDetailPage plannerId={plannerId} />;
   } else if (pathname.startsWith('/events/')) {
     const sub = pathname.split('/')[2] || 'decoration';
     content = <EventServiceFlowPage serviceSlug={sub} />;
