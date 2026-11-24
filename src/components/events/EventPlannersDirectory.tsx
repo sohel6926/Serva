@@ -353,145 +353,35 @@ export function EventPlannersDirectory({
                     <span className="text-[10px] text-emerald-600 font-bold block">{planner.onTimeRate} On-Time</span>
                   </div>
                 </div>
-
-                {/* Pre-Decided Event Package & Price Card */}
-                <div className="p-4 rounded-2xl bg-gradient-to-br from-blue-50/60 via-indigo-50/40 to-white border border-[#D0E2FE] space-y-2.5">
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#0B5FD9] bg-[#EAF2FF] px-2 py-0.5 rounded-md">
-                        Pre-Decided {selectedEventType} Package
-                      </span>
-                      <h4 className="text-sm font-bold text-[#0A1F5C] mt-1">
-                        {currentPackage ? currentPackage.packageName : `Standard ${selectedEventType} Package`}
-                      </h4>
-                    </div>
-
-                    <div className="text-right shrink-0">
-                      <span className="text-[10px] uppercase font-bold text-slate-500 block">Pre-Decided Starting Price</span>
-                      <span className="text-lg font-black text-[#0B5FD9] font-mono-num">
-                        {currentPackage ? currentPackage.priceDisplay : '₹1,50,000'}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Highlights / Inclusions */}
-                  <div className="flex flex-wrap gap-1.5 pt-1">
-                    {currentPackage?.highlights.map((h, i) => (
-                      <span
-                        key={i}
-                        className="text-[11px] font-semibold text-[#0A1F5C] bg-white px-2 py-0.5 rounded-md border border-[#DCE7F9] shadow-2xs"
-                      >
-                        ✓ {h}
-                      </span>
-                    )) || (
-                      <span className="text-[11px] text-[#5B6B8C]">
-                        Customized theme decor, sound, lighting, and stage arrangements included.
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Multiple package price preview */}
-                  <div className="flex flex-wrap items-center gap-1.5 pt-2 border-t border-[#DCE7F9]/60 text-[11px]">
-                    <span className="font-extrabold text-[#5B6B8C] text-[10px] uppercase">Other Packages:</span>
-                    {Object.entries(planner.packages).slice(0, 3).map(([type, pkg]) => (
-                      <span key={type} className="px-2 py-0.5 rounded-md bg-white/90 text-[#0A1F5C] font-black border border-[#DCE7F9] text-[10px]">
-                        {type.split('/')[0].trim()}: {pkg.priceDisplay}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Portfolio Media Reel (Photos & Videos) */}
-                <div className="space-y-2 pt-1">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-[#0A1F5C] flex items-center gap-1.5">
-                      <Eye className="w-3.5 h-3.5 text-[#0B5FD9]" />
-                      <span>Past Performance &amp; Work Portfolio ({displayMedia.length})</span>
-                    </span>
-                    <span className="text-[10px] text-[#5B6B8C]">Click any to inspect in HD</span>
-                  </div>
-
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-                    {displayMedia.slice(0, 3).map((media) => (
-                      <div
-                        key={media.id}
-                        onClick={() => setSelectedMediaForLightbox({ media, planner })}
-                        className="group relative aspect-video rounded-xl bg-slate-900 overflow-hidden cursor-pointer shadow-2xs border border-[#EAF2FF]"
-                      >
-                        <img
-                          src={media.thumbnailUrl || media.mediaUrl}
-                          alt={media.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20" />
-
-                        {media.mediaType === 'VIDEO' && (
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="w-8 h-8 rounded-full bg-white/90 text-[#0B5FD9] flex items-center justify-center shadow-md group-hover:scale-110 transition-transform">
-                              <Play className="w-4 h-4 fill-current ml-0.5" />
-                            </div>
-                          </div>
-                        )}
-
-                        <span className="absolute bottom-1.5 left-1.5 right-1.5 text-[10px] font-bold text-white truncate">
-                          {media.title}
-                        </span>
-
-                        {media.mediaType === 'VIDEO' && media.videoDuration && (
-                          <span className="absolute top-1.5 right-1.5 px-1.5 py-0.2 rounded bg-black/70 text-white text-[9px] font-mono font-bold">
-                            {media.videoDuration}
-                          </span>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
               </div>
 
-              {/* Bottom Actions */}
+              {/* Bottom Actions: View Profile / Portfolio Button */}
               <div className="p-4 bg-[#F8FAFD] border-t border-[#EAF2FF] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="text-xs text-[#5B6B8C] truncate">
                   <span>Specialties: </span>
                   <strong className="text-[#0A1F5C]">{planner.specialties.slice(0, 2).join(', ')}</strong>
                 </div>
 
-                <div className="flex items-center gap-2 shrink-0">
+                <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto">
                   <Link
                     to={`/events/planner/${planner.id}`}
-                    className="px-3.5 py-2.5 rounded-xl bg-white border border-[#0B5FD9] text-[#0B5FD9] hover:bg-blue-50 text-xs font-bold inline-flex items-center gap-1 shadow-2xs transition-all cursor-pointer"
+                    className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-[#0B5FD9] hover:bg-[#094FB6] text-white text-xs font-black inline-flex items-center justify-center gap-1.5 shadow-sm transition-all cursor-pointer"
                   >
-                    <Eye className="w-3.5 h-3.5 text-[#0B5FD9]" />
-                    <span>View Full Profile</span>
+                    <Eye className="w-3.5 h-3.5 text-white" />
+                    <span>View Profile / Portfolio</span>
                     <ChevronRight className="w-3.5 h-3.5" />
                   </Link>
 
                   <button
                     type="button"
                     onClick={() => handleOpenQuoteModal(planner)}
-                    className="px-4 py-2.5 rounded-xl bg-[#0B5FD9] hover:bg-[#094FB6] text-white text-xs font-bold inline-flex items-center gap-1.5 shadow-sm transition-all shrink-0 cursor-pointer"
+                    className="flex-1 sm:flex-none px-3.5 py-2.5 rounded-xl bg-white border border-[#0B5FD9] text-[#0B5FD9] hover:bg-blue-50 text-xs font-bold inline-flex items-center justify-center gap-1 shadow-2xs transition-all cursor-pointer"
                   >
                     <MessageSquare className="w-3.5 h-3.5" />
                     <span>Ask for a Quote</span>
                   </button>
                 </div>
               </div>
-
-              {/* Full Width Bottom Card Banner */}
-              <Link
-                to={`/events/planner/${planner.id}`}
-                className="px-5 py-2.5 bg-gradient-to-r from-blue-50/80 via-indigo-50/50 to-blue-50/80 hover:from-blue-100 hover:to-indigo-100 border-t border-[#DCE7F9] flex items-center justify-between text-xs font-bold text-[#0B5FD9] transition-all group"
-              >
-                <div className="flex items-center gap-2 min-w-0">
-                  <Sparkles className="w-3.5 h-3.5 text-[#0B5FD9] shrink-0" />
-                  <span className="text-[#0A1F5C] truncate">
-                    Explore {planner.name}&apos;s full portfolio, packages, walkthrough videos &amp; guest reviews
-                  </span>
-                </div>
-                <span className="flex items-center gap-1 font-black text-[#0B5FD9] group-hover:translate-x-1 transition-transform shrink-0 ml-2">
-                  <span>Details &amp; Packages</span>
-                  <ChevronRight className="w-3.5 h-3.5" />
-                </span>
-              </Link>
             </div>
           );
         })}
