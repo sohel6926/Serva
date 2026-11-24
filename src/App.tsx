@@ -24,6 +24,7 @@ import { HomePage } from './pages/HomePage.tsx';
 import { RepairingPage, CleaningPage, CookingPage, PaintingPage } from './pages/HomeServicesFlows.tsx';
 import { AgricultureFlowPage } from './pages/AgricultureFlowPage.tsx';
 import { InteriorDesignerDetailPage } from './pages/InteriorDesignerDetailPage.tsx';
+import { PorterMovingPage } from './pages/PorterMovingPage.tsx';
 import { LoginPage } from './pages/LoginPage.tsx';
 import { MovingFlowPage } from './pages/MovingFlowPage.tsx';
 import { MyBookingsPage } from './pages/MyBookingsPage.tsx';
@@ -40,7 +41,6 @@ const SERVICE_SIDEBAR_PREFIXES = [
   '/contractors',
   '/events',
   '/agriculture',
-  '/moving',
 ];
 
 function AppRoutes() {
@@ -183,11 +183,8 @@ function AppRoutes() {
     const sub = pathname.split('/')[2] || 'services';
     const entryPath = sub === 'workers' || sub === 'machinery' ? sub : 'services';
     content = <AgricultureFlowPage entryPath={entryPath} />;
-  } else if (pathname === '/moving') {
-    content = <MovingLandingPage />;
-  } else if (pathname.startsWith('/moving/')) {
-    const sub = pathname.split('/')[2] || 'home-shifting';
-    content = <MovingFlowPage serviceSlug={sub} />;
+  } else if (pathname === '/moving' || pathname.startsWith('/moving')) {
+    content = <PorterMovingPage />;
   } else if (pathname === '/partner' || pathname.startsWith('/partner/panel') || pathname.startsWith('/partner/dashboard')) {
     content = <PartnerPanelPage />;
   } else if (pathname.startsWith('/admin')) {

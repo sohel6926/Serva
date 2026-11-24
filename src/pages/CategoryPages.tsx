@@ -20,6 +20,7 @@ import { getServicePath } from '../components/search/SearchBar.tsx';
 import { Link } from '../lib/router.tsx';
 import { EnquiryModal } from '../components/common/EnquiryModal.tsx';
 import { EventPlannersDirectory } from '../components/events/EventPlannersDirectory.tsx';
+import { PorterMovingPage } from './PorterMovingPage.tsx';
 
 interface ServiceRecord {
   id: string;
@@ -612,62 +613,9 @@ function TractorIcon({ className }: { className?: string }) {
   return <Sprout className={className} />;
 }
 
-/* 5. MOVING AND SHIFTING */
+/* 5. MOVING AND SHIFTING - Porter Logistics & Packers Format */
 export function MovingLandingPage() {
-  const { services, loading } = useCategoryServices('moving');
-
-  // Strictly 7 main services + Individual Item add-on
-  const mainSeven = services.filter((s) => s.sub_category === 'main').slice(0, 7);
-  const individualAddon = services.find((s) => s.slug === 'individual-item');
-
-  return (
-    <div className="space-y-8">
-      <CategoryHero
-        title="Moving and Shifting"
-        subtitle="Verified moving workers, packing teams, and combined loading & unloading."
-        image="/src/assets/images/hero_moving_1794821795552.jpg"
-        ctaLabel="Start Shifting Quote"
-        ctaTo="/moving/home-shifting"
-      />
-
-      {/* Critical No-Vehicle Notice */}
-      <div
-        role="note"
-        className="serva-card p-5 bg-amber-50 border-amber-200 flex items-start gap-3"
-      >
-        <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-        <div className="text-sm text-[#0A1F5C] space-y-1">
-          <p className="font-bold">Important Notice: SERVA Does Not Provide Vehicles</p>
-          <p className="text-xs text-[#5B6B8C] leading-relaxed">
-            SERVA connects you with verified packing, loading, and shifting teams only. Customers
-            arrange their own transport vehicle independently. There are zero vehicle rentals or
-            vehicle charges on SERVA.
-          </p>
-        </div>
-      </div>
-
-      {/* Exactly Seven Main Services */}
-      <section className="space-y-3">
-        <h2 className="text-xl font-bold text-[#0A1F5C]">Seven Moving & Shifting Services</h2>
-        <SeededServicesGrid services={mainSeven} loading={loading} />
-      </section>
-
-      {/* Individual Item Shifting Add-on */}
-      {individualAddon && (
-        <section className="serva-card p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="space-y-1">
-            <p className="text-xs font-semibold text-[#0B5FD9]">Add-on Service</p>
-            <h3 className="text-lg font-bold text-[#0A1F5C]">{individualAddon.name}</h3>
-            <p className="text-sm text-[#5B6B8C]">{individualAddon.description}</p>
-          </div>
-          <Link to="/moving/individual-item" className="serva-pill-btn shrink-0">
-            <span>Book Individual Item</span>
-            <ArrowRight className="w-4 h-4" />
-          </Link>
-        </section>
-      )}
-    </div>
-  );
+  return <PorterMovingPage />;
 }
 
 /* Sub-route Detail Page for Phase 2 (every tile opens a real page with portfolio / details) */
