@@ -1,7 +1,21 @@
 import React, { useState } from 'react';
-import { ArrowRight, CheckCircle2, ShieldCheck, Upload } from 'lucide-react';
+import {
+  ArrowRight,
+  CheckCircle2,
+  ShieldCheck,
+  Upload,
+  Layers,
+  CheckSquare,
+  ChevronDown,
+  Search,
+  X,
+} from 'lucide-react';
 import { useAuth } from '../context/AuthContext.tsx';
 import { useRouter } from '../lib/router.tsx';
+import {
+  PARTNER_CATEGORIES,
+  getSubCategories,
+} from '../data/partnerCategoriesData.ts';
 
 const PARTNER_TYPES = [
   'Technician / Home Worker',
@@ -37,7 +51,13 @@ export function PartnerRegisterPage() {
   const [businessName, setBusinessName] = useState('');
   const [isIndividual, setIsIndividual] = useState(true);
   const [categories, setCategories] = useState<string[]>(['home-services']);
-  const [servicesText, setServicesText] = useState('electrician, plumbing');
+  const [selectedSubCategories, setSelectedSubCategories] = useState<string[]>([
+    'Electrician & Wiring',
+    'AC Repair, Servicing & Gas Refilling',
+  ]);
+  const [isSubCatDropdownOpen, setIsSubCatDropdownOpen] = useState(true);
+  const [subCatSearch, setSubCatSearch] = useState('');
+  const [servicesText, setServicesText] = useState('Electrician & Wiring, AC Repair, Servicing & Gas Refilling');
   const [serviceArea, setServiceArea] = useState('Hyderabad, TG');
   const [experienceYears, setExperienceYears] = useState(3);
   const [teamSize, setTeamSize] = useState(1);
@@ -317,34 +337,186 @@ export function PartnerRegisterPage() {
 
         {step === 2 && (
           <div className="space-y-4">
-            <h2 className="text-lg font-bold text-[#0A1F5C]">2. Categories, Skills & Area</h2>
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <h2 className="text-lg font-bold text-[#0A1F5C]">2. Categories, Sub-Categories & Skills</h2>
+                <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-[#EBF2FE] text-[#0B5FD9] border border-[#DCE7F9]">
+                  {isIndividual ? '👤 Individual Technician' : '🏪 Shop / Business'}
+                </span>
+              </div>
+              <p className="text-xs text-[#5B6B8C]">
+                Select your primary industry categories and check the specific sub-category services you offer.
+              </p>
+            </div>
 
-            <div className="flex flex-wrap gap-2">
-              {CATEGORY_OPTIONS.map((c) => (
+            {/* Categories Buttons */}
+            <div>
+              <label className="block text-xs font-bold text-[#0A1F5C] mb-1.5">
+                Primary Categories (Click to activate)
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {CATEGORY_OPTIONS.map((c) => (
+                  <button
+                    key={c.slug}
+                    type="button"
+                    onClick={() => toggleCategory(c.slug)}
+                    className={`min-h-[40px] px-4 rounded-full text-xs font-bold border cursor-pointer transition-all ${
+                      categories.includes(c.slug)
+                        ? 'bg-[#0B5FD9] text-white border-[#0B5FD9] shadow-sm'
+                        : 'bg-white text-[#0A1F5C] border-[#DCE7F9] hover:bg-[#F8FAFD]'
+                    }`}
+                  >
+                    {c.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Sub-Categories Accordion Dropdown with Multi-Select Checkboxes */}
+            <div className="bg-[#F8FAFD] p-4 rounded-2xl border border-[#DCE7F9] space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Layers className="w-4 h-4 text-[#0B5FD9]" />
+                  <span className="text-xs font-bold text-[#0A1F5C]">
+                    Available Sub-Categories ({selectedSubCategories.length} Selected)
+                  </span>
+                </div>
                 <button
-                  key={c.slug}
                   type="button"
-                  onClick={() => toggleCategory(c.slug)}
-                  className={`min-h-[40px] px-4 rounded-full text-xs font-bold border cursor-pointer ${
-                    categories.includes(c.slug)
-                      ? 'bg-[#0B5FD9] text-white border-[#0B5FD9]'
-                      : 'bg-white text-[#0A1F5C] border-[#DCE7F9]'
-                  }`}
+                  onClick={() => setIsSubCatDropdownOpen(!isSubCatDropdownOpen)}
+                  className="px-2.5 py-1 rounded-lg text-xs font-bold border border-[#DCE7F9] bg-white text-[#0B5FD9] hover:bg-[#EBF2FE] flex items-center gap-1 cursor-pointer"
                 >
-                  {c.label}
+                  <span>{isSubCatDropdownOpen ? 'Close Menu' : 'Open Sub-Categories'}</span>
+                  <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isSubCatDropdownOpen ? 'rotate-180' : ''}`} />
                 </button>
-              ))}
+              </div>
+
+              {isSubCatDropdownOpen && (
+                <div className="bg-white rounded-xl border border-[#DCE7F9] p-3 shadow-xs space-y-2.5">
+                  <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center justify-between pb-2 border-b border-[#F0F4FA]">
+                    <div className="relative flex-1">
+                      <Search className="w-3.5 h-3.5 text-[#5B6B8C] absolute left-2.5 top-1/2 -translate-y-1/2" />
+                      <input
+                        type="text"
+                        placeholder="Filter available sub-categories..."
+                        value={subCatSearch}
+                        onChange={(e) => setSubCatSearch(e.target.value)}
+                        className="w-full pl-8 pr-2.5 py-1.5 text-xs rounded-lg border border-[#DCE7F9] bg-[#F8FAFD] focus:bg-white focus:outline-none focus:border-[#0B5FD9]"
+                      />
+                    </div>
+                    <div className="flex items-center gap-1.5 shrink-0 text-xs">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const allAvailable = categories.flatMap((catSlug) =>
+                            getSubCategories(catSlug, isIndividual ? 'INDIVIDUAL' : 'SHOP_BUSINESS')
+                          );
+                          const unique = Array.from(new Set(allAvailable));
+                          setSelectedSubCategories(unique);
+                          setServicesText(unique.join(', '));
+                        }}
+                        className="px-2 py-1 rounded bg-[#EBF2FE] text-[#0B5FD9] hover:bg-[#DCE7F9] font-bold cursor-pointer"
+                      >
+                        Select All
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedSubCategories([]);
+                          setServicesText('');
+                        }}
+                        className="px-2 py-1 rounded bg-gray-100 text-[#5B6B8C] hover:bg-gray-200 font-bold cursor-pointer"
+                      >
+                        Clear
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="max-h-56 overflow-y-auto space-y-1.5 pr-1">
+                    {categories.map((catSlug) => {
+                      const catConfig = PARTNER_CATEGORIES.find((c) => c.id === catSlug || c.name.toLowerCase().includes(catSlug.replace('-', ' '))) || PARTNER_CATEGORIES[0];
+                      const subOptions = getSubCategories(catSlug, isIndividual ? 'INDIVIDUAL' : 'SHOP_BUSINESS');
+                      const filtered = subOptions.filter((s) => s.toLowerCase().includes(subCatSearch.toLowerCase()));
+
+                      if (filtered.length === 0) return null;
+
+                      return (
+                        <div key={catSlug} className="space-y-1 pt-1">
+                          <p className="text-[11px] font-bold text-[#0B5FD9] uppercase tracking-wider px-1">
+                            {catConfig.icon} {catConfig.name}
+                          </p>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                            {filtered.map((item) => {
+                              const isChecked = selectedSubCategories.includes(item);
+                              return (
+                                <label
+                                  key={item}
+                                  className={`flex items-center gap-2 p-2 rounded-lg text-xs cursor-pointer border transition-all ${
+                                    isChecked
+                                      ? 'bg-[#F1F6FF] text-[#0B5FD9] font-bold border-[#BED5FA]'
+                                      : 'bg-white text-[#0A1F5C] hover:bg-[#F8FAFD] border-[#EDF3FC]'
+                                  }`}
+                                >
+                                  <input
+                                    type="checkbox"
+                                    checked={isChecked}
+                                    onChange={() => {
+                                      const updated = isChecked
+                                        ? selectedSubCategories.filter((sc) => sc !== item)
+                                        : [...selectedSubCategories, item];
+                                      setSelectedSubCategories(updated);
+                                      setServicesText(updated.join(', '));
+                                    }}
+                                    className="w-4 h-4 rounded text-[#0B5FD9] accent-[#0B5FD9] cursor-pointer"
+                                  />
+                                  <span className="flex-1 truncate">{item}</span>
+                                </label>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Selected Sub-Category Chips */}
+              {selectedSubCategories.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  {selectedSubCategories.map((sub) => (
+                    <span
+                      key={sub}
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-white border border-[#DCE7F9] text-[#0A1F5C] shadow-2xs"
+                    >
+                      <span>{sub}</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = selectedSubCategories.filter((s) => s !== sub);
+                          setSelectedSubCategories(updated);
+                          setServicesText(updated.join(', '));
+                        }}
+                        className="text-[#5B6B8C] hover:text-red-500 ml-0.5 cursor-pointer"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div>
               <label htmlFor="p-svcs" className="block text-xs font-bold text-[#0A1F5C] mb-1">
-                Specific Services / Skills (comma-separated)
+                Custom / Additional Specific Skills (comma-separated)
               </label>
               <input
                 id="p-svcs"
                 type="text"
                 value={servicesText}
                 onChange={(e) => setServicesText(e.target.value)}
+                placeholder="e.g. Electrician, Plumbing, Smart Home Setup"
                 className="w-full min-h-[44px] px-3.5 rounded-xl border border-[#DCE7F9] text-sm"
               />
             </div>

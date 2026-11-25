@@ -52,7 +52,15 @@ import {
   PlusCircle,
   FolderKanban,
   Filter,
+  ChevronDown,
+  CheckSquare,
+  Layers,
+  Search,
 } from 'lucide-react';
+import {
+  PARTNER_CATEGORIES,
+  getSubCategories,
+} from '../data/partnerCategoriesData.ts';
 import { useAuth } from '../context/AuthContext.tsx';
 import { Link, useRouter } from '../lib/router.tsx';
 import { BrandLogo } from '../components/common/BrandLogo.tsx';
@@ -366,8 +374,26 @@ function PartnerAuthGate({ onSignedIn }: PartnerAuthGateProps) {
   const [email, setEmail] = useState(user?.email || '');
   const [regPassword, setRegPassword] = useState('');
   const [category, setCategory] = useState('Home Services');
+  const [selectedSubCategories, setSelectedSubCategories] = useState<string[]>(() => {
+    return getSubCategories('Home Services', 'INDIVIDUAL').slice(0, 3);
+  });
+  const [isSubCatDropdownOpen, setIsSubCatDropdownOpen] = useState(true);
+  const [subCatSearch, setSubCatSearch] = useState('');
   const [servicesOffered, setServicesOffered] = useState('Electrician & Wiring, AC Repair, Geyser Care');
   const [serviceArea, setServiceArea] = useState('Hyderabad (All Zones)');
+
+  const handlePartnerTypeChange = (newType: 'INDIVIDUAL' | 'SHOP_BUSINESS') => {
+    setPartnerType(newType);
+    const available = getSubCategories(category, newType);
+    setSelectedSubCategories(available.slice(0, 3));
+  };
+
+  const handleCategoryChange = (newCategory: string) => {
+    setCategory(newCategory);
+    const available = getSubCategories(newCategory, partnerType);
+    setSelectedSubCategories(available.slice(0, 3));
+    setIsSubCatDropdownOpen(true);
+  };
 
   // KYC Docs
   const [panNumber, setPanNumber] = useState('BPZPR4521K');
@@ -446,6 +472,10 @@ function PartnerAuthGate({ onSignedIn }: PartnerAuthGateProps) {
       setRegError('Shop name and GST/Trade License number are required for business verification.');
       return;
     }
+    if (selectedSubCategories.length === 0) {
+      setRegError('Please select at least one sub-category service.');
+      return;
+    }
 
     setSubmitting(true);
     setTimeout(() => {
@@ -455,7 +485,8 @@ function PartnerAuthGate({ onSignedIn }: PartnerAuthGateProps) {
         mobile,
         email,
         category,
-        servicesOffered,
+        subCategories: selectedSubCategories,
+        servicesOffered: selectedSubCategories.join(', '),
         serviceArea,
         panNumber: partnerType === 'INDIVIDUAL' ? panNumber : undefined,
         shopName: partnerType === 'SHOP_BUSINESS' ? shopName : undefined,
@@ -465,6 +496,9 @@ function PartnerAuthGate({ onSignedIn }: PartnerAuthGateProps) {
         status: 'PENDING_APPROVAL',
         submittedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       };
+      try {
+        localStorage.setItem('serva_partner_kyc', JSON.stringify(appData));
+      } catch {}
       setSubmittedKyc(appData);
       setSubmitting(false);
     }, 600);
@@ -549,8 +583,26 @@ function PartnerAuthGate({ onSignedIn }: PartnerAuthGateProps) {
             </h2>
             <p className="text-xs text-[#5B6B8C] mt-1">
               Thank you <strong>{submittedKyc.fullName}</strong>. Your partner profile for{' '}
-              <strong>{submittedKyc.category}</strong> has been forwarded to SERVA Admin for verification.
+              <strong>{submittedKyc.category}</strong> ({submittedKyc.partnerType === 'SHOP_BUSINESS' ? 'Shop / Business' : 'Individual Technician'}) has been forwarded to SERVA Admin for verification.
             </p>
+            {submittedKyc.subCategories && submittedKyc.subCategories.length > 0 && (
+              <div className="mt-3 text-left bg-[#F8FAFD] p-3 rounded-xl border border-[#DCE7F9]">
+                <p className="text-[11px] font-bold text-[#0A1F5C] mb-1.5 flex items-center gap-1.5">
+                  <CheckSquare className="w-3.5 h-3.5 text-[#0B5FD9]" />
+                  <span>Approved Sub-Categories ({submittedKyc.subCategories.length}):</span>
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {submittedKyc.subCategories.map((sc: string) => (
+                    <span
+                      key={sc}
+                      className="px-2 py-0.5 rounded-md text-[11px] bg-white text-[#0B5FD9] font-semibold border border-[#DCE7F9] shadow-2xs"
+                    >
+                      ✓ {sc}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Stepper Status Tracking */}
@@ -739,7 +791,7 @@ function PartnerAuthGate({ onSignedIn }: PartnerAuthGateProps) {
                   <div className="grid grid-cols-2 gap-2">
                     <button
                       type="button"
-                      onClick={() => setPartnerType('INDIVIDUAL')}
+                      onClick={() => handlePartnerTypeChange('INDIVIDUAL')}
                       className={`p-2.5 rounded-xl text-xs font-bold border text-center transition-all ${
                         partnerType === 'INDIVIDUAL'
                           ? 'bg-[#0B5FD9] text-white border-[#0B5FD9] shadow-sm'
@@ -750,7 +802,7 @@ function PartnerAuthGate({ onSignedIn }: PartnerAuthGateProps) {
                     </button>
                     <button
                       type="button"
-                      onClick={() => setPartnerType('SHOP_BUSINESS')}
+                      onClick={() => handlePartnerTypeChange('SHOP_BUSINESS')}
                       className={`p-2.5 rounded-xl text-xs font-bold border text-center transition-all ${
                         partnerType === 'SHOP_BUSINESS'
                           ? 'bg-[#0B5FD9] text-white border-[#0B5FD9] shadow-sm'
@@ -830,31 +882,209 @@ function PartnerAuthGate({ onSignedIn }: PartnerAuthGateProps) {
                   )}
                 </div>
 
-                {/* Category & Services */}
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="block text-xs font-bold text-[#0A1F5C] mb-1">Category</label>
-                    <select
-                      value={category}
-                      onChange={(e) => setCategory(e.target.value)}
-                      className="w-full p-2.5 rounded-xl border border-[#DCE7F9] text-xs bg-white font-medium"
-                    >
-                      <option value="Home Services">Home Services</option>
-                      <option value="Contractors & Construction">Contractors & Construction</option>
-                      <option value="Agriculture Services">Agriculture Services</option>
-                      <option value="Event Services">Event Services</option>
-                      <option value="Moving & Shifting">Moving & Shifting</option>
-                    </select>
+                {/* Category & Services Section */}
+                <div className="space-y-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="block text-xs font-bold text-[#0A1F5C]">
+                          Category *
+                        </label>
+                        <span className="text-[10px] font-semibold text-[#0B5FD9]">
+                          {partnerType === 'INDIVIDUAL' ? '👤 Individual Technician' : '🏪 Shop / Business'}
+                        </span>
+                      </div>
+                      <select
+                        value={category}
+                        onChange={(e) => handleCategoryChange(e.target.value)}
+                        className="w-full p-2.5 rounded-xl border border-[#DCE7F9] text-xs bg-white font-medium focus:outline-none focus:border-[#0B5FD9]"
+                      >
+                        {PARTNER_CATEGORIES.map((c) => (
+                          <option key={c.id} value={c.name}>
+                            {c.icon} {c.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-[#0A1F5C] mb-1">Service Area</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Hyderabad, TG"
+                        value={serviceArea}
+                        onChange={(e) => setServiceArea(e.target.value)}
+                        className="w-full p-2.5 rounded-xl border border-[#DCE7F9] text-xs"
+                      />
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-xs font-bold text-[#0A1F5C] mb-1">Service Area</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. Hyderabad, TG"
-                      value={serviceArea}
-                      onChange={(e) => setServiceArea(e.target.value)}
-                      className="w-full p-2.5 rounded-xl border border-[#DCE7F9] text-xs"
-                    />
+
+                  {/* Dynamic Sub-Categories Dropdown with Multi-Select Checkboxes */}
+                  <div className="bg-[#F8FAFD] p-3 rounded-2xl border border-[#DCE7F9] space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <Layers className="w-3.5 h-3.5 text-[#0B5FD9]" />
+                          <label className="text-xs font-bold text-[#0A1F5C]">
+                            Sub-Categories ({selectedSubCategories.length} Selected) *
+                          </label>
+                        </div>
+                        <p className="text-[10px] text-[#5B6B8C]">
+                          Tailored for <span className="font-semibold text-[#0A1F5C]">{partnerType === 'INDIVIDUAL' ? 'Individual Technician' : 'Shop / Business'}</span> in <span className="font-semibold text-[#0B5FD9]">{category}</span>
+                        </p>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => setIsSubCatDropdownOpen(!isSubCatDropdownOpen)}
+                        className="px-2.5 py-1 rounded-lg text-[11px] font-bold border border-[#DCE7F9] bg-white text-[#0B5FD9] hover:bg-[#EBF2FE] flex items-center gap-1 cursor-pointer transition-all"
+                      >
+                        <span>{isSubCatDropdownOpen ? 'Close Menu' : 'Choose Sub-Categories'}</span>
+                        <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isSubCatDropdownOpen ? 'rotate-180' : ''}`} />
+                      </button>
+                    </div>
+
+                    {/* Quick Trigger Button */}
+                    <div
+                      onClick={() => setIsSubCatDropdownOpen(!isSubCatDropdownOpen)}
+                      className="p-2.5 bg-white rounded-xl border border-[#DCE7F9] hover:border-[#0B5FD9] cursor-pointer flex items-center justify-between text-xs transition-all shadow-2xs"
+                    >
+                      <div className="flex items-center gap-2 truncate">
+                        <CheckSquare className="w-4 h-4 text-[#0B5FD9] shrink-0" />
+                        <span className="font-semibold text-[#0A1F5C] truncate">
+                          {selectedSubCategories.length === 0
+                            ? `Click to select sub-categories for ${category}...`
+                            : `${selectedSubCategories.length} sub-categor${selectedSubCategories.length === 1 ? 'y' : 'ies'} active for ${category}`}
+                        </span>
+                      </div>
+                      <span className="text-[10px] font-bold text-[#0B5FD9] bg-[#EBF2FE] px-2 py-0.5 rounded-full shrink-0">
+                        {isSubCatDropdownOpen ? '▲ Hide Dropdown' : '▼ Select Sub-Categories'}
+                      </span>
+                    </div>
+
+                    {/* Dropdown Panel with Checkboxes */}
+                    {isSubCatDropdownOpen && (
+                      <div className="mt-2 bg-white rounded-xl border border-[#DCE7F9] p-3 shadow-md space-y-2.5">
+                        {/* Search & Bulk Select / Clear */}
+                        <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center justify-between pb-2 border-b border-[#F0F4FA]">
+                          <div className="relative flex-1">
+                            <Search className="w-3.5 h-3.5 text-[#5B6B8C] absolute left-2.5 top-1/2 -translate-y-1/2" />
+                            <input
+                              type="text"
+                              placeholder={`Filter ${category} sub-categories...`}
+                              value={subCatSearch}
+                              onChange={(e) => setSubCatSearch(e.target.value)}
+                              className="w-full pl-8 pr-2.5 py-1.5 text-xs rounded-lg border border-[#DCE7F9] bg-[#F8FAFD] focus:bg-white focus:outline-none focus:border-[#0B5FD9]"
+                            />
+                          </div>
+                          <div className="flex items-center gap-1.5 shrink-0 text-[11px]">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const allOptions = getSubCategories(category, partnerType);
+                                setSelectedSubCategories(allOptions);
+                              }}
+                              className="px-2 py-1 rounded bg-[#EBF2FE] text-[#0B5FD9] hover:bg-[#DCE7F9] font-bold cursor-pointer"
+                            >
+                              Select All
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setSelectedSubCategories([])}
+                              className="px-2 py-1 rounded bg-gray-100 text-[#5B6B8C] hover:bg-gray-200 font-bold cursor-pointer"
+                            >
+                              Clear
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Subcategory List with Checkboxes */}
+                        <div className="max-h-56 overflow-y-auto space-y-1 pr-1">
+                          {getSubCategories(category, partnerType)
+                            .filter((item) =>
+                              item.toLowerCase().includes(subCatSearch.toLowerCase())
+                            )
+                            .map((item) => {
+                              const isChecked = selectedSubCategories.includes(item);
+                              return (
+                                <label
+                                  key={item}
+                                  className={`flex items-center gap-2.5 p-2 rounded-lg text-xs cursor-pointer transition-all border ${
+                                    isChecked
+                                      ? 'bg-[#F1F6FF] text-[#0B5FD9] font-bold border-[#BED5FA]'
+                                      : 'bg-white text-[#0A1F5C] hover:bg-[#F8FAFD] border-[#EDF3FC]'
+                                  }`}
+                                >
+                                  <input
+                                    type="checkbox"
+                                    checked={isChecked}
+                                    onChange={() => {
+                                      setSelectedSubCategories((prev) =>
+                                        isChecked ? prev.filter((sc) => sc !== item) : [...prev, item]
+                                      );
+                                    }}
+                                    className="w-4 h-4 rounded text-[#0B5FD9] accent-[#0B5FD9] cursor-pointer"
+                                  />
+                                  <span className="flex-1 select-none">{item}</span>
+                                  {isChecked && (
+                                    <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                                      Selected
+                                    </span>
+                                  )}
+                                </label>
+                              );
+                            })}
+                          {getSubCategories(category, partnerType).filter((item) =>
+                            item.toLowerCase().includes(subCatSearch.toLowerCase())
+                          ).length === 0 && (
+                            <p className="text-xs text-center py-4 text-[#5B6B8C]">
+                              No matching sub-categories found for &quot;{subCatSearch}&quot;
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="pt-2 border-t border-[#F0F4FA] flex items-center justify-between text-[11px]">
+                          <span className="text-[#5B6B8C]">
+                            {selectedSubCategories.length} of {getSubCategories(category, partnerType).length} sub-categories selected
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setIsSubCatDropdownOpen(false)}
+                            className="px-3.5 py-1.5 rounded-lg bg-[#0B5FD9] text-white font-bold hover:bg-[#094FB6] cursor-pointer"
+                          >
+                            Done
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Selected Badges / Chips */}
+                    {selectedSubCategories.length > 0 ? (
+                      <div className="flex flex-wrap gap-1.5 pt-1">
+                        {selectedSubCategories.map((sub) => (
+                          <span
+                            key={sub}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-white border border-[#DCE7F9] text-[#0A1F5C] shadow-2xs group"
+                          >
+                            <span>{sub}</span>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setSelectedSubCategories((prev) => prev.filter((s) => s !== sub))
+                              }
+                              className="text-[#5B6B8C] hover:text-red-500 transition-colors ml-0.5 cursor-pointer"
+                              title={`Remove ${sub}`}
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-[11px] text-amber-700 bg-amber-50 p-2 rounded-lg border border-amber-200 font-medium">
+                        ⚠️ Please select at least one sub-category from the dropdown above.
+                      </p>
+                    )}
                   </div>
                 </div>
 
