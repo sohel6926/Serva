@@ -31,6 +31,7 @@ import {
   EventIllustration,
   MovingIllustration,
 } from '../components/home/ServiceIllustrations.tsx';
+import { getStoredBanners, type BannerItem } from '../data/bannersData.ts';
 
 interface HomeCategory {
   id: string;
@@ -381,12 +382,28 @@ const SAMPLE_TESTIMONIALS = [
 export function HomePage() {
   const { user, language, t } = useAuth();
   const { navigate } = useRouter();
+  const [bannerSlides, setBannerSlides] = useState<BannerItem[]>(() => {
+    const list = getStoredBanners();
+    const active = list.filter((b) => b.active);
+    return active.length > 0 ? active : list;
+  });
   const [slideIdx, setSlideIdx] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('ALL');
   const [popular, setPopular] = useState<PopularService[]>([]);
   const [offers, setOffers] = useState<OfferItem[]>([]);
   const [showBannerEnquiry, setShowBannerEnquiry] = useState(false);
+
+  useEffect(() => {
+    const handleBannersUpdate = (e: any) => {
+      if (e.detail && Array.isArray(e.detail)) {
+        const active = e.detail.filter((b: any) => b.active);
+        setBannerSlides(active.length > 0 ? active : e.detail);
+      }
+    };
+    window.addEventListener('serva:banners-updated', handleBannersUpdate);
+    return () => window.removeEventListener('serva:banners-updated', handleBannersUpdate);
+  }, []);
 
   useEffect(() => {
     fetch('/api/home-data')
@@ -399,13 +416,14 @@ export function HomePage() {
   }, []);
 
   useEffect(() => {
+    if (bannerSlides.length <= 1) return;
     const timer = setInterval(() => {
-      setSlideIdx((i) => (i + 1) % BANNER_SLIDES.length);
+      setSlideIdx((i) => (i + 1) % bannerSlides.length);
     }, 5000);
     return () => clearInterval(timer);
-  }, []);
+  }, [bannerSlides.length]);
 
-  const currentSlide = BANNER_SLIDES[slideIdx];
+  const currentSlide = bannerSlides[slideIdx % bannerSlides.length] || bannerSlides[0];
 
   const displayedServices = selectedCategory === 'ALL'
     ? ALL_SERVICE_CARDS
@@ -533,7 +551,7 @@ export function HomePage() {
 
             {/* On-Banner Stories-Style Progress Line in frosted capsule */}
             <div className="absolute top-2.5 left-3.5 right-3.5 z-20 flex gap-1.5 p-1 rounded-full bg-black/25 backdrop-blur-md border border-white/10">
-              {BANNER_SLIDES.map((_, i) => (
+              {bannerSlides.map((_, i) => (
                 <button
                   key={i}
                   type="button"
@@ -747,10 +765,10 @@ export function HomePage() {
                   </button>
                 </div>
                 <div className="flex items-center gap-2">
-                  <button type="button" onClick={() => setSlideIdx((i) => (i - 1 + BANNER_SLIDES.length) % BANNER_SLIDES.length)} className="w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center cursor-pointer">
+                  <button type="button" onClick={() => setSlideIdx((i) => (i - 1 + bannerSlides.length) % bannerSlides.length)} className="w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center cursor-pointer">
                     <ChevronLeft className="w-4 h-4" />
                   </button>
-                  <button type="button" onClick={() => setSlideIdx((i) => (i + 1) % BANNER_SLIDES.length)} className="w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center cursor-pointer">
+                  <button type="button" onClick={() => setSlideIdx((i) => (i + 1) % bannerSlides.length)} className="w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center cursor-pointer">
                     <ChevronRight className="w-4 h-4" />
                   </button>
                 </div>

@@ -55,7 +55,27 @@ import {
   Image as ImageIcon,
   Plus,
   CheckSquare,
+  ArrowLeft,
+  Key,
 } from 'lucide-react';
+import {
+  type StaffMember,
+  ADMIN_MODULES,
+  STAFF_DIVISIONS,
+  STAFF_ROLES,
+  getStoredStaff,
+  addStaffMember,
+  removeStaffMember,
+  toggleStaffStatus,
+} from '../data/staffRolesData.ts';
+import {
+  type BannerItem,
+  getStoredBanners,
+  addBanner as addPlatformBanner,
+  removeBanner as removePlatformBanner,
+  toggleBannerStatus as togglePlatformBannerStatus,
+  resetBannersToDefault,
+} from '../data/bannersData.ts';
 import {
   type PartnerCategoryConfig,
   getStoredCategories,
@@ -89,6 +109,8 @@ type AdminTab =
   | 'orders'
   | 'kyc'
   | 'categories'
+  | 'banners'
+  | 'roles'
   | 'commission'
   | 'coupons'
   | 'users'
@@ -96,8 +118,7 @@ type AdminTab =
   | 'withdrawals'
   | 'support'
   | 'announcements'
-  | 'reports'
-  | 'roles';
+  | 'reports';
 
 interface PartnerKYCRequest {
   id: string;
@@ -1158,6 +1179,129 @@ export function AdminDashboardPage() {
     setTimeout(() => setCategoryFeedback(null), 3000);
   };
 
+  // Staff & Roles State
+  const [staffList, setStaffList] = useState<StaffMember[]>(() => getStoredStaff());
+  const [staffViewMode, setStaffViewMode] = useState<'list' | 'add'>('list');
+  const [staffSearchQuery, setStaffSearchQuery] = useState('');
+  const [staffDivisionFilter, setStaffDivisionFilter] = useState('ALL');
+  const [staffFeedback, setStaffFeedback] = useState<string | null>(null);
+
+  // Form State for Add Staff Member (per uploaded screenshot)
+  const [newStaffFirstName, setNewStaffFirstName] = useState('Rajesh');
+  const [newStaffLastName, setNewStaffLastName] = useState('Kumar');
+  const [newStaffEmail, setNewStaffEmail] = useState('rajesh@serva.in');
+  const [newStaffPhone, setNewStaffPhone] = useState('9985955533');
+  const [newStaffPassword, setNewStaffPassword] = useState('••••••••');
+  const [newStaffDivision, setNewStaffDivision] = useState(STAFF_DIVISIONS[0]);
+  const [newStaffRole, setNewStaffRole] = useState(STAFF_ROLES[0]);
+  const [newStaffPermissions, setNewStaffPermissions] = useState<string[]>(() => ADMIN_MODULES.map((m) => m.id));
+
+  // Banners State
+  const [bannersList, setBannersList] = useState<BannerItem[]>(() => getStoredBanners());
+  const [bannerModalOpen, setBannerModalOpen] = useState(false);
+  const [newBannerTitle, setNewBannerTitle] = useState('');
+  const [newBannerSubtitle, setNewBannerSubtitle] = useState('');
+  const [newBannerImage, setNewBannerImage] = useState('/src/assets/images/hero_home_services_1794821794674.jpg');
+  const [newBannerTo, setNewBannerTo] = useState('/home-services');
+  const [newBannerCta, setNewBannerCta] = useState('Book Now');
+  const [newBannerPlacement, setNewBannerPlacement] = useState<'HERO_CAROUSEL' | 'PROMO_STRIP' | 'TOP_BANNER'>('HERO_CAROUSEL');
+  const [bannerFeedback, setBannerFeedback] = useState<string | null>(null);
+
+  useEffect(() => {
+    const handleStaffUpdate = (e: any) => {
+      if (e.detail && Array.isArray(e.detail)) setStaffList(e.detail);
+    };
+    const handleBannersUpdate = (e: any) => {
+      if (e.detail && Array.isArray(e.detail)) setBannersList(e.detail);
+    };
+    window.addEventListener('serva:staff-updated', handleStaffUpdate);
+    window.addEventListener('serva:banners-updated', handleBannersUpdate);
+    return () => {
+      window.removeEventListener('serva:staff-updated', handleStaffUpdate);
+      window.removeEventListener('serva:banners-updated', handleBannersUpdate);
+    };
+  }, []);
+
+  const handleCreateStaffSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newStaffFirstName.trim() || !newStaffEmail.trim()) {
+      alert('First Name and Email are required.');
+      return;
+    }
+    const updated = addStaffMember({
+      firstName: newStaffFirstName.trim(),
+      lastName: newStaffLastName.trim(),
+      email: newStaffEmail.trim(),
+      phone: newStaffPhone.trim() || '—',
+      division: newStaffDivision,
+      role: newStaffRole,
+      permissions: newStaffPermissions,
+      status: 'ACTIVE',
+      lastLogin: 'Never logged in',
+    });
+    setStaffList(updated);
+    setStaffFeedback(`Staff member ${newStaffFirstName} ${newStaffLastName} added with ${newStaffPermissions.length} module permissions.`);
+    setStaffViewMode('list');
+    setTimeout(() => setStaffFeedback(null), 3500);
+  };
+
+  const handleDeleteStaff = (id: string, name: string) => {
+    if (!window.confirm(`Are you sure you want to remove staff member "${name}"?`)) return;
+    const updated = removeStaffMember(id);
+    setStaffList(updated);
+    setStaffFeedback(`Staff member "${name}" removed.`);
+    setTimeout(() => setStaffFeedback(null), 3000);
+  };
+
+  const handleToggleStaff = (id: string) => {
+    const updated = toggleStaffStatus(id);
+    setStaffList(updated);
+  };
+
+  const handleAddBannerSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newBannerTitle.trim() || !newBannerImage.trim()) {
+      alert('Title and Image URL are required.');
+      return;
+    }
+    const updated = addPlatformBanner({
+      title: newBannerTitle.trim(),
+      subtitle: newBannerSubtitle.trim() || 'Explore verified doorstep professionals',
+      image: newBannerImage.trim(),
+      to: newBannerTo.trim() || '/services',
+      cta: newBannerCta.trim() || 'Book Now',
+      placement: newBannerPlacement,
+      active: true,
+    });
+    setBannersList(updated);
+    setBannerModalOpen(false);
+    setNewBannerTitle('');
+    setNewBannerSubtitle('');
+    setBannerFeedback(`Banner "${newBannerTitle.trim()}" created successfully and active on site.`);
+    setTimeout(() => setBannerFeedback(null), 3500);
+  };
+
+  const handleDeleteBanner = (id: string, title: string) => {
+    if (!window.confirm(`Delete banner "${title}"?`)) return;
+    const updated = removePlatformBanner(id);
+    setBannersList(updated);
+    setBannerFeedback(`Banner "${title}" removed.`);
+    setTimeout(() => setBannerFeedback(null), 3000);
+  };
+
+  const handleToggleBanner = (id: string) => {
+    const updated = togglePlatformBannerStatus(id);
+    setBannersList(updated);
+  };
+
+  const handleResetBanners = () => {
+    if (!window.confirm('Reset all promotional banners to platform defaults?')) return;
+    const defaults = resetBannersToDefault();
+    setBannersList(defaults);
+    setBannerFeedback('All banners reset to platform defaults.');
+    setTimeout(() => setBannerFeedback(null), 3000);
+  };
+
   const [coupons, setCoupons] = useState<AdminCoupon[]>(() => {
     const saved = localStorage.getItem('serva_admin_coupons');
     return saved ? JSON.parse(saved) : INITIAL_COUPONS;
@@ -1558,6 +1702,8 @@ export function AdminDashboardPage() {
     { id: 'orders' as const, label: 'Orders & Dispatch', icon: ClipboardList, count: pendingAssignmentOrdersCount },
     { id: 'kyc' as const, label: 'Partner KYC', icon: FileCheck, count: pendingKycCount },
     { id: 'categories' as const, label: 'Categories & Sub-Categories', icon: Layers },
+    { id: 'banners' as const, label: 'Manage Banners', icon: ImageIcon },
+    { id: 'roles' as const, label: 'Staff & Roles', icon: ShieldCheck },
     { id: 'commission' as const, label: 'Commission Setup', icon: Percent },
     { id: 'coupons' as const, label: 'Coupons & Deals', icon: Tag },
     { id: 'users' as const, label: 'Users', icon: Users },
@@ -3128,6 +3274,737 @@ export function AdminDashboardPage() {
                 </div>
               );
             })()}
+
+            {/* ===================== TAB: MANAGE BANNERS ===================== */}
+            {activeTab === 'banners' && (
+              <div className="space-y-6">
+                {/* Header & Stats Banner */}
+                <div className="bg-white rounded-3xl p-6 sm:p-7 border border-[#DCE7F9] shadow-sm space-y-5">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div>
+                      <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#EBF2FE] text-[#0B5FD9] text-xs font-bold mb-2">
+                        <ImageIcon className="w-4 h-4" />
+                        <span>Homepage & App Banner Marketing</span>
+                      </div>
+                      <h2 className="text-xl sm:text-2xl font-black text-[#0A1F5C] tracking-tight">
+                        Promotional Banners Manager
+                      </h2>
+                      <p className="text-xs sm:text-sm text-[#5B6B8C] mt-1 max-w-2xl">
+                        Add, toggle, or remove hero carousel slides and promotional campaign banners visible on the customer homepage and landing pages.
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
+                      <button
+                        type="button"
+                        onClick={() => setBannerModalOpen(true)}
+                        className="px-4 py-2.5 rounded-xl bg-[#0B5FD9] text-white hover:bg-[#094FB6] text-xs font-bold flex items-center gap-2 shadow-sm transition-all cursor-pointer"
+                      >
+                        <Plus className="w-4 h-4" />
+                        <span>Add New Banner</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={handleResetBanners}
+                        className="px-3.5 py-2.5 rounded-xl border border-[#DCE7F9] bg-[#F8FAFD] hover:bg-[#EBF2FE] text-[#0A1F5C] text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer"
+                        title="Restore default platform banners"
+                      >
+                        <RefreshCw className="w-3.5 h-3.5 text-[#5B6B8C]" />
+                        <span className="hidden sm:inline">Reset Defaults</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Feedback Toast Notification */}
+                  {bannerFeedback && (
+                    <div className="p-3 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold flex items-center justify-between animate-fadeIn">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                        <span>{bannerFeedback}</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setBannerFeedback(null)}
+                        className="text-emerald-700 hover:text-emerald-900 cursor-pointer"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Stats Row */}
+                  <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 pt-2">
+                    <div className="p-4 rounded-2xl bg-[#F8FAFD] border border-[#EAF2FF]">
+                      <span className="text-[10px] uppercase font-bold text-[#8FA0C0] block">Total Banners</span>
+                      <span className="text-2xl font-black text-[#0A1F5C] mt-1 block">{bannersList.length}</span>
+                      <span className="text-[11px] text-[#5B6B8C]">Platform marketing banners</span>
+                    </div>
+
+                    <div className="p-4 rounded-2xl bg-[#F8FAFD] border border-[#EAF2FF]">
+                      <span className="text-[10px] uppercase font-bold text-[#8FA0C0] block">Active On Site</span>
+                      <span className="text-2xl font-black text-emerald-600 mt-1 block">
+                        {bannersList.filter((b) => b.active).length}
+                      </span>
+                      <span className="text-[11px] text-[#5B6B8C]">Currently rotating on homepage</span>
+                    </div>
+
+                    <div className="p-4 rounded-2xl bg-[#F8FAFD] border border-[#EAF2FF]">
+                      <span className="text-[10px] uppercase font-bold text-[#8FA0C0] block">Hero Carousel</span>
+                      <span className="text-2xl font-black text-[#0B5FD9] mt-1 block">
+                        {bannersList.filter((b) => b.placement === 'HERO_CAROUSEL').length}
+                      </span>
+                      <span className="text-[11px] text-[#5B6B8C]">Main top hero slides</span>
+                    </div>
+
+                    <div className="p-4 rounded-2xl bg-blue-50/50 border border-blue-100 flex flex-col justify-center">
+                      <span className="text-[10px] uppercase font-bold text-[#0B5FD9] flex items-center gap-1">
+                        <span className="w-2 h-2 rounded-full bg-[#0B5FD9] animate-pulse"></span>
+                        Live Customer Sync
+                      </span>
+                      <p className="text-[11px] text-[#0A1F5C] font-semibold mt-1">
+                        Changes here are immediately updated on customer homepage without redeploy.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Banners Cards Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                  {bannersList.map((banner) => (
+                    <div
+                      key={banner.id}
+                      className={`bg-white rounded-3xl border overflow-hidden shadow-sm flex flex-col justify-between transition-all ${
+                        banner.active ? 'border-[#DCE7F9]' : 'border-gray-200 opacity-60 bg-gray-50/50'
+                      }`}
+                    >
+                      <div>
+                        {/* Banner Image Preview */}
+                        <div className="relative h-44 w-full bg-slate-900 overflow-hidden">
+                          <img
+                            src={banner.image}
+                            alt={banner.title}
+                            className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+
+                          {/* Status Pill on Image */}
+                          <div className="absolute top-3 left-3 flex items-center gap-2">
+                            <span
+                              className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full ${
+                                banner.active ? 'bg-emerald-500 text-white shadow-xs' : 'bg-gray-700 text-gray-200'
+                              }`}
+                            >
+                              {banner.active ? '● LIVE ACTIVE' : 'PAUSED'}
+                            </span>
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-black/40 backdrop-blur-md text-white border border-white/20">
+                              {banner.placement}
+                            </span>
+                          </div>
+
+                          {/* CTA Badge on Image */}
+                          <div className="absolute bottom-3 right-3">
+                            <span className="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-white/90 backdrop-blur-md text-[#0A1F5C]">
+                              CTA: {banner.cta} &rarr;
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Banner Meta Info */}
+                        <div className="p-5 space-y-2">
+                          <h3 className="font-bold text-sm text-[#0A1F5C] line-clamp-1">{banner.title}</h3>
+                          <p className="text-xs text-[#5B6B8C] line-clamp-2">{banner.subtitle}</p>
+                          <div className="pt-2 flex items-center gap-1.5 text-[11px] text-[#0B5FD9] font-semibold">
+                            <span>Target route:</span>
+                            <span className="font-mono bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
+                              {banner.to}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Actions Footer */}
+                      <div className="p-4 bg-[#F8FAFD] border-t border-[#EAF2FF] flex items-center justify-between">
+                        <button
+                          type="button"
+                          onClick={() => handleToggleBanner(banner.id)}
+                          className={`text-xs font-bold px-3 py-1.5 rounded-xl border transition-all cursor-pointer ${
+                            banner.active
+                              ? 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100'
+                              : 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
+                          }`}
+                        >
+                          {banner.active ? 'Pause Banner' : 'Activate Banner'}
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteBanner(banner.id, banner.title)}
+                          className="p-2 rounded-xl text-gray-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                          title="Delete Banner"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* ===================== TAB: STAFF & ROLES (RBAC) ===================== */}
+            {activeTab === 'roles' && (
+              <div className="space-y-6">
+                {/* ── SUB-VIEW 1: ADD STAFF MEMBER (Exact match with user screenshots) ── */}
+                {staffViewMode === 'add' ? (
+                  <div className="space-y-6">
+                    {/* Top Breadcrumb Bar (as in screenshot 1) */}
+                    <div className="bg-white rounded-2xl px-5 py-3 border border-[#DCE7F9] shadow-sm flex items-center justify-between gap-4">
+                      <div className="flex items-center gap-2 text-xs font-semibold text-[#5B6B8C]">
+                        <span className="text-[#0B5FD9]">Admin</span>
+                        <span>&gt;</span>
+                        <span>Settings</span>
+                        <span>&gt;</span>
+                        <span className="text-[#0B5FD9]">Staff &amp; Roles</span>
+                        <span>&gt;</span>
+                        <span className="text-[#0A1F5C] font-bold">new</span>
+                      </div>
+
+                      <div className="flex items-center gap-3">
+                        <div className="relative hidden sm:block">
+                          <Search className="w-3.5 h-3.5 text-[#5B6B8C] absolute left-3 top-1/2 -translate-y-1/2" />
+                          <input
+                            type="text"
+                            readOnly
+                            placeholder="Search anything..."
+                            className="pl-8 pr-3 py-1.5 rounded-xl border border-[#DCE7F9] bg-[#F8FAFD] text-xs w-48"
+                          />
+                        </div>
+                        <div className="relative w-8 h-8 rounded-full bg-[#F1F6FF] text-[#0B5FD9] flex items-center justify-center">
+                          <Bell className="w-4 h-4" />
+                          <span className="absolute -top-1 -right-1 w-4 h-4 bg-rose-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                            3
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Header: Back Arrow + Title */}
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setStaffViewMode('list')}
+                        className="w-9 h-9 rounded-xl bg-white border border-[#DCE7F9] hover:bg-[#F1F6FF] text-[#0A1F5C] flex items-center justify-center shadow-2xs transition-all cursor-pointer"
+                        title="Back to Staff List"
+                      >
+                        <ArrowLeft className="w-4 h-4" />
+                      </button>
+                      <div>
+                        <h2 className="text-xl sm:text-2xl font-black text-[#0A1F5C] tracking-tight">
+                          Add Staff Member
+                        </h2>
+                        <p className="text-xs text-[#5B6B8C] mt-0.5">
+                          Invite a new team member to the admin panel
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Main Two-Column Layout */}
+                    <form onSubmit={handleCreateStaffSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                      {/* Left Column (8 cols): Profile Information + Module Permissions */}
+                      <div className="lg:col-span-8 space-y-6">
+                        {/* 1. Profile Information Card */}
+                        <div className="bg-white rounded-3xl p-6 sm:p-7 border border-[#DCE7F9] shadow-sm space-y-5">
+                          <div className="flex items-center gap-2.5 border-b border-[#EAF2FF] pb-3">
+                            <User className="w-5 h-5 text-[#0B5FD9]" />
+                            <div>
+                              <h3 className="font-extrabold text-base text-[#0A1F5C]">Profile Information</h3>
+                              <p className="text-xs text-[#5B6B8C]">Personal details and contact info</p>
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-xs font-bold text-[#0A1F5C] mb-1.5">
+                                First Name *
+                              </label>
+                              <input
+                                type="text"
+                                required
+                                placeholder="Rajesh"
+                                value={newStaffFirstName}
+                                onChange={(e) => setNewStaffFirstName(e.target.value)}
+                                className="w-full p-3 rounded-xl border border-[#DCE7F9] text-xs sm:text-sm bg-[#F8FAFD] focus:bg-white focus:outline-none focus:border-[#0B5FD9] transition-all"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-xs font-bold text-[#0A1F5C] mb-1.5">
+                                Last Name *
+                              </label>
+                              <input
+                                type="text"
+                                required
+                                placeholder="Kumar"
+                                value={newStaffLastName}
+                                onChange={(e) => setNewStaffLastName(e.target.value)}
+                                className="w-full p-3 rounded-xl border border-[#DCE7F9] text-xs sm:text-sm bg-[#F8FAFD] focus:bg-white focus:outline-none focus:border-[#0B5FD9] transition-all"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-xs font-bold text-[#0A1F5C] mb-1.5">
+                                Email *
+                              </label>
+                              <div className="relative">
+                                <Mail className="w-4 h-4 text-[#5B6B8C] absolute left-3.5 top-1/2 -translate-y-1/2" />
+                                <input
+                                  type="email"
+                                  required
+                                  placeholder="rajesh@topdrives.in"
+                                  value={newStaffEmail}
+                                  onChange={(e) => setNewStaffEmail(e.target.value)}
+                                  className="w-full pl-10 pr-3 py-3 rounded-xl border border-[#DCE7F9] text-xs sm:text-sm bg-[#F8FAFD] focus:bg-white focus:outline-none focus:border-[#0B5FD9] transition-all"
+                                />
+                              </div>
+                            </div>
+
+                            <div>
+                              <label className="block text-xs font-bold text-[#0A1F5C] mb-1.5">
+                                Phone
+                              </label>
+                              <div className="relative">
+                                <Phone className="w-4 h-4 text-[#5B6B8C] absolute left-3.5 top-1/2 -translate-y-1/2" />
+                                <input
+                                  type="tel"
+                                  placeholder="9985955533"
+                                  value={newStaffPhone}
+                                  onChange={(e) => setNewStaffPhone(e.target.value)}
+                                  className="w-full pl-10 pr-3 py-3 rounded-xl border border-[#DCE7F9] text-xs sm:text-sm bg-[#F8FAFD] focus:bg-white focus:outline-none focus:border-[#0B5FD9] transition-all"
+                                />
+                              </div>
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="block text-xs font-bold text-[#0A1F5C] mb-1.5">
+                              Initial Password
+                            </label>
+                            <input
+                              type="password"
+                              value={newStaffPassword}
+                              onChange={(e) => setNewStaffPassword(e.target.value)}
+                              className="w-full p-3 rounded-xl border border-[#DCE7F9] text-xs sm:text-sm bg-[#F8FAFD] focus:bg-white focus:outline-none focus:border-[#0B5FD9] font-mono tracking-widest transition-all"
+                            />
+                            <p className="text-[11px] text-[#5B6B8C] mt-1.5">
+                              The user will be asked to change this on first login.
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* 2. Module Permissions Card (Exact match with screenshot 2) */}
+                        <div className="bg-white rounded-3xl p-6 sm:p-7 border border-[#DCE7F9] shadow-sm space-y-5">
+                          <div className="flex items-center gap-2.5 border-b border-[#EAF2FF] pb-3">
+                            <Key className="w-5 h-5 text-[#0B5FD9]" />
+                            <div>
+                              <h3 className="font-extrabold text-base text-[#0A1F5C]">Module Permissions</h3>
+                              <p className="text-xs text-[#5B6B8C]">Select which admin modules this member can access</p>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center justify-between pb-1">
+                            <span className="text-xs font-bold text-[#0A1F5C]">
+                              {newStaffPermissions.length} of {ADMIN_MODULES.length} modules selected
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (newStaffPermissions.length === ADMIN_MODULES.length) {
+                                  setNewStaffPermissions([]);
+                                } else {
+                                  setNewStaffPermissions(ADMIN_MODULES.map((m) => m.id));
+                                }
+                              }}
+                              className="text-xs font-bold text-[#0B5FD9] hover:underline cursor-pointer"
+                            >
+                              {newStaffPermissions.length === ADMIN_MODULES.length ? 'Deselect All' : 'Select All'}
+                            </button>
+                          </div>
+
+                          {/* 15 Modules 2-Column Grid */}
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            {ADMIN_MODULES.map((module) => {
+                              const isChecked = newStaffPermissions.includes(module.id);
+                              return (
+                                <div
+                                  key={module.id}
+                                  onClick={() => {
+                                    setNewStaffPermissions((prev) =>
+                                      isChecked ? prev.filter((id) => id !== module.id) : [...prev, module.id]
+                                    );
+                                  }}
+                                  className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-start gap-3 select-none ${
+                                    isChecked
+                                      ? 'border-[#0B5FD9] bg-[#F1F6FF] shadow-2xs'
+                                      : 'border-[#EAF2FF] bg-[#F8FAFD] hover:bg-white hover:border-[#BED5FA]'
+                                  }`}
+                                >
+                                  <div
+                                    className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 mt-0.5 border ${
+                                      isChecked
+                                        ? 'bg-[#0B5FD9] text-white border-[#0B5FD9]'
+                                        : 'border-gray-300 bg-white text-transparent'
+                                    }`}
+                                  >
+                                    <Check className="w-3.5 h-3.5 stroke-[3]" />
+                                  </div>
+
+                                  <div className="min-w-0 flex-1">
+                                    <h4 className="font-bold text-xs sm:text-sm text-[#0A1F5C] leading-snug">
+                                      {module.name}
+                                    </h4>
+                                    <p className="text-[11px] text-[#5B6B8C] mt-0.5 line-clamp-1 leading-snug">
+                                      {module.description}
+                                    </p>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Right Column (4 cols): Role + Summary + Submit */}
+                      <div className="lg:col-span-4 space-y-6">
+                        {/* Role Card */}
+                        <div className="bg-white rounded-3xl p-6 border border-[#DCE7F9] shadow-sm space-y-4">
+                          <div className="flex items-center gap-2 border-b border-[#EAF2FF] pb-3">
+                            <Shield className="w-5 h-5 text-[#0B5FD9]" />
+                            <h3 className="font-extrabold text-base text-[#0A1F5C]">Role</h3>
+                          </div>
+
+                          <div>
+                            <label className="block text-xs font-bold text-[#0A1F5C] mb-1.5">
+                              Division *
+                            </label>
+                            <select
+                              value={newStaffDivision}
+                              onChange={(e) => setNewStaffDivision(e.target.value)}
+                              className="w-full p-3 rounded-xl border border-[#DCE7F9] text-xs sm:text-sm bg-white font-medium focus:outline-none focus:border-[#0B5FD9]"
+                            >
+                              {STAFF_DIVISIONS.map((d) => (
+                                <option key={d} value={d}>
+                                  {d}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+
+                          <div>
+                            <label className="block text-xs font-bold text-[#0A1F5C] mb-1.5">
+                              Role *
+                            </label>
+                            <select
+                              value={newStaffRole}
+                              onChange={(e) => setNewStaffRole(e.target.value)}
+                              className="w-full p-3 rounded-xl border border-[#DCE7F9] text-xs sm:text-sm bg-white font-medium focus:outline-none focus:border-[#0B5FD9]"
+                            >
+                              {STAFF_ROLES.map((r) => (
+                                <option key={r} value={r}>
+                                  {r}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+
+                        {/* Summary Card */}
+                        <div className="bg-white rounded-3xl p-6 border border-[#DCE7F9] shadow-sm space-y-3.5">
+                          <h3 className="font-extrabold text-base text-[#0A1F5C] border-b border-[#EAF2FF] pb-3">
+                            Summary
+                          </h3>
+
+                          <div className="space-y-2 text-xs">
+                            <div className="flex justify-between py-1 border-b border-[#F8FAFD]">
+                              <span className="text-[#5B6B8C]">Name:</span>
+                              <strong className="text-[#0A1F5C]">
+                                {newStaffFirstName || newStaffLastName ? `${newStaffFirstName} ${newStaffLastName}` : '—'}
+                              </strong>
+                            </div>
+
+                            <div className="flex justify-between py-1 border-b border-[#F8FAFD]">
+                              <span className="text-[#5B6B8C]">Email:</span>
+                              <strong className="text-[#0A1F5C] truncate max-w-[170px]">
+                                {newStaffEmail || '—'}
+                              </strong>
+                            </div>
+
+                            <div className="flex justify-between py-1 border-b border-[#F8FAFD]">
+                              <span className="text-[#5B6B8C]">Role:</span>
+                              <strong className="text-[#0B5FD9]">{newStaffRole || '—'}</strong>
+                            </div>
+
+                            <div className="flex justify-between py-1 border-b border-[#F8FAFD]">
+                              <span className="text-[#5B6B8C]">Division:</span>
+                              <strong className="text-[#0A1F5C]">{newStaffDivision || '—'}</strong>
+                            </div>
+
+                            <div className="flex justify-between py-1 pt-2">
+                              <span className="text-[#5B6B8C]">Modules:</span>
+                              <span className="font-extrabold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                                {newStaffPermissions.length} / 15
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Submit Action Buttons */}
+                        <div className="space-y-2.5">
+                          <button
+                            type="submit"
+                            className="w-full py-3.5 rounded-2xl bg-[#0B5FD9] hover:bg-[#094FB6] text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-2 shadow-md transition-all cursor-pointer"
+                          >
+                            <CheckCircle2 className="w-4 h-4" />
+                            <span>Save Staff Member</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => setStaffViewMode('list')}
+                            className="w-full py-3 rounded-2xl border border-[#DCE7F9] bg-white hover:bg-gray-50 text-[#5B6B8C] text-xs font-semibold transition-all cursor-pointer"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    </form>
+                  </div>
+                ) : (
+                  /* ── SUB-VIEW 2: STAFF DIRECTORY & RBAC ROSTER ── */
+                  <div className="space-y-6">
+                    {/* Header Banner */}
+                    <div className="bg-white rounded-3xl p-6 sm:p-7 border border-[#DCE7F9] shadow-sm space-y-5">
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                        <div>
+                          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#EBF2FE] text-[#0B5FD9] text-xs font-bold mb-2">
+                            <ShieldCheck className="w-4 h-4" />
+                            <span>Role-Based Access Control (RBAC)</span>
+                          </div>
+                          <h2 className="text-xl sm:text-2xl font-black text-[#0A1F5C] tracking-tight">
+                            Staff &amp; Role Management
+                          </h2>
+                          <p className="text-xs sm:text-sm text-[#5B6B8C] mt-1 max-w-2xl">
+                            Oversee team members, assign modular access across 15 administrative areas, and manage division responsibilities.
+                          </p>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => setStaffViewMode('add')}
+                          className="px-4 py-2.5 rounded-xl bg-[#0B5FD9] text-white hover:bg-[#094FB6] text-xs font-bold flex items-center gap-2 shadow-sm transition-all cursor-pointer shrink-0"
+                        >
+                          <Plus className="w-4 h-4" />
+                          <span>Add Staff Member</span>
+                        </button>
+                      </div>
+
+                      {/* Toast Notification */}
+                      {staffFeedback && (
+                        <div className="p-3 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold flex items-center justify-between animate-fadeIn">
+                          <div className="flex items-center gap-2">
+                            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                            <span>{staffFeedback}</span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setStaffFeedback(null)}
+                            className="text-emerald-700 hover:text-emerald-900 cursor-pointer"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      )}
+
+                      {/* Stats Row */}
+                      <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 pt-2">
+                        <div className="p-4 rounded-2xl bg-[#F8FAFD] border border-[#EAF2FF]">
+                          <span className="text-[10px] uppercase font-bold text-[#8FA0C0] block">Staff Members</span>
+                          <span className="text-2xl font-black text-[#0A1F5C] mt-1 block">{staffList.length}</span>
+                          <span className="text-[11px] text-[#5B6B8C]">Registered admin users</span>
+                        </div>
+
+                        <div className="p-4 rounded-2xl bg-[#F8FAFD] border border-[#EAF2FF]">
+                          <span className="text-[10px] uppercase font-bold text-[#8FA0C0] block">Active Access</span>
+                          <span className="text-2xl font-black text-emerald-600 mt-1 block">
+                            {staffList.filter((s) => s.status === 'ACTIVE').length}
+                          </span>
+                          <span className="text-[11px] text-[#5B6B8C]">Currently enabled accounts</span>
+                        </div>
+
+                        <div className="p-4 rounded-2xl bg-[#F8FAFD] border border-[#EAF2FF]">
+                          <span className="text-[10px] uppercase font-bold text-[#8FA0C0] block">Divisions</span>
+                          <span className="text-2xl font-black text-purple-600 mt-1 block">
+                            {STAFF_DIVISIONS.length}
+                          </span>
+                          <span className="text-[11px] text-[#5B6B8C]">Operational departments</span>
+                        </div>
+
+                        <div className="p-4 rounded-2xl bg-blue-50/50 border border-blue-100 flex flex-col justify-center">
+                          <span className="text-[10px] uppercase font-bold text-[#0B5FD9] flex items-center gap-1">
+                            <Key className="w-3.5 h-3.5" />
+                            15 Admin Modules
+                          </span>
+                          <p className="text-[11px] text-[#0A1F5C] font-semibold mt-1">
+                            Granular permissions from Inventory to Billing and Banners.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Filter and Search Bar */}
+                    <div className="bg-white rounded-2xl p-4 border border-[#DCE7F9] shadow-sm flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                      <div className="relative flex-1">
+                        <Search className="w-3.5 h-3.5 text-[#5B6B8C] absolute left-3 top-1/2 -translate-y-1/2" />
+                        <input
+                          type="text"
+                          placeholder="Search staff by name, email or role..."
+                          value={staffSearchQuery}
+                          onChange={(e) => setStaffSearchQuery(e.target.value)}
+                          className="w-full pl-8 pr-3 py-2 text-xs rounded-xl border border-[#DCE7F9] bg-[#F8FAFD] focus:bg-white focus:outline-none focus:border-[#0B5FD9]"
+                        />
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-[#5B6B8C] shrink-0">Division:</span>
+                        <select
+                          value={staffDivisionFilter}
+                          onChange={(e) => setStaffDivisionFilter(e.target.value)}
+                          className="px-3 py-2 rounded-xl border border-[#DCE7F9] text-xs bg-white font-medium focus:outline-none focus:border-[#0B5FD9]"
+                        >
+                          <option value="ALL">All Divisions ({staffList.length})</option>
+                          {STAFF_DIVISIONS.map((d) => (
+                            <option key={d} value={d}>
+                              {d}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* Staff Cards Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {staffList
+                        .filter((s) => {
+                          const matchesQuery =
+                            s.firstName.toLowerCase().includes(staffSearchQuery.toLowerCase()) ||
+                            s.lastName.toLowerCase().includes(staffSearchQuery.toLowerCase()) ||
+                            s.email.toLowerCase().includes(staffSearchQuery.toLowerCase()) ||
+                            s.role.toLowerCase().includes(staffSearchQuery.toLowerCase());
+                          const matchesDiv =
+                            staffDivisionFilter === 'ALL' || s.division === staffDivisionFilter;
+                          return matchesQuery && matchesDiv;
+                        })
+                        .map((member) => (
+                          <div
+                            key={member.id}
+                            className={`bg-white rounded-3xl p-5 border shadow-sm transition-all flex flex-col justify-between ${
+                              member.status === 'ACTIVE' ? 'border-[#DCE7F9]' : 'border-gray-200 opacity-60 bg-gray-50/50'
+                            }`}
+                          >
+                            <div className="space-y-3.5">
+                              {/* Member Header */}
+                              <div className="flex items-start justify-between gap-3">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#0B5FD9] to-[#0A1F5C] text-white flex items-center justify-center font-bold text-sm shadow-xs">
+                                    {member.firstName.charAt(0)}
+                                    {member.lastName.charAt(0)}
+                                  </div>
+                                  <div>
+                                    <div className="flex items-center gap-2">
+                                      <h3 className="font-extrabold text-sm sm:text-base text-[#0A1F5C]">
+                                        {member.firstName} {member.lastName}
+                                      </h3>
+                                      <span
+                                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                                          member.status === 'ACTIVE'
+                                            ? 'bg-emerald-100 text-emerald-800'
+                                            : 'bg-rose-100 text-rose-800'
+                                        }`}
+                                      >
+                                        {member.status}
+                                      </span>
+                                    </div>
+                                    <p className="text-xs font-semibold text-[#0B5FD9] mt-0.5">{member.role}</p>
+                                  </div>
+                                </div>
+
+                                <span className="text-[10px] font-semibold text-[#5B6B8C] shrink-0">
+                                  {member.lastLogin || 'Recent'}
+                                </span>
+                              </div>
+
+                              {/* Details Info */}
+                              <div className="grid grid-cols-2 gap-2 text-xs bg-[#F8FAFD] p-3 rounded-2xl border border-[#EAF2FF]">
+                                <div>
+                                  <span className="block text-[10px] uppercase font-bold text-[#8FA0C0]">Division</span>
+                                  <span className="font-semibold text-[#0A1F5C] truncate block">{member.division}</span>
+                                </div>
+
+                                <div>
+                                  <span className="block text-[10px] uppercase font-bold text-[#8FA0C0]">Contact Phone</span>
+                                  <span className="font-semibold text-[#0A1F5C]">{member.phone}</span>
+                                </div>
+
+                                <div className="col-span-2 pt-2 border-t border-[#EAF2FF]">
+                                  <span className="block text-[10px] uppercase font-bold text-[#8FA0C0]">Email Address</span>
+                                  <span className="font-medium text-[#0A1F5C]">{member.email}</span>
+                                </div>
+                              </div>
+
+                              {/* Permissions Count Badge */}
+                              <div className="flex items-center justify-between text-xs pt-1">
+                                <span className="text-[#5B6B8C] flex items-center gap-1.5">
+                                  <Key className="w-3.5 h-3.5 text-[#0B5FD9]" />
+                                  <span>Assigned Modules:</span>
+                                </span>
+                                <span className="font-bold text-[#0B5FD9] bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200">
+                                  {member.permissions.length} of 15 Enabled
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* Actions Footer */}
+                            <div className="pt-4 mt-3 border-t border-[#EAF2FF] flex items-center justify-between">
+                              <button
+                                type="button"
+                                onClick={() => handleToggleStaff(member.id)}
+                                className={`text-xs font-bold px-3 py-1.5 rounded-xl border transition-all cursor-pointer ${
+                                  member.status === 'ACTIVE'
+                                    ? 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100'
+                                    : 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
+                                }`}
+                              >
+                                {member.status === 'ACTIVE' ? 'Suspend Access' : 'Activate Access'}
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteStaff(member.id, `${member.firstName} ${member.lastName}`)}
+                                className="p-2 rounded-xl text-gray-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                                title="Delete staff member"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* ===================== TAB 3: COMMISSION SETUP ===================== */}
             {activeTab === 'commission' && (
@@ -5873,6 +6750,146 @@ export function AdminDashboardPage() {
                   className="px-4 py-2 rounded-xl bg-[#0B5FD9] text-white text-xs font-bold hover:bg-[#094FB6] cursor-pointer"
                 >
                   Create Category
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ===================== MODAL 8: ADD NEW BANNER ===================== */}
+      {bannerModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-7 shadow-2xl border border-[#DCE7F9] space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-[#EAF2FF]">
+              <div>
+                <h3 className="font-bold text-base text-[#0A1F5C]">Add New Marketing Banner</h3>
+                <p className="text-xs text-[#5B6B8C]">Publish a hero slide or promotional banner on the customer homepage.</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setBannerModalOpen(false)}
+                className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 cursor-pointer"
+              >
+                <X className="w-4 h-4 text-gray-700" />
+              </button>
+            </div>
+
+            <form onSubmit={handleAddBannerSubmit} className="space-y-3.5 text-xs">
+              <div>
+                <label className="block text-xs font-bold text-[#0A1F5C] mb-1">Banner Headline / Title *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Monsoon Home Appliance Servicing - 30% Off"
+                  value={newBannerTitle}
+                  onChange={(e) => setNewBannerTitle(e.target.value)}
+                  className="w-full p-2.5 rounded-xl border border-[#DCE7F9] text-xs focus:outline-none focus:border-[#0B5FD9]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-[#0A1F5C] mb-1">Subtitle / Marketing Description</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Verified electricians, plumbers & AC repair at your doorstep"
+                  value={newBannerSubtitle}
+                  onChange={(e) => setNewBannerSubtitle(e.target.value)}
+                  className="w-full p-2.5 rounded-xl border border-[#DCE7F9] text-xs focus:outline-none focus:border-[#0B5FD9]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-[#0A1F5C] mb-1">Choose Quick Preset Image or Custom URL</label>
+                <div className="grid grid-cols-5 gap-2 mb-2">
+                  {[
+                    { label: 'Home', src: '/src/assets/images/hero_home_services_1794821794674.jpg' },
+                    { label: 'Events', src: '/src/assets/images/hero_events_1794821796128.jpg' },
+                    { label: 'Agri', src: '/src/assets/images/hero_agriculture_1794821795928.jpg' },
+                    { label: 'Moving', src: '/src/assets/images/hero_moving_1794821795552.jpg' },
+                    { label: 'Constr.', src: '/src/assets/images/hero_contractors_1794821794939.jpg' },
+                  ].map((preset) => (
+                    <button
+                      key={preset.label}
+                      type="button"
+                      onClick={() => setNewBannerImage(preset.src)}
+                      className={`relative rounded-xl overflow-hidden h-14 border transition-all ${
+                        newBannerImage === preset.src ? 'border-[#0B5FD9] ring-2 ring-[#0B5FD9]' : 'border-gray-200 opacity-70 hover:opacity-100'
+                      }`}
+                    >
+                      <img src={preset.src} alt={preset.label} className="w-full h-full object-cover" />
+                      <span className="absolute bottom-0 inset-x-0 bg-black/60 text-white text-[9px] font-bold py-0.5 text-center">
+                        {preset.label}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+                <input
+                  type="text"
+                  required
+                  placeholder="Image URL"
+                  value={newBannerImage}
+                  onChange={(e) => setNewBannerImage(e.target.value)}
+                  className="w-full p-2 rounded-xl border border-[#DCE7F9] text-xs bg-[#F8FAFD] font-mono text-[11px]"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-[#0A1F5C] mb-1">Target Route / Link</label>
+                  <select
+                    value={newBannerTo}
+                    onChange={(e) => setNewBannerTo(e.target.value)}
+                    className="w-full p-2.5 rounded-xl border border-[#DCE7F9] text-xs bg-white font-medium focus:outline-none focus:border-[#0B5FD9]"
+                  >
+                    <option value="/home-services">Home Services (/home-services)</option>
+                    <option value="/events">Event Services (/events)</option>
+                    <option value="/agriculture">Agriculture (/agriculture)</option>
+                    <option value="/moving">Moving &amp; Shifting (/moving)</option>
+                    <option value="/contractors">Contractors (/contractors)</option>
+                    <option value="/offers">Special Offers (/offers)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-[#0A1F5C] mb-1">Button Call To Action</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Book Now"
+                    value={newBannerCta}
+                    onChange={(e) => setNewBannerCta(e.target.value)}
+                    className="w-full p-2.5 rounded-xl border border-[#DCE7F9] text-xs focus:outline-none focus:border-[#0B5FD9]"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-[#0A1F5C] mb-1">Banner Placement</label>
+                <select
+                  value={newBannerPlacement}
+                  onChange={(e) => setNewBannerPlacement(e.target.value as any)}
+                  className="w-full p-2.5 rounded-xl border border-[#DCE7F9] text-xs bg-white font-medium focus:outline-none focus:border-[#0B5FD9]"
+                >
+                  <option value="HERO_CAROUSEL">Home Hero Carousel (Top Banner)</option>
+                  <option value="PROMO_STRIP">Mid-Page Promotional Strip</option>
+                  <option value="TOP_BANNER">Top Notification Bar</option>
+                </select>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#EAF2FF]">
+                <button
+                  type="button"
+                  onClick={() => setBannerModalOpen(false)}
+                  className="px-4 py-2 rounded-xl border border-[#DCE7F9] text-xs font-semibold hover:bg-gray-50 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 rounded-xl bg-[#0B5FD9] text-white text-xs font-bold hover:bg-[#094FB6] cursor-pointer"
+                >
+                  Publish Banner
                 </button>
               </div>
             </form>
