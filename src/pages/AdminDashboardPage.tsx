@@ -53,7 +53,18 @@ import {
   X,
   Play,
   Image as ImageIcon,
+  Plus,
+  CheckSquare,
 } from 'lucide-react';
+import {
+  type PartnerCategoryConfig,
+  getStoredCategories,
+  addCategory as addPlatformCategory,
+  removeCategory as removePlatformCategory,
+  addSubCategory as addPlatformSubCategory,
+  removeSubCategory as removePlatformSubCategory,
+  resetCategoriesToDefault,
+} from '../data/partnerCategoriesData.ts';
 import { useAuth } from '../context/AuthContext.tsx';
 import { Link, useRouter } from '../lib/router.tsx';
 import { BrandLogo } from '../components/common/BrandLogo.tsx';
@@ -77,6 +88,7 @@ type AdminTab =
   | 'dashboard'
   | 'orders'
   | 'kyc'
+  | 'categories'
   | 'commission'
   | 'coupons'
   | 'users'
@@ -1011,8 +1023,140 @@ export function AdminDashboardPage() {
   // Persisted state
   const [kycRequests, setKycRequests] = useState<PartnerKYCRequest[]>(() => {
     const saved = localStorage.getItem('serva_admin_kyc');
-    return saved ? JSON.parse(saved) : INITIAL_KYC_REQUESTS;
+    let list: PartnerKYCRequest[] = saved ? JSON.parse(saved) : INITIAL_KYC_REQUESTS;
+    try {
+      const liveSubmitted = localStorage.getItem('serva_partner_kyc');
+      if (liveSubmitted) {
+        const parsed = JSON.parse(liveSubmitted);
+        if (parsed && !list.some((k) => k.mobile === parsed.mobile || k.id === 'live-partner-1')) {
+          const newKyc: PartnerKYCRequest = {
+            id: 'live-partner-1',
+            partnerType: parsed.partnerType || 'INDIVIDUAL',
+            businessName: parsed.shopName || `${parsed.fullName} Services`,
+            ownerName: parsed.fullName,
+            email: parsed.email || `${parsed.fullName.toLowerCase().replace(/\s+/g, '.')}@partner.demo`,
+            mobile: parsed.mobile,
+            categories: [parsed.category || 'Home Services'],
+            services: Array.isArray(parsed.subCategories) && parsed.subCategories.length > 0
+              ? parsed.subCategories
+              : (parsed.servicesOffered ? parsed.servicesOffered.split(', ') : ['Electrician & Wiring', 'AC Repair']),
+            serviceArea: parsed.serviceArea || 'Hyderabad (All Zones)',
+            experienceYears: 4,
+            submittedAt: parsed.submittedAt || 'Today, Just now',
+            status: 'PENDING',
+            panNumber: parsed.panNumber,
+            panImageUrl: '/src/assets/images/hero_home_services_1794821794674.jpg',
+            gstNumber: parsed.gstNumber,
+            tradeLicenseUrl: parsed.gstNumber ? '/src/assets/images/hero_contractors_1794821794939.jpg' : undefined,
+            payoutMode: parsed.payoutMode || 'UPI',
+            upiId: parsed.payoutDest?.includes('@') ? parsed.payoutDest : 'partner@okhdfcbank',
+          };
+          list = [newKyc, ...list];
+        }
+      }
+    } catch {}
+    return list;
   });
+
+  // Categories & Sub-Categories Management State
+  const [managedCategories, setManagedCategories] = useState<PartnerCategoryConfig[]>(() => getStoredCategories());
+  const [selectedAdminCategory, setSelectedAdminCategory] = useState<string>('home-services');
+  const [newCatModalOpen, setNewCatModalOpen] = useState(false);
+  const [newCatName, setNewCatName] = useState('');
+  const [newCatIcon, setNewCatIcon] = useState('🏠');
+  const [newCatIndividualInit, setNewCatIndividualInit] = useState('Standard Service & Inspection, Emergency Repair');
+  const [newCatBusinessInit, setNewCatBusinessInit] = useState('Turnkey Contracting Agency, Commercial Fleet Services');
+  const [catSearchQuery, setCatSearchQuery] = useState('');
+  const [individualSubCatInput, setIndividualSubCatInput] = useState('');
+  const [businessSubCatInput, setBusinessSubCatInput] = useState('');
+  const [categoryFeedback, setCategoryFeedback] = useState<string | null>(null);
+
+  useEffect(() => {
+    const handleCategoryUpdate = (e: any) => {
+      if (e.detail && Array.isArray(e.detail)) {
+        setManagedCategories(e.detail);
+      }
+    };
+    window.addEventListener('serva:categories-updated', handleCategoryUpdate);
+    return () => window.removeEventListener('serva:categories-updated', handleCategoryUpdate);
+  }, []);
+
+  const handleAddCategorySubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newCatName.trim()) return;
+    const slug = newCatName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    const newCat: PartnerCategoryConfig = {
+      id: slug || `cat-${Date.now()}`,
+      name: newCatName.trim(),
+      icon: newCatIcon || '📦',
+      subCategories: {
+        INDIVIDUAL: newCatIndividualInit
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean),
+        SHOP_BUSINESS: newCatBusinessInit
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean),
+      },
+    };
+    const updated = addPlatformCategory(newCat);
+    setManagedCategories(updated);
+    setSelectedAdminCategory(newCat.id);
+    setNewCatName('');
+    setNewCatModalOpen(false);
+    setCategoryFeedback(`Category "${newCat.name}" created successfully.`);
+    setTimeout(() => setCategoryFeedback(null), 3000);
+  };
+
+  const handleRemoveCategory = (catId: string, catName: string) => {
+    if (managedCategories.length <= 1) {
+      alert('You must have at least one active category on the platform.');
+      return;
+    }
+    if (!window.confirm(`Are you sure you want to remove the category "${catName}" and all its sub-categories?`)) {
+      return;
+    }
+    const updated = removePlatformCategory(catId);
+    setManagedCategories(updated);
+    if (selectedAdminCategory === catId && updated.length > 0) {
+      setSelectedAdminCategory(updated[0].id);
+    }
+    setCategoryFeedback(`Category "${catName}" removed.`);
+    setTimeout(() => setCategoryFeedback(null), 3000);
+  };
+
+  const handleAddSubCategory = (targetType: 'INDIVIDUAL' | 'SHOP_BUSINESS') => {
+    const text = targetType === 'INDIVIDUAL' ? individualSubCatInput : businessSubCatInput;
+    if (!text.trim()) return;
+    const updated = addPlatformSubCategory(selectedAdminCategory, targetType, text.trim());
+    setManagedCategories(updated);
+    if (targetType === 'INDIVIDUAL') {
+      setIndividualSubCatInput('');
+    } else {
+      setBusinessSubCatInput('');
+    }
+    setCategoryFeedback(`Added "${text.trim()}" to ${targetType === 'INDIVIDUAL' ? 'Individual Technician' : 'Shop / Business'}.`);
+    setTimeout(() => setCategoryFeedback(null), 3000);
+  };
+
+  const handleRemoveSubCategory = (targetType: 'INDIVIDUAL' | 'SHOP_BUSINESS', subName: string) => {
+    const updated = removePlatformSubCategory(selectedAdminCategory, targetType, subName);
+    setManagedCategories(updated);
+    setCategoryFeedback(`Removed "${subName}" from ${targetType === 'INDIVIDUAL' ? 'Individual Technician' : 'Shop / Business'}.`);
+    setTimeout(() => setCategoryFeedback(null), 3000);
+  };
+
+  const handleResetCategories = () => {
+    if (!window.confirm('Reset all categories and sub-categories to platform defaults? Any custom items will be replaced.')) {
+      return;
+    }
+    const defaults = resetCategoriesToDefault();
+    setManagedCategories(defaults);
+    setSelectedAdminCategory(defaults[0].id);
+    setCategoryFeedback('Reset all categories and sub-categories to platform defaults.');
+    setTimeout(() => setCategoryFeedback(null), 3000);
+  };
 
   const [coupons, setCoupons] = useState<AdminCoupon[]>(() => {
     const saved = localStorage.getItem('serva_admin_coupons');
@@ -1413,6 +1557,7 @@ export function AdminDashboardPage() {
     { id: 'dashboard' as const, label: 'Dashboard', icon: LayoutDashboard },
     { id: 'orders' as const, label: 'Orders & Dispatch', icon: ClipboardList, count: pendingAssignmentOrdersCount },
     { id: 'kyc' as const, label: 'Partner KYC', icon: FileCheck, count: pendingKycCount },
+    { id: 'categories' as const, label: 'Categories & Sub-Categories', icon: Layers },
     { id: 'commission' as const, label: 'Commission Setup', icon: Percent },
     { id: 'coupons' as const, label: 'Coupons & Deals', icon: Tag },
     { id: 'users' as const, label: 'Users', icon: Users },
@@ -2516,12 +2661,25 @@ export function AdminDashboardPage() {
                           <span className="text-[11px]">{partner.experienceYears} yrs experience</span>
                         </div>
 
-                        <div className="col-span-2 pt-2 border-t border-[#EAF2FF]">
-                          <span className="block text-[10px] uppercase font-bold text-[#8FA0C0]">Services Offered</span>
-                          <p className="text-xs font-semibold text-[#0B5FD9] mt-0.5">
-                            {partner.categories.join(', ')} &mdash;{' '}
-                            <span className="text-[#5B6B8C] font-normal">{partner.services.join(', ')}</span>
-                          </p>
+                        <div className="col-span-2 pt-2 border-t border-[#EAF2FF] space-y-1.5">
+                          <div className="flex items-center justify-between">
+                            <span className="block text-[10px] uppercase font-bold text-[#8FA0C0]">
+                              Category & Selected Sub-Categories ({partner.services.length})
+                            </span>
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-50 text-[#0B5FD9] border border-blue-200">
+                              {partner.categories.join(', ')}
+                            </span>
+                          </div>
+                          <div className="flex flex-wrap gap-1 max-h-24 overflow-y-auto">
+                            {partner.services.map((svc) => (
+                              <span
+                                key={svc}
+                                className="px-2 py-0.5 rounded text-[11px] font-semibold bg-[#F1F6FF] text-[#0A1F5C] border border-[#DCE7F9]"
+                              >
+                                ✓ {svc}
+                              </span>
+                            ))}
+                          </div>
                         </div>
 
                         {/* Document details */}
@@ -2607,6 +2765,369 @@ export function AdminDashboardPage() {
                 </div>
               </div>
             )}
+
+            {/* ===================== TAB: CATEGORIES & SUB-CATEGORIES MANAGER ===================== */}
+            {activeTab === 'categories' && (() => {
+              const currentCat = managedCategories.find((c) => c.id === selectedAdminCategory) || managedCategories[0];
+              const totalIndividualSubCats = managedCategories.reduce((acc, c) => acc + (c.subCategories?.INDIVIDUAL?.length || 0), 0);
+              const totalBusinessSubCats = managedCategories.reduce((acc, c) => acc + (c.subCategories?.SHOP_BUSINESS?.length || 0), 0);
+
+              return (
+                <div className="space-y-6">
+                  {/* Header & Stats Banner */}
+                  <div className="bg-white rounded-3xl p-6 sm:p-7 border border-[#DCE7F9] shadow-sm space-y-5">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                      <div>
+                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#EBF2FE] text-[#0B5FD9] text-xs font-bold mb-2">
+                          <Layers className="w-4 h-4" />
+                          <span>Platform Category & Service Management</span>
+                        </div>
+                        <h2 className="text-xl sm:text-2xl font-black text-[#0A1F5C] tracking-tight">
+                          Categories & Sub-Categories Access
+                        </h2>
+                        <p className="text-xs sm:text-sm text-[#5B6B8C] mt-1 max-w-2xl">
+                          Full admin authority to add and remove service categories and customize specific sub-categories offered by Individual Technicians and Shop/Businesses.
+                        </p>
+                      </div>
+
+                      <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
+                        <button
+                          type="button"
+                          onClick={() => setNewCatModalOpen(true)}
+                          className="px-4 py-2.5 rounded-xl bg-[#0B5FD9] text-white hover:bg-[#094FB6] text-xs font-bold flex items-center gap-2 shadow-sm transition-all cursor-pointer"
+                        >
+                          <Plus className="w-4 h-4" />
+                          <span>Add New Category</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={handleResetCategories}
+                          className="px-3.5 py-2.5 rounded-xl border border-[#DCE7F9] bg-[#F8FAFD] hover:bg-[#EBF2FE] text-[#0A1F5C] text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer"
+                          title="Reset to default categories"
+                        >
+                          <RefreshCw className="w-3.5 h-3.5 text-[#5B6B8C]" />
+                          <span className="hidden sm:inline">Reset Defaults</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Feedback Toast Notification */}
+                    {categoryFeedback && (
+                      <div className="p-3 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold flex items-center justify-between animate-fadeIn">
+                        <div className="flex items-center gap-2">
+                          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                          <span>{categoryFeedback}</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setCategoryFeedback(null)}
+                          className="text-emerald-700 hover:text-emerald-900 cursor-pointer"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Stats Row */}
+                    <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 pt-2">
+                      <div className="p-4 rounded-2xl bg-[#F8FAFD] border border-[#EAF2FF]">
+                        <span className="text-[10px] uppercase font-bold text-[#8FA0C0] block">Active Categories</span>
+                        <span className="text-2xl font-black text-[#0A1F5C] mt-1 block">{managedCategories.length}</span>
+                        <span className="text-[11px] text-[#5B6B8C]">Platform industries</span>
+                      </div>
+
+                      <div className="p-4 rounded-2xl bg-[#F8FAFD] border border-[#EAF2FF]">
+                        <span className="text-[10px] uppercase font-bold text-[#8FA0C0] block">Individual Sub-Categories</span>
+                        <span className="text-2xl font-black text-[#0B5FD9] mt-1 block">{totalIndividualSubCats}</span>
+                        <span className="text-[11px] text-[#5B6B8C]">Solo technician skills</span>
+                      </div>
+
+                      <div className="p-4 rounded-2xl bg-[#F8FAFD] border border-[#EAF2FF]">
+                        <span className="text-[10px] uppercase font-bold text-[#8FA0C0] block">Business Sub-Categories</span>
+                        <span className="text-2xl font-black text-purple-600 mt-1 block">{totalBusinessSubCats}</span>
+                        <span className="text-[11px] text-[#5B6B8C]">Shop & fleet services</span>
+                      </div>
+
+                      <div className="p-4 rounded-2xl bg-emerald-50/50 border border-emerald-100 flex flex-col justify-center">
+                        <span className="text-[10px] uppercase font-bold text-emerald-700 flex items-center gap-1">
+                          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                          Instant Synchronization
+                        </span>
+                        <p className="text-[11px] text-emerald-900 font-semibold mt-1">
+                          All modifications update live in Partner Registration and Customer flows.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Main Work Area: Category Selector Tabs + Sub-Category Workspace */}
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                    {/* Category List (Left Column, 4 cols) */}
+                    <div className="lg:col-span-4 bg-white rounded-3xl p-5 border border-[#DCE7F9] shadow-sm space-y-4">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-sm font-bold text-[#0A1F5C]">Categories ({managedCategories.length})</h3>
+                        <span className="text-[10px] font-semibold text-[#5B6B8C]">Click to manage</span>
+                      </div>
+
+                      <div className="relative">
+                        <Search className="w-3.5 h-3.5 text-[#5B6B8C] absolute left-3 top-1/2 -translate-y-1/2" />
+                        <input
+                          type="text"
+                          placeholder="Search categories..."
+                          value={catSearchQuery}
+                          onChange={(e) => setCatSearchQuery(e.target.value)}
+                          className="w-full pl-8 pr-3 py-2 text-xs rounded-xl border border-[#DCE7F9] bg-[#F8FAFD] focus:bg-white focus:outline-none focus:border-[#0B5FD9]"
+                        />
+                      </div>
+
+                      <div className="space-y-2 max-h-[550px] overflow-y-auto pr-1">
+                        {managedCategories
+                          .filter((c) => c.name.toLowerCase().includes(catSearchQuery.toLowerCase()))
+                          .map((cat) => {
+                            const isSelected = (currentCat?.id === cat.id);
+                            const indCount = cat.subCategories?.INDIVIDUAL?.length || 0;
+                            const bizCount = cat.subCategories?.SHOP_BUSINESS?.length || 0;
+                            return (
+                              <div
+                                key={cat.id}
+                                onClick={() => setSelectedAdminCategory(cat.id)}
+                                className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-3 ${
+                                  isSelected
+                                    ? 'bg-[#F1F6FF] border-[#0B5FD9] shadow-xs'
+                                    : 'bg-white border-[#EAF2FF] hover:border-[#BED5FA] hover:bg-[#F8FAFD]'
+                                }`}
+                              >
+                                <div className="flex items-center gap-3 min-w-0">
+                                  <span className="text-2xl shrink-0 p-1 rounded-xl bg-white border border-[#DCE7F9] shadow-2xs">
+                                    {cat.icon || '📦'}
+                                  </span>
+                                  <div className="min-w-0">
+                                    <h4 className={`text-xs sm:text-sm font-bold truncate ${isSelected ? 'text-[#0B5FD9]' : 'text-[#0A1F5C]'}`}>
+                                      {cat.name}
+                                    </h4>
+                                    <div className="flex items-center gap-2 mt-0.5 text-[10px] text-[#5B6B8C]">
+                                      <span>👤 {indCount} ind</span>
+                                      <span>&bull;</span>
+                                      <span>🏪 {bizCount} biz</span>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div className="flex items-center gap-1.5 shrink-0">
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleRemoveCategory(cat.id, cat.name);
+                                    }}
+                                    className="p-1.5 rounded-lg text-gray-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                                    title={`Delete ${cat.name}`}
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              </div>
+                            );
+                          })}
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => setNewCatModalOpen(true)}
+                        className="w-full py-2.5 rounded-xl border border-dashed border-[#0B5FD9] text-[#0B5FD9] hover:bg-blue-50 text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                      >
+                        <Plus className="w-4 h-4" />
+                        <span>Add Another Category</span>
+                      </button>
+                    </div>
+
+                    {/* Sub-Categories Workspace (Right Column, 8 cols) */}
+                    {currentCat && (
+                      <div className="lg:col-span-8 space-y-5">
+                        {/* Selected Category Header Banner */}
+                        <div className="bg-white rounded-3xl p-5 sm:p-6 border border-[#DCE7F9] shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                          <div className="flex items-center gap-3.5">
+                            <span className="text-3xl p-2 rounded-2xl bg-[#F8FAFD] border border-[#DCE7F9]">
+                              {currentCat.icon || '📦'}
+                            </span>
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <h3 className="text-lg font-black text-[#0A1F5C]">{currentCat.name}</h3>
+                                <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-gray-100 text-gray-700">
+                                  slug: {currentCat.id}
+                                </span>
+                              </div>
+                              <p className="text-xs text-[#5B6B8C] mt-0.5">
+                                Managing {(currentCat.subCategories?.INDIVIDUAL?.length || 0) + (currentCat.subCategories?.SHOP_BUSINESS?.length || 0)} total sub-categories.
+                              </p>
+                            </div>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveCategory(currentCat.id, currentCat.name)}
+                            className="px-3 py-1.5 rounded-xl border border-rose-200 text-rose-600 hover:bg-rose-50 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                            <span>Remove Category</span>
+                          </button>
+                        </div>
+
+                        {/* Two Columns for Sub-Categories: Individual vs Business */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                          {/* 1. INDIVIDUAL TECHNICIAN SUB-CATEGORIES */}
+                          <div className="bg-white rounded-3xl p-5 border border-[#DCE7F9] shadow-sm space-y-4">
+                            <div className="flex items-center justify-between border-b border-[#EAF2FF] pb-3">
+                              <div className="flex items-center gap-2">
+                                <div className="w-7 h-7 rounded-lg bg-blue-50 text-[#0B5FD9] flex items-center justify-center text-sm font-bold">
+                                  👤
+                                </div>
+                                <div>
+                                  <h4 className="text-xs sm:text-sm font-bold text-[#0A1F5C]">Individual Technician</h4>
+                                  <span className="text-[10px] text-[#5B6B8C]">
+                                    {currentCat.subCategories?.INDIVIDUAL?.length || 0} sub-categories
+                                  </span>
+                                </div>
+                              </div>
+                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-[#0B5FD9] border border-blue-200">
+                                Solo Workers
+                              </span>
+                            </div>
+
+                            {/* Add Sub-Category Input */}
+                            <div className="flex gap-2">
+                              <input
+                                type="text"
+                                placeholder="Add individual skill / service..."
+                                value={individualSubCatInput}
+                                onChange={(e) => setIndividualSubCatInput(e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                    e.preventDefault();
+                                    handleAddSubCategory('INDIVIDUAL');
+                                  }
+                                }}
+                                className="flex-1 px-3 py-2 text-xs rounded-xl border border-[#DCE7F9] focus:outline-none focus:border-[#0B5FD9]"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => handleAddSubCategory('INDIVIDUAL')}
+                                className="px-3.5 py-2 rounded-xl bg-[#0B5FD9] hover:bg-[#094FB6] text-white text-xs font-bold flex items-center gap-1 cursor-pointer shrink-0"
+                              >
+                                <Plus className="w-3.5 h-3.5" />
+                                <span>Add</span>
+                              </button>
+                            </div>
+
+                            {/* Sub-Category Items List */}
+                            <div className="space-y-1.5 max-h-[420px] overflow-y-auto pr-1">
+                              {(currentCat.subCategories?.INDIVIDUAL || []).map((sub) => (
+                                <div
+                                  key={sub}
+                                  className="group p-2.5 rounded-xl border border-[#EDF3FC] hover:border-[#DCE7F9] bg-[#F8FAFD] hover:bg-white flex items-center justify-between text-xs transition-all"
+                                >
+                                  <div className="flex items-center gap-2 min-w-0">
+                                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                                    <span className="font-semibold text-[#0A1F5C] truncate">{sub}</span>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRemoveSubCategory('INDIVIDUAL', sub)}
+                                    className="opacity-70 group-hover:opacity-100 p-1 rounded-lg text-gray-400 hover:text-rose-600 hover:bg-rose-50 transition-all cursor-pointer"
+                                    title={`Remove "${sub}"`}
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              ))}
+                              {(!currentCat.subCategories?.INDIVIDUAL || currentCat.subCategories.INDIVIDUAL.length === 0) && (
+                                <p className="text-xs text-center py-6 text-[#5B6B8C]">
+                                  No sub-categories yet. Type above to add one.
+                                </p>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* 2. SHOP / BUSINESS SUB-CATEGORIES */}
+                          <div className="bg-white rounded-3xl p-5 border border-[#DCE7F9] shadow-sm space-y-4">
+                            <div className="flex items-center justify-between border-b border-[#EAF2FF] pb-3">
+                              <div className="flex items-center gap-2">
+                                <div className="w-7 h-7 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center text-sm font-bold">
+                                  🏪
+                                </div>
+                                <div>
+                                  <h4 className="text-xs sm:text-sm font-bold text-[#0A1F5C]">Shop / Business</h4>
+                                  <span className="text-[10px] text-[#5B6B8C]">
+                                    {currentCat.subCategories?.SHOP_BUSINESS?.length || 0} sub-categories
+                                  </span>
+                                </div>
+                              </div>
+                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200">
+                                Agencies & Hubs
+                              </span>
+                            </div>
+
+                            {/* Add Sub-Category Input */}
+                            <div className="flex gap-2">
+                              <input
+                                type="text"
+                                placeholder="Add business / agency service..."
+                                value={businessSubCatInput}
+                                onChange={(e) => setBusinessSubCatInput(e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                    e.preventDefault();
+                                    handleAddSubCategory('SHOP_BUSINESS');
+                                  }
+                                }}
+                                className="flex-1 px-3 py-2 text-xs rounded-xl border border-[#DCE7F9] focus:outline-none focus:border-[#0B5FD9]"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => handleAddSubCategory('SHOP_BUSINESS')}
+                                className="px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold flex items-center gap-1 cursor-pointer shrink-0"
+                              >
+                                <Plus className="w-3.5 h-3.5" />
+                                <span>Add</span>
+                              </button>
+                            </div>
+
+                            {/* Sub-Category Items List */}
+                            <div className="space-y-1.5 max-h-[420px] overflow-y-auto pr-1">
+                              {(currentCat.subCategories?.SHOP_BUSINESS || []).map((sub) => (
+                                <div
+                                  key={sub}
+                                  className="group p-2.5 rounded-xl border border-[#EDF3FC] hover:border-[#DCE7F9] bg-[#F8FAFD] hover:bg-white flex items-center justify-between text-xs transition-all"
+                                >
+                                  <div className="flex items-center gap-2 min-w-0">
+                                    <CheckCircle2 className="w-3.5 h-3.5 text-purple-600 shrink-0" />
+                                    <span className="font-semibold text-[#0A1F5C] truncate">{sub}</span>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRemoveSubCategory('SHOP_BUSINESS', sub)}
+                                    className="opacity-70 group-hover:opacity-100 p-1 rounded-lg text-gray-400 hover:text-rose-600 hover:bg-rose-50 transition-all cursor-pointer"
+                                    title={`Remove "${sub}"`}
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              ))}
+                              {(!currentCat.subCategories?.SHOP_BUSINESS || currentCat.subCategories.SHOP_BUSINESS.length === 0) && (
+                                <p className="text-xs text-center py-6 text-[#5B6B8C]">
+                                  No sub-categories yet. Type above to add one.
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
 
             {/* ===================== TAB 3: COMMISSION SETUP ===================== */}
             {activeTab === 'commission' && (
@@ -4620,6 +5141,29 @@ export function AdminDashboardPage() {
                 </div>
               </div>
 
+              {/* Category & Selected Sub-Categories */}
+              <div className="bg-[#F8FAFD] p-3.5 rounded-2xl border border-[#DCE7F9] space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-[#0A1F5C] flex items-center gap-1.5">
+                    <CheckSquare className="w-3.5 h-3.5 text-[#0B5FD9]" />
+                    <span>Applied Category & Sub-Categories ({selectedKyc.services?.length || 0})</span>
+                  </span>
+                  <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-blue-100 text-[#0B5FD9] border border-blue-200">
+                    {selectedKyc.categories?.join(', ')} &bull; {selectedKyc.partnerType === 'SHOP_BUSINESS' ? '🏪 Shop/Business' : '👤 Individual'}
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-1.5 pt-1 max-h-32 overflow-y-auto">
+                  {selectedKyc.services?.map((svc) => (
+                    <span
+                      key={svc}
+                      className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-white text-[#0A1F5C] border border-[#DCE7F9] shadow-2xs"
+                    >
+                      ✓ {svc}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
               {/* Uploaded Documents */}
               <div>
                 <h4 className="font-bold text-xs uppercase text-[#8FA0C0] mb-2">Uploaded Verification Proofs</h4>
@@ -5230,6 +5774,108 @@ export function AdminDashboardPage() {
                 Close Dossier
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ===================== MODAL 7: ADD NEW PLATFORM CATEGORY ===================== */}
+      {newCatModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-7 shadow-2xl border border-[#DCE7F9] space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-[#EAF2FF]">
+              <div>
+                <h3 className="font-bold text-base text-[#0A1F5C]">Add New Service Category</h3>
+                <p className="text-xs text-[#5B6B8C]">Create a new industry vertical for partner onboarding & customer booking.</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setNewCatModalOpen(false)}
+                className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 cursor-pointer"
+              >
+                <X className="w-4 h-4 text-gray-700" />
+              </button>
+            </div>
+
+            <form onSubmit={handleAddCategorySubmit} className="space-y-4 text-xs">
+              <div>
+                <label className="block text-xs font-bold text-[#0A1F5C] mb-1">Category Name *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Electric Vehicle & Battery Care"
+                  value={newCatName}
+                  onChange={(e) => setNewCatName(e.target.value)}
+                  className="w-full p-2.5 rounded-xl border border-[#DCE7F9] text-xs focus:outline-none focus:border-[#0B5FD9]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-[#0A1F5C] mb-1.5">Choose Icon / Emoji</label>
+                <div className="flex flex-wrap gap-1.5 mb-2">
+                  {['🏠', '🏗️', '🌾', '🎉', '🚚', '🚗', '🛵', '🧰', '💡', '🧼', '💻', '📱', '🩺', '🎨', '📦', '🚲', '⚡', '🛠️'].map((emoji) => (
+                    <button
+                      key={emoji}
+                      type="button"
+                      onClick={() => setNewCatIcon(emoji)}
+                      className={`w-8 h-8 rounded-xl text-base flex items-center justify-center border transition-all cursor-pointer ${
+                        newCatIcon === emoji
+                          ? 'border-[#0B5FD9] bg-[#EBF2FE] shadow-xs scale-105'
+                          : 'border-[#DCE7F9] bg-white hover:bg-gray-50'
+                      }`}
+                    >
+                      {emoji}
+                    </button>
+                  ))}
+                </div>
+                <input
+                  type="text"
+                  placeholder="Or enter custom emoji / symbol"
+                  value={newCatIcon}
+                  onChange={(e) => setNewCatIcon(e.target.value)}
+                  className="w-full p-2 rounded-xl border border-[#DCE7F9] text-xs bg-[#F8FAFD]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-[#0A1F5C] mb-1">
+                  Initial Sub-Categories for Individual Technicians (comma-separated)
+                </label>
+                <textarea
+                  rows={2}
+                  value={newCatIndividualInit}
+                  onChange={(e) => setNewCatIndividualInit(e.target.value)}
+                  className="w-full p-2 rounded-xl border border-[#DCE7F9] text-xs focus:outline-none focus:border-[#0B5FD9]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-[#0A1F5C] mb-1">
+                  Initial Sub-Categories for Shop / Business (comma-separated)
+                </label>
+                <textarea
+                  rows={2}
+                  value={newCatBusinessInit}
+                  onChange={(e) => setNewCatBusinessInit(e.target.value)}
+                  className="w-full p-2 rounded-xl border border-[#DCE7F9] text-xs focus:outline-none focus:border-[#0B5FD9]"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#EAF2FF]">
+                <button
+                  type="button"
+                  onClick={() => setNewCatModalOpen(false)}
+                  className="px-4 py-2 rounded-xl border border-[#DCE7F9] text-xs font-semibold hover:bg-gray-50 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 rounded-xl bg-[#0B5FD9] text-white text-xs font-bold hover:bg-[#094FB6] cursor-pointer"
+                >
+                  Create Category
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

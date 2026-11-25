@@ -10,7 +10,7 @@ export interface PartnerCategoryConfig {
   };
 }
 
-export const PARTNER_CATEGORIES: PartnerCategoryConfig[] = [
+export const DEFAULT_PARTNER_CATEGORIES: PartnerCategoryConfig[] = [
   {
     id: 'home-services',
     name: 'Home Services',
@@ -147,10 +147,146 @@ export const PARTNER_CATEGORIES: PartnerCategoryConfig[] = [
   },
 ];
 
+export const PARTNER_CATEGORIES = DEFAULT_PARTNER_CATEGORIES;
+
+const STORAGE_KEY = 'serva_partner_categories';
+
+/**
+ * Retrieve current categories from localStorage, or initialize with defaults.
+ */
+export function getStoredCategories(): PartnerCategoryConfig[] {
+  if (typeof window === 'undefined') return DEFAULT_PARTNER_CATEGORIES;
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_PARTNER_CATEGORIES));
+      return DEFAULT_PARTNER_CATEGORIES;
+    }
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed) && parsed.length > 0) {
+      return parsed;
+    }
+  } catch {
+    // fallback
+  }
+  return DEFAULT_PARTNER_CATEGORIES;
+}
+
+/**
+ * Save updated categories to localStorage and trigger storage sync event.
+ */
+export function saveStoredCategories(categories: PartnerCategoryConfig[]): void {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(categories));
+    window.dispatchEvent(new CustomEvent('serva:categories-updated', { detail: categories }));
+  } catch (err) {
+    console.error('Failed to save categories to localStorage:', err);
+  }
+}
+
+/**
+ * Add a new category.
+ */
+export function addCategory(newCategory: PartnerCategoryConfig): PartnerCategoryConfig[] {
+  const current = getStoredCategories();
+  // Ensure unique ID
+  const existingIndex = current.findIndex((c) => c.id === newCategory.id);
+  let updated: PartnerCategoryConfig[];
+  if (existingIndex >= 0) {
+    updated = [...current];
+    updated[existingIndex] = newCategory;
+  } else {
+    updated = [...current, newCategory];
+  }
+  saveStoredCategories(updated);
+  return updated;
+}
+
+/**
+ * Remove an existing category by its ID.
+ */
+export function removeCategory(categoryId: string): PartnerCategoryConfig[] {
+  const current = getStoredCategories();
+  const updated = current.filter((c) => c.id !== categoryId);
+  saveStoredCategories(updated);
+  return updated;
+}
+
+/**
+ * Add a sub-category to either INDIVIDUAL or SHOP_BUSINESS for a category.
+ */
+export function addSubCategory(
+  categoryId: string,
+  partnerType: 'INDIVIDUAL' | 'SHOP_BUSINESS',
+  subCategoryName: string
+): PartnerCategoryConfig[] {
+  const trimmed = subCategoryName.trim();
+  if (!trimmed) return getStoredCategories();
+
+  const current = getStoredCategories();
+  const updated = current.map((c) => {
+    if (c.id === categoryId || c.name.toLowerCase() === categoryId.toLowerCase()) {
+      const list = c.subCategories[partnerType] || [];
+      if (!list.includes(trimmed)) {
+        return {
+          ...c,
+          subCategories: {
+            ...c.subCategories,
+            [partnerType]: [...list, trimmed],
+          },
+        };
+      }
+    }
+    return c;
+  });
+
+  saveStoredCategories(updated);
+  return updated;
+}
+
+/**
+ * Remove a sub-category from either INDIVIDUAL or SHOP_BUSINESS for a category.
+ */
+export function removeSubCategory(
+  categoryId: string,
+  partnerType: 'INDIVIDUAL' | 'SHOP_BUSINESS',
+  subCategoryName: string
+): PartnerCategoryConfig[] {
+  const current = getStoredCategories();
+  const updated = current.map((c) => {
+    if (c.id === categoryId || c.name.toLowerCase() === categoryId.toLowerCase()) {
+      return {
+        ...c,
+        subCategories: {
+          ...c.subCategories,
+          [partnerType]: (c.subCategories[partnerType] || []).filter((s) => s !== subCategoryName),
+        },
+      };
+    }
+    return c;
+  });
+
+  saveStoredCategories(updated);
+  return updated;
+}
+
+/**
+ * Reset all categories and sub-categories to platform defaults.
+ */
+export function resetCategoriesToDefault(): PartnerCategoryConfig[] {
+  saveStoredCategories(DEFAULT_PARTNER_CATEGORIES);
+  return DEFAULT_PARTNER_CATEGORIES;
+}
+
+/**
+ * Dynamic getter for sub-categories by category name/slug and partner type.
+ */
 export function getSubCategories(categoryName: string, partnerType: 'INDIVIDUAL' | 'SHOP_BUSINESS'): string[] {
+  const categories = getStoredCategories();
   const normalized = categoryName.toLowerCase().replace('&', 'and');
   const found =
-    PARTNER_CATEGORIES.find((c) => {
+    categories.find((c) => {
       const cNorm = c.name.toLowerCase().replace('&', 'and');
       return (
         cNorm.includes(normalized) ||
@@ -158,7 +294,7 @@ export function getSubCategories(categoryName: string, partnerType: 'INDIVIDUAL'
         c.id === categoryName ||
         c.name === categoryName
       );
-    }) || PARTNER_CATEGORIES[0];
+    }) || categories[0] || DEFAULT_PARTNER_CATEGORIES[0];
 
-  return found.subCategories[partnerType] || [];
+  return found?.subCategories?.[partnerType] || [];
 }

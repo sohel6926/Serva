@@ -60,6 +60,8 @@ import {
 import {
   PARTNER_CATEGORIES,
   getSubCategories,
+  getStoredCategories,
+  type PartnerCategoryConfig,
 } from '../data/partnerCategoriesData.ts';
 import { useAuth } from '../context/AuthContext.tsx';
 import { Link, useRouter } from '../lib/router.tsx';
@@ -369,11 +371,15 @@ function PartnerAuthGate({ onSignedIn }: PartnerAuthGateProps) {
 
   // Register State (Per PDF Section 2 KYC Form)
   const [partnerType, setPartnerType] = useState<'INDIVIDUAL' | 'SHOP_BUSINESS'>('INDIVIDUAL');
+  const [categoryOptions, setCategoryOptions] = useState<PartnerCategoryConfig[]>(() => getStoredCategories());
   const [fullName, setFullName] = useState(user?.name || '');
   const [mobile, setMobile] = useState(user?.mobile || '');
   const [email, setEmail] = useState(user?.email || '');
   const [regPassword, setRegPassword] = useState('');
-  const [category, setCategory] = useState('Home Services');
+  const [category, setCategory] = useState(() => {
+    const list = getStoredCategories();
+    return list[0]?.name || 'Home Services';
+  });
   const [selectedSubCategories, setSelectedSubCategories] = useState<string[]>(() => {
     return getSubCategories('Home Services', 'INDIVIDUAL').slice(0, 3);
   });
@@ -381,6 +387,16 @@ function PartnerAuthGate({ onSignedIn }: PartnerAuthGateProps) {
   const [subCatSearch, setSubCatSearch] = useState('');
   const [servicesOffered, setServicesOffered] = useState('Electrician & Wiring, AC Repair, Geyser Care');
   const [serviceArea, setServiceArea] = useState('Hyderabad (All Zones)');
+
+  useEffect(() => {
+    const handleCategoryUpdate = (e: any) => {
+      if (e.detail && Array.isArray(e.detail)) {
+        setCategoryOptions(e.detail);
+      }
+    };
+    window.addEventListener('serva:categories-updated', handleCategoryUpdate);
+    return () => window.removeEventListener('serva:categories-updated', handleCategoryUpdate);
+  }, []);
 
   const handlePartnerTypeChange = (newType: 'INDIVIDUAL' | 'SHOP_BUSINESS') => {
     setPartnerType(newType);
@@ -498,7 +514,7 @@ function PartnerAuthGate({ onSignedIn }: PartnerAuthGateProps) {
       };
       try {
         localStorage.setItem('serva_partner_kyc', JSON.stringify(appData));
-      } catch {}
+      } catch { }
       setSubmittedKyc(appData);
       setSubmitting(false);
     }, 600);
@@ -567,694 +583,685 @@ function PartnerAuthGate({ onSignedIn }: PartnerAuthGateProps) {
             )}
           </div>
 
-      {/* Submitted Application Confirmation View */}
-      {submittedKyc ? (
-        <div className="bg-white rounded-3xl border border-[#DCE7F9] p-6 sm:p-8 shadow-xl text-center space-y-5">
-          <div className="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto shadow-sm">
-            <CheckCircle2 className="w-8 h-8" />
-          </div>
+          {/* Submitted Application Confirmation View */}
+          {submittedKyc ? (
+            <div className="bg-white rounded-3xl border border-[#DCE7F9] p-6 sm:p-8 shadow-xl text-center space-y-5">
+              <div className="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto shadow-sm">
+                <CheckCircle2 className="w-8 h-8" />
+              </div>
 
-          <div>
-            <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
-              KYC Status: Pending Admin Verification
-            </span>
-            <h2 className="text-xl font-bold text-[#0A1F5C] mt-2.5">
-              Registration & KYC Submitted!
-            </h2>
-            <p className="text-xs text-[#5B6B8C] mt-1">
-              Thank you <strong>{submittedKyc.fullName}</strong>. Your partner profile for{' '}
-              <strong>{submittedKyc.category}</strong> ({submittedKyc.partnerType === 'SHOP_BUSINESS' ? 'Shop / Business' : 'Individual Technician'}) has been forwarded to SERVA Admin for verification.
-            </p>
-            {submittedKyc.subCategories && submittedKyc.subCategories.length > 0 && (
-              <div className="mt-3 text-left bg-[#F8FAFD] p-3 rounded-xl border border-[#DCE7F9]">
-                <p className="text-[11px] font-bold text-[#0A1F5C] mb-1.5 flex items-center gap-1.5">
-                  <CheckSquare className="w-3.5 h-3.5 text-[#0B5FD9]" />
-                  <span>Approved Sub-Categories ({submittedKyc.subCategories.length}):</span>
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
+                  KYC Status: Pending Admin Verification
+                </span>
+                <h2 className="text-xl font-bold text-[#0A1F5C] mt-2.5">
+                  Registration & KYC Submitted!
+                </h2>
+                <p className="text-xs text-[#5B6B8C] mt-1">
+                  Thank you <strong>{submittedKyc.fullName}</strong>. Your partner profile for{' '}
+                  <strong>{submittedKyc.category}</strong> ({submittedKyc.partnerType === 'SHOP_BUSINESS' ? 'Shop / Business' : 'Individual Technician'}) has been forwarded to SERVA Admin for verification.
                 </p>
-                <div className="flex flex-wrap gap-1.5">
-                  {submittedKyc.subCategories.map((sc: string) => (
-                    <span
-                      key={sc}
-                      className="px-2 py-0.5 rounded-md text-[11px] bg-white text-[#0B5FD9] font-semibold border border-[#DCE7F9] shadow-2xs"
-                    >
-                      ✓ {sc}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Stepper Status Tracking */}
-          <div className="p-4 rounded-2xl bg-[#F8FAFD] border border-[#EAF2FF] text-left text-xs space-y-3">
-            <div className="flex items-center gap-3">
-              <div className="w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px] font-bold">
-                ✓
-              </div>
-              <div className="flex-1">
-                <p className="font-bold text-[#0A1F5C]">Application & Documents Submitted</p>
-                <p className="text-[10px] text-[#5B6B8C]">Submitted at {submittedKyc.submittedAt}</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <div className="w-6 h-6 rounded-full bg-amber-500 text-white flex items-center justify-center text-[10px] font-bold animate-pulse">
-                2
-              </div>
-              <div className="flex-1">
-                <p className="font-bold text-amber-800">Admin Document & Bank Verification</p>
-                <p className="text-[10px] text-amber-700">In review by SERVA Operations team</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3 opacity-60">
-              <div className="w-6 h-6 rounded-full bg-gray-200 text-gray-600 flex items-center justify-center text-[10px] font-bold">
-                3
-              </div>
-              <div className="flex-1">
-                <p className="font-bold text-gray-700">Account Activation & Job Dispatch</p>
-                <p className="text-[10px] text-gray-500">Unlocks automatically upon admin approval</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="pt-2 flex flex-col gap-2">
-            <button
-              type="button"
-              onClick={async () => {
-                await loginAsDemo('partner');
-                onSignedIn();
-              }}
-              className="w-full py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-2 shadow-md transition-all cursor-pointer"
-            >
-              <Sparkles className="w-4 h-4" />
-              <span>Simulate Admin Approval & Enter Partner Panel</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setSubmittedKyc(null)}
-              className="text-xs font-semibold text-[#5B6B8C] hover:text-[#0B5FD9] py-1"
-            >
-              &larr; Back to Sign In
-            </button>
-          </div>
-        </div>
-      ) : (
-        /* Main Card: Sign In / Register Tabs */
-        <div className="bg-white rounded-3xl border border-[#DCE7F9] shadow-xl overflow-hidden">
-          {/* Tab Pill Switcher */}
-          <div className="grid grid-cols-2 p-1.5 bg-[#F1F6FF] border-b border-[#DCE7F9] text-xs font-bold">
-            <button
-              type="button"
-              onClick={() => setTab('signin')}
-              className={`py-2.5 rounded-2xl transition-all cursor-pointer ${
-                tab === 'signin' ? 'bg-white text-[#0B5FD9] shadow-sm' : 'text-[#5B6B8C] hover:text-[#0A1F5C]'
-              }`}
-            >
-              Sign In to Partner Account
-            </button>
-            <button
-              type="button"
-              onClick={() => setTab('register')}
-              className={`py-2.5 rounded-2xl transition-all cursor-pointer ${
-                tab === 'register' ? 'bg-white text-[#0B5FD9] shadow-sm' : 'text-[#5B6B8C] hover:text-[#0A1F5C]'
-              }`}
-            >
-              Create Account (KYC)
-            </button>
-          </div>
-
-          <div className="p-6 sm:p-7">
-            {/* ── TAB 1: SIGN IN ── */}
-            {tab === 'signin' && (
-              <form onSubmit={handlePasswordSignIn} className="space-y-4">
-                {loginError && (
-                  <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-xs text-red-700 font-semibold">
-                    {loginError}
+                {submittedKyc.subCategories && submittedKyc.subCategories.length > 0 && (
+                  <div className="mt-3 text-left bg-[#F8FAFD] p-3 rounded-xl border border-[#DCE7F9]">
+                    <p className="text-[11px] font-bold text-[#0A1F5C] mb-1.5 flex items-center gap-1.5">
+                      <CheckSquare className="w-3.5 h-3.5 text-[#0B5FD9]" />
+                      <span>Approved Sub-Categories ({submittedKyc.subCategories.length}):</span>
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {submittedKyc.subCategories.map((sc: string) => (
+                        <span
+                          key={sc}
+                          className="px-2 py-0.5 rounded-md text-[11px] bg-white text-[#0B5FD9] font-semibold border border-[#DCE7F9] shadow-2xs"
+                        >
+                          ✓ {sc}
+                        </span>
+                      ))}
+                    </div>
                   </div>
                 )}
+              </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-[#0A1F5C] mb-1.5">
-                    Registered Mobile Number or Email
-                  </label>
-                  <div className="relative">
-                    <User className="w-4 h-4 text-[#5B6B8C] absolute left-3 top-3" />
-                    <input
-                      type="text"
-                      required
-                      placeholder="e.g. 9876543211 or partner@serva.demo"
-                      value={loginIdentifier}
-                      onChange={(e) => setLoginIdentifier(e.target.value)}
-                      className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-[#DCE7F9] text-xs font-medium focus:outline-none focus:border-[#0B5FD9]"
-                    />
+              {/* Stepper Status Tracking */}
+              <div className="p-4 rounded-2xl bg-[#F8FAFD] border border-[#EAF2FF] text-left text-xs space-y-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px] font-bold">
+                    ✓
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-bold text-[#0A1F5C]">Application & Documents Submitted</p>
+                    <p className="text-[10px] text-[#5B6B8C]">Submitted at {submittedKyc.submittedAt}</p>
                   </div>
                 </div>
 
-                <div>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <label className="text-xs font-bold text-[#0A1F5C]">Partner Password</label>
-                    <span className="text-[11px] text-[#0B5FD9] hover:underline cursor-pointer">
-                      Forgot Password?
-                    </span>
+                <div className="flex items-center gap-3">
+                  <div className="w-6 h-6 rounded-full bg-amber-500 text-white flex items-center justify-center text-[10px] font-bold animate-pulse">
+                    2
                   </div>
-                  <div className="relative">
-                    <Lock className="w-4 h-4 text-[#5B6B8C] absolute left-3 top-3" />
-                    <input
-                      type={showPassword ? 'text' : 'password'}
-                      required
-                      placeholder="Enter password"
-                      value={loginPassword}
-                      onChange={(e) => setLoginPassword(e.target.value)}
-                      className="w-full pl-9 pr-10 py-2.5 rounded-xl border border-[#DCE7F9] text-xs font-medium focus:outline-none focus:border-[#0B5FD9]"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-3 text-[#5B6B8C] hover:text-[#0A1F5C]"
-                    >
-                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </button>
+                  <div className="flex-1">
+                    <p className="font-bold text-amber-800">Admin Document & Bank Verification</p>
+                    <p className="text-[10px] text-amber-700">In review by SERVA Operations team</p>
                   </div>
                 </div>
 
+                <div className="flex items-center gap-3 opacity-60">
+                  <div className="w-6 h-6 rounded-full bg-gray-200 text-gray-600 flex items-center justify-center text-[10px] font-bold">
+                    3
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-bold text-gray-700">Account Activation & Job Dispatch</p>
+                    <p className="text-[10px] text-gray-500">Unlocks automatically upon admin approval</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-2 flex flex-col gap-2">
                 <button
-                  type="submit"
-                  disabled={loginLoading}
-                  className="w-full py-3 rounded-xl bg-[#0B5FD9] hover:bg-[#094FB6] text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer mt-2"
+                  type="button"
+                  onClick={async () => {
+                    await loginAsDemo('partner');
+                    onSignedIn();
+                  }}
+                  className="w-full py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-2 shadow-md transition-all cursor-pointer"
                 >
-                  <span>{loginLoading ? 'Signing In...' : 'Sign In to Partner Panel'}</span>
-                  <ArrowRight className="w-4 h-4" />
+                  <Sparkles className="w-4 h-4" />
+                  <span>Simulate Admin Approval & Enter Partner Panel</span>
                 </button>
 
-                {/* Instant Demo Shortcut */}
-                <div className="pt-4 border-t border-[#EAF2FF] text-center">
-                  <p className="text-[11px] text-[#5B6B8C] mb-2 font-medium">Quick Evaluator / Testing Access:</p>
-                  <button
-                    type="button"
-                    onClick={async () => {
-                      await loginAsDemo('partner');
-                      onSignedIn();
-                    }}
-                    className="w-full py-2.5 rounded-xl bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200 text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
-                  >
-                    <Zap className="w-3.5 h-3.5 text-emerald-600 fill-current" />
-                    <span>⚡ 1-Click Sign In as Ramesh Kumar (Verified Electrician)</span>
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => setSubmittedKyc(null)}
+                  className="text-xs font-semibold text-[#5B6B8C] hover:text-[#0B5FD9] py-1"
+                >
+                  &larr; Back to Sign In
+                </button>
+              </div>
+            </div>
+          ) : (
+            /* Main Card: Sign In / Register Tabs */
+            <div className="bg-white rounded-3xl border border-[#DCE7F9] shadow-xl overflow-hidden">
+              {/* Tab Pill Switcher */}
+              <div className="grid grid-cols-2 p-1.5 bg-[#F1F6FF] border-b border-[#DCE7F9] text-xs font-bold">
+                <button
+                  type="button"
+                  onClick={() => setTab('signin')}
+                  className={`py-2.5 rounded-2xl transition-all cursor-pointer ${tab === 'signin' ? 'bg-white text-[#0B5FD9] shadow-sm' : 'text-[#5B6B8C] hover:text-[#0A1F5C]'
+                    }`}
+                >
+                  Sign In to Partner Account
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTab('register')}
+                  className={`py-2.5 rounded-2xl transition-all cursor-pointer ${tab === 'register' ? 'bg-white text-[#0B5FD9] shadow-sm' : 'text-[#5B6B8C] hover:text-[#0A1F5C]'
+                    }`}
+                >
+                  Create Account (KYC)
+                </button>
+              </div>
 
-                <div className="text-center pt-2">
-                  <button
-                    type="button"
-                    onClick={() => setTab('register')}
-                    className="text-xs font-semibold text-[#0B5FD9] hover:underline cursor-pointer"
-                  >
-                    New partner? Register your business &rarr;
-                  </button>
-                </div>
-              </form>
-            )}
+              <div className="p-6 sm:p-7">
+                {/* ── TAB 1: SIGN IN ── */}
+                {tab === 'signin' && (
+                  <form onSubmit={handlePasswordSignIn} className="space-y-4">
+                    {loginError && (
+                      <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-xs text-red-700 font-semibold">
+                        {loginError}
+                      </div>
+                    )}
 
-            {/* ── TAB 2: CREATE PARTNER ACCOUNT (KYC) ── */}
-            {tab === 'register' && (
-              <form onSubmit={handleRegisterSubmit} className="space-y-4">
-                {regError && (
-                  <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-xs text-red-700 font-semibold">
-                    {regError}
-                  </div>
+                    <div>
+                      <label className="block text-xs font-bold text-[#0A1F5C] mb-1.5">
+                        Registered Mobile Number or Email
+                      </label>
+                      <div className="relative">
+                        <User className="w-4 h-4 text-[#5B6B8C] absolute left-3 top-3" />
+                        <input
+                          type="text"
+                          required
+                          placeholder="e.g. 9876543211 or partner@serva.demo"
+                          value={loginIdentifier}
+                          onChange={(e) => setLoginIdentifier(e.target.value)}
+                          className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-[#DCE7F9] text-xs font-medium focus:outline-none focus:border-[#0B5FD9]"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="text-xs font-bold text-[#0A1F5C]">Partner Password</label>
+                        <span className="text-[11px] text-[#0B5FD9] hover:underline cursor-pointer">
+                          Forgot Password?
+                        </span>
+                      </div>
+                      <div className="relative">
+                        <Lock className="w-4 h-4 text-[#5B6B8C] absolute left-3 top-3" />
+                        <input
+                          type={showPassword ? 'text' : 'password'}
+                          required
+                          placeholder="Enter password"
+                          value={loginPassword}
+                          onChange={(e) => setLoginPassword(e.target.value)}
+                          className="w-full pl-9 pr-10 py-2.5 rounded-xl border border-[#DCE7F9] text-xs font-medium focus:outline-none focus:border-[#0B5FD9]"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-3 top-3 text-[#5B6B8C] hover:text-[#0A1F5C]"
+                        >
+                          {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={loginLoading}
+                      className="w-full py-3 rounded-xl bg-[#0B5FD9] hover:bg-[#094FB6] text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer mt-2"
+                    >
+                      <span>{loginLoading ? 'Signing In...' : 'Sign In to Partner Panel'}</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
+
+                    {/* Instant Demo Shortcut */}
+                    <div className="pt-4 border-t border-[#EAF2FF] text-center">
+                      <p className="text-[11px] text-[#5B6B8C] mb-2 font-medium">Quick Evaluator / Testing Access:</p>
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          await loginAsDemo('partner');
+                          onSignedIn();
+                        }}
+                        className="w-full py-2.5 rounded-xl bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200 text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                      >
+                        <Zap className="w-3.5 h-3.5 text-emerald-600 fill-current" />
+                        <span>⚡ 1-Click Sign In as Ramesh Kumar (Verified Electrician)</span>
+                      </button>
+                    </div>
+
+                    <div className="text-center pt-2">
+                      <button
+                        type="button"
+                        onClick={() => setTab('register')}
+                        className="text-xs font-semibold text-[#0B5FD9] hover:underline cursor-pointer"
+                      >
+                        New partner? Register your business &rarr;
+                      </button>
+                    </div>
+                  </form>
                 )}
 
-                {/* Partner Type Selector */}
-                <div>
-                  <label className="block text-xs font-bold text-[#0A1F5C] mb-1.5">Partner Type</label>
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => handlePartnerTypeChange('INDIVIDUAL')}
-                      className={`p-2.5 rounded-xl text-xs font-bold border text-center transition-all ${
-                        partnerType === 'INDIVIDUAL'
-                          ? 'bg-[#0B5FD9] text-white border-[#0B5FD9] shadow-sm'
-                          : 'bg-[#F8FAFD] border-[#DCE7F9] text-[#0A1F5C]'
-                      }`}
-                    >
-                      👤 Individual Technician
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handlePartnerTypeChange('SHOP_BUSINESS')}
-                      className={`p-2.5 rounded-xl text-xs font-bold border text-center transition-all ${
-                        partnerType === 'SHOP_BUSINESS'
-                          ? 'bg-[#0B5FD9] text-white border-[#0B5FD9] shadow-sm'
-                          : 'bg-[#F8FAFD] border-[#DCE7F9] text-[#0A1F5C]'
-                      }`}
-                    >
-                      🏪 Shop / Business
-                    </button>
-                  </div>
-                </div>
-
-                {/* Common Fields */}
-                <div>
-                  <label className="block text-xs font-bold text-[#0A1F5C] mb-1">
-                    {partnerType === 'SHOP_BUSINESS' ? 'Owner / Contact Person Full Name' : 'Full Name (as per PAN)'}
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Ramesh Kumar"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    className="w-full p-2.5 rounded-xl border border-[#DCE7F9] text-xs focus:outline-none focus:border-[#0B5FD9]"
-                  />
-                </div>
-
-                {/* Mobile Number & OTP Verification */}
-                <div>
-                  <label className="block text-xs font-bold text-[#0A1F5C] mb-1">
-                    Mobile Number (OTP Verification)
-                  </label>
-                  <div className="flex gap-2">
-                    <input
-                      type="tel"
-                      required
-                      maxLength={10}
-                      placeholder="10-digit mobile number"
-                      value={mobile}
-                      onChange={(e) => {
-                        setMobile(e.target.value);
-                        setOtpVerified(false);
-                      }}
-                      className="flex-1 p-2.5 rounded-xl border border-[#DCE7F9] text-xs focus:outline-none focus:border-[#0B5FD9]"
-                    />
-                    {!otpVerified ? (
-                      <button
-                        type="button"
-                        onClick={handleSendOtp}
-                        className="px-3.5 py-2 rounded-xl bg-[#EBF2FE] text-[#0B5FD9] hover:bg-[#DCE7F9] text-xs font-bold shrink-0"
-                      >
-                        {otpSent ? 'Resend' : 'Send OTP'}
-                      </button>
-                    ) : (
-                      <span className="px-3 py-2 rounded-xl bg-emerald-50 text-emerald-700 text-xs font-bold flex items-center gap-1 border border-emerald-200">
-                        <Check className="w-3.5 h-3.5" /> Verified
-                      </span>
+                {/* ── TAB 2: CREATE PARTNER ACCOUNT (KYC) ── */}
+                {tab === 'register' && (
+                  <form onSubmit={handleRegisterSubmit} className="space-y-4">
+                    {regError && (
+                      <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-xs text-red-700 font-semibold">
+                        {regError}
+                      </div>
                     )}
-                  </div>
 
-                  {otpSent && !otpVerified && (
-                    <div className="flex gap-2 mt-2">
+                    {/* Partner Type Selector */}
+                    <div>
+                      <label className="block text-xs font-bold text-[#0A1F5C] mb-1.5">Partner Type</label>
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          type="button"
+                          onClick={() => handlePartnerTypeChange('INDIVIDUAL')}
+                          className={`p-2.5 rounded-xl text-xs font-bold border text-center transition-all ${partnerType === 'INDIVIDUAL'
+                              ? 'bg-[#0B5FD9] text-white border-[#0B5FD9] shadow-sm'
+                              : 'bg-[#F8FAFD] border-[#DCE7F9] text-[#0A1F5C]'
+                            }`}
+                        >
+                          👤 Individual Technician
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handlePartnerTypeChange('SHOP_BUSINESS')}
+                          className={`p-2.5 rounded-xl text-xs font-bold border text-center transition-all ${partnerType === 'SHOP_BUSINESS'
+                              ? 'bg-[#0B5FD9] text-white border-[#0B5FD9] shadow-sm'
+                              : 'bg-[#F8FAFD] border-[#DCE7F9] text-[#0A1F5C]'
+                            }`}
+                        >
+                          🏪 Shop / Business
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Common Fields */}
+                    <div>
+                      <label className="block text-xs font-bold text-[#0A1F5C] mb-1">
+                        {partnerType === 'SHOP_BUSINESS' ? 'Owner / Contact Person Full Name' : 'Full Name (as per PAN)'}
+                      </label>
                       <input
                         type="text"
-                        placeholder="Enter 4-digit OTP (5821)"
-                        value={otpCode}
-                        onChange={(e) => setOtpCode(e.target.value)}
-                        className="flex-1 p-2 rounded-xl border border-amber-300 bg-amber-50 text-xs font-bold tracking-widest text-[#0A1F5C]"
-                      />
-                      <button
-                        type="button"
-                        onClick={handleVerifyOtp}
-                        className="px-3.5 py-2 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 text-xs font-bold shrink-0"
-                      >
-                        Verify OTP
-                      </button>
-                    </div>
-                  )}
-                </div>
-
-                {/* Category & Services Section */}
-                <div className="space-y-3">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                    <div>
-                      <div className="flex items-center justify-between mb-1">
-                        <label className="block text-xs font-bold text-[#0A1F5C]">
-                          Category *
-                        </label>
-                        <span className="text-[10px] font-semibold text-[#0B5FD9]">
-                          {partnerType === 'INDIVIDUAL' ? '👤 Individual Technician' : '🏪 Shop / Business'}
-                        </span>
-                      </div>
-                      <select
-                        value={category}
-                        onChange={(e) => handleCategoryChange(e.target.value)}
-                        className="w-full p-2.5 rounded-xl border border-[#DCE7F9] text-xs bg-white font-medium focus:outline-none focus:border-[#0B5FD9]"
-                      >
-                        {PARTNER_CATEGORIES.map((c) => (
-                          <option key={c.id} value={c.name}>
-                            {c.icon} {c.name}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-bold text-[#0A1F5C] mb-1">Service Area</label>
-                      <input
-                        type="text"
-                        placeholder="e.g. Hyderabad, TG"
-                        value={serviceArea}
-                        onChange={(e) => setServiceArea(e.target.value)}
-                        className="w-full p-2.5 rounded-xl border border-[#DCE7F9] text-xs"
+                        required
+                        placeholder="e.g. Ramesh Kumar"
+                        value={fullName}
+                        onChange={(e) => setFullName(e.target.value)}
+                        className="w-full p-2.5 rounded-xl border border-[#DCE7F9] text-xs focus:outline-none focus:border-[#0B5FD9]"
                       />
                     </div>
-                  </div>
 
-                  {/* Dynamic Sub-Categories Dropdown with Multi-Select Checkboxes */}
-                  <div className="bg-[#F8FAFD] p-3 rounded-2xl border border-[#DCE7F9] space-y-2.5">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="flex items-center gap-1.5">
-                          <Layers className="w-3.5 h-3.5 text-[#0B5FD9]" />
-                          <label className="text-xs font-bold text-[#0A1F5C]">
-                            Sub-Categories ({selectedSubCategories.length} Selected) *
-                          </label>
-                        </div>
-                        <p className="text-[10px] text-[#5B6B8C]">
-                          Tailored for <span className="font-semibold text-[#0A1F5C]">{partnerType === 'INDIVIDUAL' ? 'Individual Technician' : 'Shop / Business'}</span> in <span className="font-semibold text-[#0B5FD9]">{category}</span>
-                        </p>
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={() => setIsSubCatDropdownOpen(!isSubCatDropdownOpen)}
-                        className="px-2.5 py-1 rounded-lg text-[11px] font-bold border border-[#DCE7F9] bg-white text-[#0B5FD9] hover:bg-[#EBF2FE] flex items-center gap-1 cursor-pointer transition-all"
-                      >
-                        <span>{isSubCatDropdownOpen ? 'Close Menu' : 'Choose Sub-Categories'}</span>
-                        <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isSubCatDropdownOpen ? 'rotate-180' : ''}`} />
-                      </button>
-                    </div>
-
-                    {/* Quick Trigger Button */}
-                    <div
-                      onClick={() => setIsSubCatDropdownOpen(!isSubCatDropdownOpen)}
-                      className="p-2.5 bg-white rounded-xl border border-[#DCE7F9] hover:border-[#0B5FD9] cursor-pointer flex items-center justify-between text-xs transition-all shadow-2xs"
-                    >
-                      <div className="flex items-center gap-2 truncate">
-                        <CheckSquare className="w-4 h-4 text-[#0B5FD9] shrink-0" />
-                        <span className="font-semibold text-[#0A1F5C] truncate">
-                          {selectedSubCategories.length === 0
-                            ? `Click to select sub-categories for ${category}...`
-                            : `${selectedSubCategories.length} sub-categor${selectedSubCategories.length === 1 ? 'y' : 'ies'} active for ${category}`}
-                        </span>
-                      </div>
-                      <span className="text-[10px] font-bold text-[#0B5FD9] bg-[#EBF2FE] px-2 py-0.5 rounded-full shrink-0">
-                        {isSubCatDropdownOpen ? '▲ Hide Dropdown' : '▼ Select Sub-Categories'}
-                      </span>
-                    </div>
-
-                    {/* Dropdown Panel with Checkboxes */}
-                    {isSubCatDropdownOpen && (
-                      <div className="mt-2 bg-white rounded-xl border border-[#DCE7F9] p-3 shadow-md space-y-2.5">
-                        {/* Search & Bulk Select / Clear */}
-                        <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center justify-between pb-2 border-b border-[#F0F4FA]">
-                          <div className="relative flex-1">
-                            <Search className="w-3.5 h-3.5 text-[#5B6B8C] absolute left-2.5 top-1/2 -translate-y-1/2" />
-                            <input
-                              type="text"
-                              placeholder={`Filter ${category} sub-categories...`}
-                              value={subCatSearch}
-                              onChange={(e) => setSubCatSearch(e.target.value)}
-                              className="w-full pl-8 pr-2.5 py-1.5 text-xs rounded-lg border border-[#DCE7F9] bg-[#F8FAFD] focus:bg-white focus:outline-none focus:border-[#0B5FD9]"
-                            />
-                          </div>
-                          <div className="flex items-center gap-1.5 shrink-0 text-[11px]">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const allOptions = getSubCategories(category, partnerType);
-                                setSelectedSubCategories(allOptions);
-                              }}
-                              className="px-2 py-1 rounded bg-[#EBF2FE] text-[#0B5FD9] hover:bg-[#DCE7F9] font-bold cursor-pointer"
-                            >
-                              Select All
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setSelectedSubCategories([])}
-                              className="px-2 py-1 rounded bg-gray-100 text-[#5B6B8C] hover:bg-gray-200 font-bold cursor-pointer"
-                            >
-                              Clear
-                            </button>
-                          </div>
-                        </div>
-
-                        {/* Subcategory List with Checkboxes */}
-                        <div className="max-h-56 overflow-y-auto space-y-1 pr-1">
-                          {getSubCategories(category, partnerType)
-                            .filter((item) =>
-                              item.toLowerCase().includes(subCatSearch.toLowerCase())
-                            )
-                            .map((item) => {
-                              const isChecked = selectedSubCategories.includes(item);
-                              return (
-                                <label
-                                  key={item}
-                                  className={`flex items-center gap-2.5 p-2 rounded-lg text-xs cursor-pointer transition-all border ${
-                                    isChecked
-                                      ? 'bg-[#F1F6FF] text-[#0B5FD9] font-bold border-[#BED5FA]'
-                                      : 'bg-white text-[#0A1F5C] hover:bg-[#F8FAFD] border-[#EDF3FC]'
-                                  }`}
-                                >
-                                  <input
-                                    type="checkbox"
-                                    checked={isChecked}
-                                    onChange={() => {
-                                      setSelectedSubCategories((prev) =>
-                                        isChecked ? prev.filter((sc) => sc !== item) : [...prev, item]
-                                      );
-                                    }}
-                                    className="w-4 h-4 rounded text-[#0B5FD9] accent-[#0B5FD9] cursor-pointer"
-                                  />
-                                  <span className="flex-1 select-none">{item}</span>
-                                  {isChecked && (
-                                    <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
-                                      Selected
-                                    </span>
-                                  )}
-                                </label>
-                              );
-                            })}
-                          {getSubCategories(category, partnerType).filter((item) =>
-                            item.toLowerCase().includes(subCatSearch.toLowerCase())
-                          ).length === 0 && (
-                            <p className="text-xs text-center py-4 text-[#5B6B8C]">
-                              No matching sub-categories found for &quot;{subCatSearch}&quot;
-                            </p>
-                          )}
-                        </div>
-
-                        <div className="pt-2 border-t border-[#F0F4FA] flex items-center justify-between text-[11px]">
-                          <span className="text-[#5B6B8C]">
-                            {selectedSubCategories.length} of {getSubCategories(category, partnerType).length} sub-categories selected
-                          </span>
+                    {/* Mobile Number & OTP Verification */}
+                    <div>
+                      <label className="block text-xs font-bold text-[#0A1F5C] mb-1">
+                        Mobile Number (OTP Verification)
+                      </label>
+                      <div className="flex gap-2">
+                        <input
+                          type="tel"
+                          required
+                          maxLength={10}
+                          placeholder="10-digit mobile number"
+                          value={mobile}
+                          onChange={(e) => {
+                            setMobile(e.target.value);
+                            setOtpVerified(false);
+                          }}
+                          className="flex-1 p-2.5 rounded-xl border border-[#DCE7F9] text-xs focus:outline-none focus:border-[#0B5FD9]"
+                        />
+                        {!otpVerified ? (
                           <button
                             type="button"
-                            onClick={() => setIsSubCatDropdownOpen(false)}
-                            className="px-3.5 py-1.5 rounded-lg bg-[#0B5FD9] text-white font-bold hover:bg-[#094FB6] cursor-pointer"
+                            onClick={handleSendOtp}
+                            className="px-3.5 py-2 rounded-xl bg-[#EBF2FE] text-[#0B5FD9] hover:bg-[#DCE7F9] text-xs font-bold shrink-0"
                           >
-                            Done
+                            {otpSent ? 'Resend' : 'Send OTP'}
+                          </button>
+                        ) : (
+                          <span className="px-3 py-2 rounded-xl bg-emerald-50 text-emerald-700 text-xs font-bold flex items-center gap-1 border border-emerald-200">
+                            <Check className="w-3.5 h-3.5" /> Verified
+                          </span>
+                        )}
+                      </div>
+
+                      {otpSent && !otpVerified && (
+                        <div className="flex gap-2 mt-2">
+                          <input
+                            type="text"
+                            placeholder="Enter 4-digit OTP (5821)"
+                            value={otpCode}
+                            onChange={(e) => setOtpCode(e.target.value)}
+                            className="flex-1 p-2 rounded-xl border border-amber-300 bg-amber-50 text-xs font-bold tracking-widest text-[#0A1F5C]"
+                          />
+                          <button
+                            type="button"
+                            onClick={handleVerifyOtp}
+                            className="px-3.5 py-2 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 text-xs font-bold shrink-0"
+                          >
+                            Verify OTP
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Category & Services Section */}
+                    <div className="space-y-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        <div>
+                          <div className="flex items-center justify-between mb-1">
+                            <label className="block text-xs font-bold text-[#0A1F5C]">
+                              Category *
+                            </label>
+                            <span className="text-[10px] font-semibold text-[#0B5FD9]">
+                              {partnerType === 'INDIVIDUAL' ? '👤 Individual Technician' : '🏪 Shop / Business'}
+                            </span>
+                          </div>
+                          <select
+                            value={category}
+                            onChange={(e) => handleCategoryChange(e.target.value)}
+                            className="w-full p-2.5 rounded-xl border border-[#DCE7F9] text-xs bg-white font-medium focus:outline-none focus:border-[#0B5FD9]"
+                          >
+                            {categoryOptions.map((c) => (
+                              <option key={c.id} value={c.name}>
+                                {c.icon} {c.name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-bold text-[#0A1F5C] mb-1">Service Area</label>
+                          <input
+                            type="text"
+                            placeholder="e.g. Hyderabad, TG"
+                            value={serviceArea}
+                            onChange={(e) => setServiceArea(e.target.value)}
+                            className="w-full p-2.5 rounded-xl border border-[#DCE7F9] text-xs"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Dynamic Sub-Categories Dropdown with Multi-Select Checkboxes */}
+                      <div className="bg-[#F8FAFD] p-3 rounded-2xl border border-[#DCE7F9] space-y-2.5">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className="flex items-center gap-1.5">
+                              <Layers className="w-3.5 h-3.5 text-[#0B5FD9]" />
+                              <label className="text-xs font-bold text-[#0A1F5C]">
+                                Sub-Categories ({selectedSubCategories.length} Selected) *
+                              </label>
+                            </div>
+                            <p className="text-[10px] text-[#5B6B8C]">
+                              Tailored for <span className="font-semibold text-[#0A1F5C]">{partnerType === 'INDIVIDUAL' ? 'Individual Technician' : 'Shop / Business'}</span> in <span className="font-semibold text-[#0B5FD9]">{category}</span>
+                            </p>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => setIsSubCatDropdownOpen(!isSubCatDropdownOpen)}
+                            className="px-2.5 py-1 rounded-lg text-[11px] font-bold border border-[#DCE7F9] bg-white text-[#0B5FD9] hover:bg-[#EBF2FE] flex items-center gap-1 cursor-pointer transition-all"
+                          >
+                            <span>{isSubCatDropdownOpen ? 'Close Menu' : 'Choose Sub-Categories'}</span>
+                            <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isSubCatDropdownOpen ? 'rotate-180' : ''}`} />
+                          </button>
+                        </div>
+
+                        {/* Quick Trigger Button */}
+                        <div
+                          onClick={() => setIsSubCatDropdownOpen(!isSubCatDropdownOpen)}
+                          className="p-2.5 bg-white rounded-xl border border-[#DCE7F9] hover:border-[#0B5FD9] cursor-pointer flex items-center justify-between text-xs transition-all shadow-2xs"
+                        >
+                          <div className="flex items-center gap-2 truncate">
+                            <CheckSquare className="w-4 h-4 text-[#0B5FD9] shrink-0" />
+                            <span className="font-semibold text-[#0A1F5C] truncate">
+                              {selectedSubCategories.length === 0
+                                ? `Click to select sub-categories for ${category}...`
+                                : `${selectedSubCategories.length} sub-categor${selectedSubCategories.length === 1 ? 'y' : 'ies'} active for ${category}`}
+                            </span>
+                          </div>
+                          <span className="text-[10px] font-bold text-[#0B5FD9] bg-[#EBF2FE] px-2 py-0.5 rounded-full shrink-0">
+                            {isSubCatDropdownOpen ? '▲ Hide Dropdown' : '▼ Select Sub-Categories'}
+                          </span>
+                        </div>
+
+                        {/* Dropdown Panel with Checkboxes */}
+                        {isSubCatDropdownOpen && (
+                          <div className="mt-2 bg-white rounded-xl border border-[#DCE7F9] p-3 shadow-md space-y-2.5">
+                            {/* Search & Bulk Select / Clear */}
+                            <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center justify-between pb-2 border-b border-[#F0F4FA]">
+                              <div className="relative flex-1">
+                                <Search className="w-3.5 h-3.5 text-[#5B6B8C] absolute left-2.5 top-1/2 -translate-y-1/2" />
+                                <input
+                                  type="text"
+                                  placeholder={`Filter ${category} sub-categories...`}
+                                  value={subCatSearch}
+                                  onChange={(e) => setSubCatSearch(e.target.value)}
+                                  className="w-full pl-8 pr-2.5 py-1.5 text-xs rounded-lg border border-[#DCE7F9] bg-[#F8FAFD] focus:bg-white focus:outline-none focus:border-[#0B5FD9]"
+                                />
+                              </div>
+                              <div className="flex items-center gap-1.5 shrink-0 text-[11px]">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const allOptions = getSubCategories(category, partnerType);
+                                    setSelectedSubCategories(allOptions);
+                                  }}
+                                  className="px-2 py-1 rounded bg-[#EBF2FE] text-[#0B5FD9] hover:bg-[#DCE7F9] font-bold cursor-pointer"
+                                >
+                                  Select All
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setSelectedSubCategories([])}
+                                  className="px-2 py-1 rounded bg-gray-100 text-[#5B6B8C] hover:bg-gray-200 font-bold cursor-pointer"
+                                >
+                                  Clear
+                                </button>
+                              </div>
+                            </div>
+
+                            {/* Subcategory List with Checkboxes */}
+                            <div className="max-h-56 overflow-y-auto space-y-1 pr-1">
+                              {getSubCategories(category, partnerType)
+                                .filter((item) =>
+                                  item.toLowerCase().includes(subCatSearch.toLowerCase())
+                                )
+                                .map((item) => {
+                                  const isChecked = selectedSubCategories.includes(item);
+                                  return (
+                                    <label
+                                      key={item}
+                                      className={`flex items-center gap-2.5 p-2 rounded-lg text-xs cursor-pointer transition-all border ${isChecked
+                                          ? 'bg-[#F1F6FF] text-[#0B5FD9] font-bold border-[#BED5FA]'
+                                          : 'bg-white text-[#0A1F5C] hover:bg-[#F8FAFD] border-[#EDF3FC]'
+                                        }`}
+                                    >
+                                      <input
+                                        type="checkbox"
+                                        checked={isChecked}
+                                        onChange={() => {
+                                          setSelectedSubCategories((prev) =>
+                                            isChecked ? prev.filter((sc) => sc !== item) : [...prev, item]
+                                          );
+                                        }}
+                                        className="w-4 h-4 rounded text-[#0B5FD9] accent-[#0B5FD9] cursor-pointer"
+                                      />
+                                      <span className="flex-1 select-none">{item}</span>
+                                      {isChecked && (
+                                        <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                                          Selected
+                                        </span>
+                                      )}
+                                    </label>
+                                  );
+                                })}
+                              {getSubCategories(category, partnerType).filter((item) =>
+                                item.toLowerCase().includes(subCatSearch.toLowerCase())
+                              ).length === 0 && (
+                                  <p className="text-xs text-center py-4 text-[#5B6B8C]">
+                                    No matching sub-categories found for &quot;{subCatSearch}&quot;
+                                  </p>
+                                )}
+                            </div>
+
+                            <div className="pt-2 border-t border-[#F0F4FA] flex items-center justify-between text-[11px]">
+                              <span className="text-[#5B6B8C]">
+                                {selectedSubCategories.length} of {getSubCategories(category, partnerType).length} sub-categories selected
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => setIsSubCatDropdownOpen(false)}
+                                className="px-3.5 py-1.5 rounded-lg bg-[#0B5FD9] text-white font-bold hover:bg-[#094FB6] cursor-pointer"
+                              >
+                                Done
+                              </button>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Selected Badges / Chips */}
+                        {selectedSubCategories.length > 0 ? (
+                          <div className="flex flex-wrap gap-1.5 pt-1">
+                            {selectedSubCategories.map((sub) => (
+                              <span
+                                key={sub}
+                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-white border border-[#DCE7F9] text-[#0A1F5C] shadow-2xs group"
+                              >
+                                <span>{sub}</span>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setSelectedSubCategories((prev) => prev.filter((s) => s !== sub))
+                                  }
+                                  className="text-[#5B6B8C] hover:text-red-500 transition-colors ml-0.5 cursor-pointer"
+                                  title={`Remove ${sub}`}
+                                >
+                                  <X className="w-3 h-3" />
+                                </button>
+                              </span>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-[11px] text-amber-700 bg-amber-50 p-2 rounded-lg border border-amber-200 font-medium">
+                            ⚠️ Please select at least one sub-category from the dropdown above.
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Business Specific or Individual Specific Fields */}
+                    {partnerType === 'SHOP_BUSINESS' ? (
+                      <div className="space-y-3 bg-[#F8FAFD] p-3.5 rounded-2xl border border-[#DCE7F9]">
+                        <div>
+                          <label className="block text-xs font-bold text-[#0A1F5C] mb-1">Shop / Business Name</label>
+                          <input
+                            type="text"
+                            required
+                            placeholder="e.g. Balaji Electricals & Services"
+                            value={shopName}
+                            onChange={(e) => setShopName(e.target.value)}
+                            className="w-full p-2 rounded-xl border border-[#DCE7F9] text-xs bg-white"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-[#0A1F5C] mb-1">GSTIN or Trade License No.</label>
+                          <input
+                            type="text"
+                            required
+                            placeholder="e.g. 36AAAAA0000A1Z5"
+                            value={gstNumber}
+                            onChange={(e) => setGstNumber(e.target.value.toUpperCase())}
+                            className="w-full p-2 rounded-xl border border-[#DCE7F9] text-xs bg-white font-mono"
+                          />
+                        </div>
+                        <div className="flex items-center justify-between text-xs pt-1">
+                          <span className="text-[#5B6B8C]">Upload GST / Trade License:</span>
+                          <button
+                            type="button"
+                            onClick={() => setGstDocUploaded(!gstDocUploaded)}
+                            className={`px-3 py-1 rounded-lg text-xs font-bold border ${gstDocUploaded
+                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                : 'bg-white border-[#DCE7F9] text-[#0B5FD9]'
+                              }`}
+                          >
+                            {gstDocUploaded ? '✓ Document Uploaded' : '+ Attach Document'}
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-3 bg-[#F8FAFD] p-3.5 rounded-2xl border border-[#DCE7F9]">
+                        <div>
+                          <label className="block text-xs font-bold text-[#0A1F5C] mb-1">PAN Card Number</label>
+                          <input
+                            type="text"
+                            required
+                            maxLength={10}
+                            placeholder="e.g. BPZPR4521K"
+                            value={panNumber}
+                            onChange={(e) => setPanNumber(e.target.value.toUpperCase())}
+                            className="w-full p-2 rounded-xl border border-[#DCE7F9] text-xs bg-white font-mono font-bold"
+                          />
+                        </div>
+                        <div className="flex items-center justify-between text-xs pt-1">
+                          <span className="text-[#5B6B8C]">Upload PAN Card Image:</span>
+                          <button
+                            type="button"
+                            onClick={() => setPanDocUploaded(!panDocUploaded)}
+                            className={`px-3 py-1 rounded-lg text-xs font-bold border ${panDocUploaded
+                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                : 'bg-white border-[#DCE7F9] text-[#0B5FD9]'
+                              }`}
+                          >
+                            {panDocUploaded ? '✓ PAN Image Attached' : '+ Attach PAN Scan'}
                           </button>
                         </div>
                       </div>
                     )}
 
-                    {/* Selected Badges / Chips */}
-                    {selectedSubCategories.length > 0 ? (
-                      <div className="flex flex-wrap gap-1.5 pt-1">
-                        {selectedSubCategories.map((sub) => (
-                          <span
-                            key={sub}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-white border border-[#DCE7F9] text-[#0A1F5C] shadow-2xs group"
-                          >
-                            <span>{sub}</span>
-                            <button
-                              type="button"
-                              onClick={() =>
-                                setSelectedSubCategories((prev) => prev.filter((s) => s !== sub))
-                              }
-                              className="text-[#5B6B8C] hover:text-red-500 transition-colors ml-0.5 cursor-pointer"
-                              title={`Remove ${sub}`}
-                            >
-                              <X className="w-3 h-3" />
-                            </button>
-                          </span>
-                        ))}
+                    {/* Bank / UPI Details for Withdrawals */}
+                    <div className="bg-[#F8FAFD] p-3.5 rounded-2xl border border-[#DCE7F9] space-y-2.5">
+                      <label className="block text-xs font-bold text-[#0A1F5C]">
+                        Bank / UPI Details (for Wallet Payouts)
+                      </label>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setPayoutMode('UPI')}
+                          className={`px-3 py-1 rounded-lg text-xs font-bold border ${payoutMode === 'UPI' ? 'bg-[#0B5FD9] text-white border-[#0B5FD9]' : 'bg-white border-[#DCE7F9]'
+                            }`}
+                        >
+                          UPI ID
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setPayoutMode('BANK')}
+                          className={`px-3 py-1 rounded-lg text-xs font-bold border ${payoutMode === 'BANK' ? 'bg-[#0B5FD9] text-white border-[#0B5FD9]' : 'bg-white border-[#DCE7F9]'
+                            }`}
+                        >
+                          Bank Account
+                        </button>
                       </div>
-                    ) : (
-                      <p className="text-[11px] text-amber-700 bg-amber-50 p-2 rounded-lg border border-amber-200 font-medium">
-                        ⚠️ Please select at least one sub-category from the dropdown above.
-                      </p>
-                    )}
-                  </div>
-                </div>
 
-                {/* Business Specific or Individual Specific Fields */}
-                {partnerType === 'SHOP_BUSINESS' ? (
-                  <div className="space-y-3 bg-[#F8FAFD] p-3.5 rounded-2xl border border-[#DCE7F9]">
+                      {payoutMode === 'UPI' ? (
+                        <input
+                          type="text"
+                          required
+                          placeholder="e.g. yourname@okaxis"
+                          value={upiId}
+                          onChange={(e) => setUpiId(e.target.value)}
+                          className="w-full p-2 rounded-xl border border-[#DCE7F9] text-xs bg-white"
+                        />
+                      ) : (
+                        <div className="grid grid-cols-2 gap-2">
+                          <input
+                            type="text"
+                            placeholder="Account Number"
+                            value={bankAccount}
+                            onChange={(e) => setBankAccount(e.target.value)}
+                            className="w-full p-2 rounded-xl border border-[#DCE7F9] text-xs bg-white"
+                          />
+                          <input
+                            type="text"
+                            placeholder="IFSC Code"
+                            value={bankIfsc}
+                            onChange={(e) => setBankIfsc(e.target.value.toUpperCase())}
+                            className="w-full p-2 rounded-xl border border-[#DCE7F9] text-xs bg-white font-mono"
+                          />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Password */}
                     <div>
-                      <label className="block text-xs font-bold text-[#0A1F5C] mb-1">Shop / Business Name</label>
+                      <label className="block text-xs font-bold text-[#0A1F5C] mb-1">Create Password</label>
                       <input
-                        type="text"
+                        type="password"
                         required
-                        placeholder="e.g. Balaji Electricals & Services"
-                        value={shopName}
-                        onChange={(e) => setShopName(e.target.value)}
-                        className="w-full p-2 rounded-xl border border-[#DCE7F9] text-xs bg-white"
+                        minLength={6}
+                        placeholder="Minimum 6 characters"
+                        value={regPassword}
+                        onChange={(e) => setRegPassword(e.target.value)}
+                        className="w-full p-2.5 rounded-xl border border-[#DCE7F9] text-xs focus:outline-none focus:border-[#0B5FD9]"
                       />
                     </div>
-                    <div>
-                      <label className="block text-xs font-bold text-[#0A1F5C] mb-1">GSTIN or Trade License No.</label>
-                      <input
-                        type="text"
-                        required
-                        placeholder="e.g. 36AAAAA0000A1Z5"
-                        value={gstNumber}
-                        onChange={(e) => setGstNumber(e.target.value.toUpperCase())}
-                        className="w-full p-2 rounded-xl border border-[#DCE7F9] text-xs bg-white font-mono"
-                      />
+
+                    <div className="text-[11px] text-[#5B6B8C]">
+                      By submitting, you agree to SERVA Partner Terms, 10% standard commission rate, and doorstep service quality guidelines.
                     </div>
-                    <div className="flex items-center justify-between text-xs pt-1">
-                      <span className="text-[#5B6B8C]">Upload GST / Trade License:</span>
+
+                    <button
+                      type="submit"
+                      disabled={submitting}
+                      className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer"
+                    >
+                      <span>{submitting ? 'Submitting Application...' : 'Submit KYC & Create Partner Account'}</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
+
+                    <div className="text-center pt-2">
                       <button
                         type="button"
-                        onClick={() => setGstDocUploaded(!gstDocUploaded)}
-                        className={`px-3 py-1 rounded-lg text-xs font-bold border ${
-                          gstDocUploaded
-                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                            : 'bg-white border-[#DCE7F9] text-[#0B5FD9]'
-                        }`}
+                        onClick={() => setTab('signin')}
+                        className="text-xs font-semibold text-[#0B5FD9] hover:underline cursor-pointer"
                       >
-                        {gstDocUploaded ? '✓ Document Uploaded' : '+ Attach Document'}
+                        Already have a partner account? Sign In &rarr;
                       </button>
                     </div>
-                  </div>
-                ) : (
-                  <div className="space-y-3 bg-[#F8FAFD] p-3.5 rounded-2xl border border-[#DCE7F9]">
-                    <div>
-                      <label className="block text-xs font-bold text-[#0A1F5C] mb-1">PAN Card Number</label>
-                      <input
-                        type="text"
-                        required
-                        maxLength={10}
-                        placeholder="e.g. BPZPR4521K"
-                        value={panNumber}
-                        onChange={(e) => setPanNumber(e.target.value.toUpperCase())}
-                        className="w-full p-2 rounded-xl border border-[#DCE7F9] text-xs bg-white font-mono font-bold"
-                      />
-                    </div>
-                    <div className="flex items-center justify-between text-xs pt-1">
-                      <span className="text-[#5B6B8C]">Upload PAN Card Image:</span>
-                      <button
-                        type="button"
-                        onClick={() => setPanDocUploaded(!panDocUploaded)}
-                        className={`px-3 py-1 rounded-lg text-xs font-bold border ${
-                          panDocUploaded
-                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                            : 'bg-white border-[#DCE7F9] text-[#0B5FD9]'
-                        }`}
-                      >
-                        {panDocUploaded ? '✓ PAN Image Attached' : '+ Attach PAN Scan'}
-                      </button>
-                    </div>
-                  </div>
+                  </form>
                 )}
-
-                {/* Bank / UPI Details for Withdrawals */}
-                <div className="bg-[#F8FAFD] p-3.5 rounded-2xl border border-[#DCE7F9] space-y-2.5">
-                  <label className="block text-xs font-bold text-[#0A1F5C]">
-                    Bank / UPI Details (for Wallet Payouts)
-                  </label>
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setPayoutMode('UPI')}
-                      className={`px-3 py-1 rounded-lg text-xs font-bold border ${
-                        payoutMode === 'UPI' ? 'bg-[#0B5FD9] text-white border-[#0B5FD9]' : 'bg-white border-[#DCE7F9]'
-                      }`}
-                    >
-                      UPI ID
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setPayoutMode('BANK')}
-                      className={`px-3 py-1 rounded-lg text-xs font-bold border ${
-                        payoutMode === 'BANK' ? 'bg-[#0B5FD9] text-white border-[#0B5FD9]' : 'bg-white border-[#DCE7F9]'
-                      }`}
-                    >
-                      Bank Account
-                    </button>
-                  </div>
-
-                  {payoutMode === 'UPI' ? (
-                    <input
-                      type="text"
-                      required
-                      placeholder="e.g. yourname@okaxis"
-                      value={upiId}
-                      onChange={(e) => setUpiId(e.target.value)}
-                      className="w-full p-2 rounded-xl border border-[#DCE7F9] text-xs bg-white"
-                    />
-                  ) : (
-                    <div className="grid grid-cols-2 gap-2">
-                      <input
-                        type="text"
-                        placeholder="Account Number"
-                        value={bankAccount}
-                        onChange={(e) => setBankAccount(e.target.value)}
-                        className="w-full p-2 rounded-xl border border-[#DCE7F9] text-xs bg-white"
-                      />
-                      <input
-                        type="text"
-                        placeholder="IFSC Code"
-                        value={bankIfsc}
-                        onChange={(e) => setBankIfsc(e.target.value.toUpperCase())}
-                        className="w-full p-2 rounded-xl border border-[#DCE7F9] text-xs bg-white font-mono"
-                      />
-                    </div>
-                  )}
-                </div>
-
-                {/* Password */}
-                <div>
-                  <label className="block text-xs font-bold text-[#0A1F5C] mb-1">Create Password</label>
-                  <input
-                    type="password"
-                    required
-                    minLength={6}
-                    placeholder="Minimum 6 characters"
-                    value={regPassword}
-                    onChange={(e) => setRegPassword(e.target.value)}
-                    className="w-full p-2.5 rounded-xl border border-[#DCE7F9] text-xs focus:outline-none focus:border-[#0B5FD9]"
-                  />
-                </div>
-
-                <div className="text-[11px] text-[#5B6B8C]">
-                  By submitting, you agree to SERVA Partner Terms, 10% standard commission rate, and doorstep service quality guidelines.
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer"
-                >
-                  <span>{submitting ? 'Submitting Application...' : 'Submit KYC & Create Partner Account'}</span>
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-
-                <div className="text-center pt-2">
-                  <button
-                    type="button"
-                    onClick={() => setTab('signin')}
-                    className="text-xs font-semibold text-[#0B5FD9] hover:underline cursor-pointer"
-                  >
-                    Already have a partner account? Sign In &rarr;
-                  </button>
-                </div>
-              </form>
-            )}
-          </div>
-        </div>
-      )}
+              </div>
+            </div>
+          )}
         </div>
       </main>
     </div>
@@ -1268,7 +1275,7 @@ export function PartnerPanelPage() {
   // If not authenticated as PARTNER, ask to sign in or create account first
   const isPartner = user && user.role === 'PARTNER';
   if (!isPartner) {
-    return <PartnerAuthGate onSignedIn={() => {}} />;
+    return <PartnerAuthGate onSignedIn={() => { }} />;
   }
 
   // Active Tab
@@ -1864,11 +1871,10 @@ Verification Portal: https://serva.in/verify/PTR-8821
             <button
               type="button"
               onClick={toggleDuty}
-              className={`px-3 sm:px-4 py-1.5 rounded-full text-xs font-bold flex items-center gap-2 border transition-all cursor-pointer shadow-sm active:scale-95 ${
-                isOnline
+              className={`px-3 sm:px-4 py-1.5 rounded-full text-xs font-bold flex items-center gap-2 border transition-all cursor-pointer shadow-sm active:scale-95 ${isOnline
                   ? 'bg-emerald-500 text-white border-emerald-600 hover:bg-emerald-600 shadow-emerald-500/20'
                   : 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200'
-              }`}
+                }`}
             >
               <span className={`w-2 h-2 rounded-full ${isOnline ? 'bg-white animate-pulse' : 'bg-slate-400'}`} />
               <span className="hidden sm:inline">{isOnline ? 'On Duty · Online' : 'Off Duty · Offline'}</span>
@@ -1885,11 +1891,10 @@ Verification Portal: https://serva.in/verify/PTR-8821
                 setActiveTab('support');
                 window.scrollTo({ top: 0, behavior: 'smooth' });
               }}
-              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
-                activeTab === 'support'
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${activeTab === 'support'
                   ? 'bg-[#EBF2FE] border-[#0B5FD9] text-[#0B5FD9]'
                   : 'bg-[#F4F8FE] border-[#DCE7F9] text-[#0A1F5C] hover:bg-[#EBF2FE]'
-              }`}
+                }`}
               title="24/7 Partner Support & Helpdesk"
               aria-label="Partner Support & Helpdesk"
             >
@@ -1929,11 +1934,10 @@ Verification Portal: https://serva.in/verify/PTR-8821
                   setActiveTab('profile');
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
-                className={`flex items-center gap-2 p-1.5 rounded-xl transition-all cursor-pointer group text-left border ${
-                  activeTab === 'profile' || activeTab === 'kyc'
+                className={`flex items-center gap-2 p-1.5 rounded-xl transition-all cursor-pointer group text-left border ${activeTab === 'profile' || activeTab === 'kyc'
                     ? 'bg-[#EBF2FE] border-[#0B5FD9] ring-2 ring-blue-500/20'
                     : 'hover:bg-[#F1F6FF] border-transparent hover:border-[#DCE7F9]'
-                }`}
+                  }`}
                 title="Click to view full Partner Profile & KYC details"
               >
                 <div className="relative">
@@ -1941,9 +1945,8 @@ Verification Portal: https://serva.in/verify/PTR-8821
                     {user?.name ? user.name.slice(0, 2).toUpperCase() : 'RK'}
                   </div>
                   <span
-                    className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-white ${
-                      isOnline ? 'bg-emerald-500' : 'bg-slate-400'
-                    }`}
+                    className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-white ${isOnline ? 'bg-emerald-500' : 'bg-slate-400'
+                      }`}
                   />
                 </div>
                 <div className="hidden sm:block text-left">
@@ -1990,11 +1993,10 @@ Verification Portal: https://serva.in/verify/PTR-8821
                   key={tab.id}
                   type="button"
                   onClick={() => setActiveTab(tab.id)}
-                  className={`min-h-[38px] px-3.5 py-1.5 rounded-xl text-xs font-bold inline-flex items-center gap-2 whitespace-nowrap transition-all cursor-pointer ${
-                    active
+                  className={`min-h-[38px] px-3.5 py-1.5 rounded-xl text-xs font-bold inline-flex items-center gap-2 whitespace-nowrap transition-all cursor-pointer ${active
                       ? 'bg-[#0B5FD9] text-white shadow-sm shadow-blue-500/25'
                       : 'text-[#5B6B8C] hover:text-[#0A1F5C] hover:bg-[#F1F6FF]'
-                  }`}
+                    }`}
                 >
                   <Icon className={`w-3.5 h-3.5 ${active ? 'text-white' : 'text-[#0B5FD9]'}`} />
                   <span>{tab.label}</span>
@@ -2022,9 +2024,8 @@ Verification Portal: https://serva.in/verify/PTR-8821
                   {user?.name ? user.name.slice(0, 2).toUpperCase() : 'RK'}
                 </div>
                 <span
-                  className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white ${
-                    isOnline ? 'bg-emerald-500' : 'bg-slate-400'
-                  }`}
+                  className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white ${isOnline ? 'bg-emerald-500' : 'bg-slate-400'
+                    }`}
                   title={isOnline ? 'On Duty' : 'Off Duty'}
                 />
               </div>
@@ -2090,2352 +2091,2339 @@ Verification Portal: https://serva.in/verify/PTR-8821
           </div>
         </div>
 
-      {/* ═══════════════════════════════════════════════
+        {/* ═══════════════════════════════════════════════
        *  TAB 1: OVERVIEW (DASHBOARD)
        * ═══════════════════════════════════════════════ */}
-      {activeTab === 'overview' && (
-        <div className="space-y-3.5 sm:space-y-5">
-          {/* Top 4 KPI Metrics */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-            {/* 1. Today's Earnings */}
-            <div className="bg-white p-3.5 sm:p-4.5 rounded-2xl border border-[#DCE7F9] shadow-[0_2px_12px_rgba(11,95,217,0.04)] flex flex-col justify-between">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] sm:text-xs font-semibold text-[#5B6B8C]">Today's Earnings</span>
-                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                  <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+        {activeTab === 'overview' && (
+          <div className="space-y-3.5 sm:space-y-5">
+            {/* Top 4 KPI Metrics */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+              {/* 1. Today's Earnings */}
+              <div className="bg-white p-3.5 sm:p-4.5 rounded-2xl border border-[#DCE7F9] shadow-[0_2px_12px_rgba(11,95,217,0.04)] flex flex-col justify-between">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] sm:text-xs font-semibold text-[#5B6B8C]">Today's Earnings</span>
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                    <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  </div>
                 </div>
-              </div>
-              <div className="mt-2.5 sm:mt-3">
-                <p className="text-lg sm:text-2xl font-extrabold text-[#0A1F5C]">
-                  {formatINR(todayEarningsPaise)}
-                </p>
-                <p className="text-[10px] sm:text-[11px] text-emerald-600 font-semibold mt-0.5">
-                  ✓ After 10% commission
-                </p>
-              </div>
-            </div>
-
-            {/* 2. Available Balance */}
-            <div className="bg-white p-3.5 sm:p-4.5 rounded-2xl border border-[#DCE7F9] shadow-[0_2px_12px_rgba(11,95,217,0.04)] flex flex-col justify-between">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] sm:text-xs font-semibold text-[#5B6B8C]">Wallet Balance</span>
-                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-blue-50 text-[#0B5FD9] flex items-center justify-center">
-                  <Wallet className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                </div>
-              </div>
-              <div className="mt-2.5 sm:mt-3">
-                <p className="text-lg sm:text-2xl font-extrabold text-[#0B5FD9]">
-                  {formatINR(walletBalancePaise)}
-                </p>
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('wallet')}
-                  className="text-[10px] sm:text-[11px] text-[#0B5FD9] font-bold hover:underline inline-flex items-center gap-0.5 mt-0.5 cursor-pointer"
-                >
-                  Withdraw Funds <ArrowRight className="w-3 h-3" />
-                </button>
-              </div>
-            </div>
-
-            {/* 3. Completed Services */}
-            <div className="bg-white p-3.5 sm:p-4.5 rounded-2xl border border-[#DCE7F9] shadow-[0_2px_12px_rgba(11,95,217,0.04)] flex flex-col justify-between">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] sm:text-xs font-semibold text-[#5B6B8C]">Completed Jobs</span>
-                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
-                  <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                </div>
-              </div>
-              <div className="mt-2.5 sm:mt-3">
-                <p className="text-lg sm:text-2xl font-extrabold text-[#0A1F5C]">
-                  {completedJobs.length + 144}
-                </p>
-                <p className="text-[10px] sm:text-[11px] text-[#5B6B8C] font-semibold mt-0.5">
-                  98% Completion Rate
-                </p>
-              </div>
-            </div>
-
-            {/* 4. Active Rating */}
-            <div className="bg-white p-3.5 sm:p-4.5 rounded-2xl border border-[#DCE7F9] shadow-[0_2px_12px_rgba(11,95,217,0.04)] flex flex-col justify-between">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] sm:text-xs font-semibold text-[#5B6B8C]">Overall Rating</span>
-                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
-                  <Star className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-current" />
-                </div>
-              </div>
-              <div className="mt-2.5 sm:mt-3">
-                <div className="flex items-center gap-1.5">
-                  <p className="text-lg sm:text-2xl font-extrabold text-[#0A1F5C]">4.9</p>
-                  <span className="text-amber-500 font-bold text-xs sm:text-sm">★★★★★</span>
-                </div>
-                <p className="text-[10px] sm:text-[11px] text-[#5B6B8C] font-semibold mt-0.5">
-                  Based on 142 reviews
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Pending Action Alert if new request */}
-          {pendingRequests.length > 0 && (
-            <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
-                  <Clock className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-bold text-amber-900">
-                    You have {pendingRequests.length} new service request waiting for your acceptance!
-                  </h3>
-                  <p className="text-xs text-amber-700 mt-0.5">
-                    Accept promptly to maintain high partner responsiveness rating.
+                <div className="mt-2.5 sm:mt-3">
+                  <p className="text-lg sm:text-2xl font-extrabold text-[#0A1F5C]">
+                    {formatINR(todayEarningsPaise)}
+                  </p>
+                  <p className="text-[10px] sm:text-[11px] text-emerald-600 font-semibold mt-0.5">
+                    ✓ After 10% commission
                   </p>
                 </div>
               </div>
-              <button
-                type="button"
-                onClick={() => setActiveTab('jobs')}
-                className="px-4 py-2 rounded-full bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold shrink-0 self-start sm:self-auto cursor-pointer"
-              >
-                Review Requests →
-              </button>
-            </div>
-          )}
 
-          {/* Active Job in Progress Banner */}
-          {activeJobs.filter((j) => j.status !== 'PENDING_ACCEPTANCE').length > 0 && (
-            <div className="bg-white rounded-2xl border border-[#DCE7F9] shadow-sm p-5 space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-blue-600 animate-ping" />
-                  <h2 className="text-base font-bold text-[#0A1F5C]">Current Active Job</h2>
+              {/* 2. Available Balance */}
+              <div className="bg-white p-3.5 sm:p-4.5 rounded-2xl border border-[#DCE7F9] shadow-[0_2px_12px_rgba(11,95,217,0.04)] flex flex-col justify-between">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] sm:text-xs font-semibold text-[#5B6B8C]">Wallet Balance</span>
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-blue-50 text-[#0B5FD9] flex items-center justify-center">
+                    <Wallet className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  </div>
+                </div>
+                <div className="mt-2.5 sm:mt-3">
+                  <p className="text-lg sm:text-2xl font-extrabold text-[#0B5FD9]">
+                    {formatINR(walletBalancePaise)}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('wallet')}
+                    className="text-[10px] sm:text-[11px] text-[#0B5FD9] font-bold hover:underline inline-flex items-center gap-0.5 mt-0.5 cursor-pointer"
+                  >
+                    Withdraw Funds <ArrowRight className="w-3 h-3" />
+                  </button>
+                </div>
+              </div>
+
+              {/* 3. Completed Services */}
+              <div className="bg-white p-3.5 sm:p-4.5 rounded-2xl border border-[#DCE7F9] shadow-[0_2px_12px_rgba(11,95,217,0.04)] flex flex-col justify-between">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] sm:text-xs font-semibold text-[#5B6B8C]">Completed Jobs</span>
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                    <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  </div>
+                </div>
+                <div className="mt-2.5 sm:mt-3">
+                  <p className="text-lg sm:text-2xl font-extrabold text-[#0A1F5C]">
+                    {completedJobs.length + 144}
+                  </p>
+                  <p className="text-[10px] sm:text-[11px] text-[#5B6B8C] font-semibold mt-0.5">
+                    98% Completion Rate
+                  </p>
+                </div>
+              </div>
+
+              {/* 4. Active Rating */}
+              <div className="bg-white p-3.5 sm:p-4.5 rounded-2xl border border-[#DCE7F9] shadow-[0_2px_12px_rgba(11,95,217,0.04)] flex flex-col justify-between">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] sm:text-xs font-semibold text-[#5B6B8C]">Overall Rating</span>
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+                    <Star className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-current" />
+                  </div>
+                </div>
+                <div className="mt-2.5 sm:mt-3">
+                  <div className="flex items-center gap-1.5">
+                    <p className="text-lg sm:text-2xl font-extrabold text-[#0A1F5C]">4.9</p>
+                    <span className="text-amber-500 font-bold text-xs sm:text-sm">★★★★★</span>
+                  </div>
+                  <p className="text-[10px] sm:text-[11px] text-[#5B6B8C] font-semibold mt-0.5">
+                    Based on 142 reviews
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Pending Action Alert if new request */}
+            {pendingRequests.length > 0 && (
+              <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+                    <Clock className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-amber-900">
+                      You have {pendingRequests.length} new service request waiting for your acceptance!
+                    </h3>
+                    <p className="text-xs text-amber-700 mt-0.5">
+                      Accept promptly to maintain high partner responsiveness rating.
+                    </p>
+                  </div>
                 </div>
                 <button
                   type="button"
                   onClick={() => setActiveTab('jobs')}
-                  className="text-xs font-bold text-[#0B5FD9] hover:underline"
+                  className="px-4 py-2 rounded-full bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold shrink-0 self-start sm:self-auto cursor-pointer"
                 >
-                  View All Jobs →
+                  Review Requests →
                 </button>
               </div>
+            )}
 
-              {activeJobs
-                .filter((j) => j.status !== 'PENDING_ACCEPTANCE')
-                .slice(0, 1)
-                .map((job) => (
-                  <div
-                    key={job.id}
-                    onClick={() => {
-                      window.open(`/partner/job/${job.bookingCode}`, '_blank');
-                    }}
-                    className="p-4 rounded-xl bg-[#F8FAFD] border border-[#E2EEFE] hover:border-[#0B5FD9] hover:bg-white hover:shadow-md transition-all space-y-3 cursor-pointer group"
-                    title="Click card to open full job details & status in a new tab"
-                  >
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                      <div>
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-[11px] font-mono-num font-bold text-[#0B5FD9]">
-                            #{job.bookingCode} · {job.serviceCategory}
-                          </span>
-                          <a
-                            href={`/partner/job/${job.bookingCode}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onClick={(e) => e.stopPropagation()}
-                            className="inline-flex items-center gap-1 text-[10px] font-bold text-[#0B5FD9] bg-blue-50 px-2 py-0.5 rounded border border-blue-200 group-hover:bg-blue-100 transition-colors"
-                          >
-                            <span>Open Details & Status</span>
-                            <ExternalLink className="w-2.5 h-2.5" />
-                          </a>
-                        </div>
-                        <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
-                          <h3 className="text-sm font-bold text-[#0A1F5C] group-hover:text-[#0B5FD9] transition-colors">{job.serviceTitle}</h3>
-                          {job.serviceTitle.includes('Daily Basis') && (
-                            <span className="text-[10px] font-extrabold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full border border-emerald-200">
-                              Daily Wage Basis
-                            </span>
-                          )}
-                          {job.serviceTitle.includes('Hourly Basis') && (
-                            <span className="text-[10px] font-extrabold bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full border border-blue-200">
-                              Hourly Machinery Rate
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-xs text-[#5B6B8C] mt-0.5 flex items-center gap-1.5">
-                          <MapPin className="w-3.5 h-3.5 text-[#0B5FD9]" />
-                          <span>{job.address} ({job.distanceKm} km away)</span>
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-xs text-[#5B6B8C]">Your Net Payout</p>
-                        <p className="text-base font-bold text-emerald-600 font-mono-num">
-                          {formatINR(Math.round(job.grossAmountPaise * (1 - job.commissionRate)))}
-                        </p>
-                        <span className="text-[10px] text-[#5B6B8C]">
-                          Gross: {formatINR(job.grossAmountPaise)} (10% comm.)
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Status Tracker Bar */}
-                    <div className="pt-2 flex flex-wrap items-center justify-between gap-2 border-t border-[#EAEFF8]">
-                      <span className="px-3 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-800">
-                        Status: {job.status.replace(/_/g, ' ')}
-                      </span>
-                      <div className="flex items-center gap-2">
-                        <span className="text-[11px] text-[#5B6B8C] hidden sm:inline">
-                          Tap card for live status tracker &rarr;
-                        </span>
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleAdvanceStatus(job.id);
-                          }}
-                          className="px-4 py-1.5 rounded-full bg-[#0B5FD9] hover:bg-blue-700 text-white text-xs font-bold inline-flex items-center gap-1.5 shadow-sm cursor-pointer"
-                        >
-                          {job.status === 'CONFIRMED' && 'Start Travel (On the Way) →'}
-                          {job.status === 'ON_THE_WAY' && 'Mark Arrived at Location →'}
-                          {job.status === 'ARRIVED' && 'Start Work →'}
-                          {job.status === 'IN_PROGRESS' && '✓ Complete Work & Collect Payout'}
-                        </button>
-                      </div>
-                    </div>
+            {/* Active Job in Progress Banner */}
+            {activeJobs.filter((j) => j.status !== 'PENDING_ACCEPTANCE').length > 0 && (
+              <div className="bg-white rounded-2xl border border-[#DCE7F9] shadow-sm p-5 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-blue-600 animate-ping" />
+                    <h2 className="text-base font-bold text-[#0A1F5C]">Current Active Job</h2>
                   </div>
-                ))}
-            </div>
-          )}
-
-          {/* Quick Announcement Banner from Admin (PDF Section 6) */}
-          <div className="p-4 rounded-2xl bg-gradient-to-r from-blue-900 to-[#0A1F5C] text-white flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-md">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-white shrink-0">
-                <Sparkles className="w-5 h-5 text-amber-400" />
-              </div>
-              <div>
-                <h4 className="text-sm font-bold text-white">Diwali Festival Partner Bonanza</h4>
-                <p className="text-xs text-blue-200 mt-0.5">
-                  0% platform commission on all weekend service requests completed between 10 AM to 6 PM!
-                </p>
-              </div>
-            </div>
-            <span className="text-[11px] font-bold px-3 py-1 rounded-full bg-white/15 border border-white/20 self-start sm:self-auto">
-              Active Announcement
-            </span>
-          </div>
-        </div>
-      )}
-
-      {/* ═══════════════════════════════════════════════
-       *  TAB 2: SERVICE JOBS (PDF Section 4)
-       * ═══════════════════════════════════════════════ */}
-      {activeTab === 'jobs' && (
-        <div className="space-y-6">
-          <div className="bg-white rounded-2xl border border-[#DCE7F9] p-5 shadow-sm">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h2 className="text-lg font-bold text-[#0A1F5C]">Service Jobs & Orders</h2>
-                <p className="text-xs text-[#5B6B8C]">
-                  Accept incoming requests, manage active work in progress, and view completion history.
-                </p>
-              </div>
-            </div>
-
-            {/* List of Jobs */}
-            <div className="space-y-4">
-              {jobs.map((job) => {
-                const netPaise = Math.round(job.grossAmountPaise * (1 - job.commissionRate));
-                const commissionPaise = job.grossAmountPaise - netPaise;
-
-                return (
-                  <div
-                    key={job.id}
-                    onClick={() => {
-                      window.open(`/partner/job/${job.bookingCode}`, '_blank');
-                    }}
-                    className="group relative p-4.5 rounded-2xl border border-[#DCE7F9] bg-[#FAFCFF] hover:border-[#0B5FD9] hover:bg-white hover:shadow-[0_4px_20px_rgba(11,95,217,0.08)] transition-all space-y-3 cursor-pointer"
-                    title="Click card to open full job details & status in a new tab"
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('jobs')}
+                    className="text-xs font-bold text-[#0B5FD9] hover:underline"
                   >
-                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
-                      <div>
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-mono-num text-xs font-bold text-[#0B5FD9] px-2 py-0.5 rounded bg-blue-50 border border-blue-200">
-                            #{job.bookingCode}
-                          </span>
-                          <span className="text-xs text-[#5B6B8C] font-semibold">{job.serviceCategory}</span>
-                          <span
-                            className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase ${
-                              job.status === 'PENDING_ACCEPTANCE'
-                                ? 'bg-amber-100 text-amber-800 animate-pulse'
-                                : job.status === 'COMPLETED'
-                                ? 'bg-emerald-100 text-emerald-800'
-                                : job.status === 'REJECTED'
-                                ? 'bg-rose-100 text-rose-800'
-                                : 'bg-blue-100 text-blue-800'
-                            }`}
-                          >
-                            {job.status.replace(/_/g, ' ')}
-                          </span>
+                    View All Jobs →
+                  </button>
+                </div>
 
-                          {/* Explicit Open in New Tab Link */}
-                          <a
-                            href={`/partner/job/${job.bookingCode}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onClick={(e) => e.stopPropagation()}
-                            className="inline-flex items-center gap-1 text-[11px] font-bold text-[#0B5FD9] bg-blue-50 hover:bg-blue-100 border border-blue-200 px-2 py-0.5 rounded-lg transition-colors group-hover:border-[#0B5FD9]"
-                            title="Open detailed job tracker in a new tab"
-                          >
-                            <span>Open Details & Status</span>
-                            <ExternalLink className="w-3 h-3 text-[#0B5FD9]" />
-                          </a>
-                        </div>
-
-                        <div className="flex items-center gap-1.5 flex-wrap mt-1.5">
-                          <h3 className="text-base font-bold text-[#0A1F5C] group-hover:text-[#0B5FD9] transition-colors">{job.serviceTitle}</h3>
-                          {job.serviceTitle.includes('Daily Basis') && (
-                            <span className="text-[10px] font-extrabold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full border border-emerald-200">
-                              Daily Wage Basis
+                {activeJobs
+                  .filter((j) => j.status !== 'PENDING_ACCEPTANCE')
+                  .slice(0, 1)
+                  .map((job) => (
+                    <div
+                      key={job.id}
+                      onClick={() => {
+                        window.open(`/partner/job/${job.bookingCode}`, '_blank');
+                      }}
+                      className="p-4 rounded-xl bg-[#F8FAFD] border border-[#E2EEFE] hover:border-[#0B5FD9] hover:bg-white hover:shadow-md transition-all space-y-3 cursor-pointer group"
+                      title="Click card to open full job details & status in a new tab"
+                    >
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <div>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-[11px] font-mono-num font-bold text-[#0B5FD9]">
+                              #{job.bookingCode} · {job.serviceCategory}
                             </span>
-                          )}
-                          {job.serviceTitle.includes('Hourly Basis') && (
-                            <span className="text-[10px] font-extrabold bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full border border-blue-200">
-                              Hourly Machinery Rate
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-xs text-[#5B6B8C] mt-0.5">
-                          Customer: <strong className="text-[#0A1F5C]">{job.customerName}</strong> ({job.customerMobile})
-                        </p>
-                        <p className="text-xs text-[#5B6B8C] mt-0.5 flex items-center gap-1.5">
-                          <MapPin className="w-3.5 h-3.5 text-[#0B5FD9] shrink-0" />
-                          <span>{job.address} · <strong className="text-[#0A1F5C]">{job.distanceKm} km</strong></span>
-                        </p>
-                        {job.notes && (
-                          <p className="text-[11px] text-[#475569] mt-1.5 italic bg-white p-2 rounded-lg border border-slate-200">
-                            &ldquo;{job.notes}&rdquo;
+                            <a
+                              href={`/partner/job/${job.bookingCode}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                              className="inline-flex items-center gap-1 text-[10px] font-bold text-[#0B5FD9] bg-blue-50 px-2 py-0.5 rounded border border-blue-200 group-hover:bg-blue-100 transition-colors"
+                            >
+                              <span>Open Details & Status</span>
+                              <ExternalLink className="w-2.5 h-2.5" />
+                            </a>
+                          </div>
+                          <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
+                            <h3 className="text-sm font-bold text-[#0A1F5C] group-hover:text-[#0B5FD9] transition-colors">{job.serviceTitle}</h3>
+                            {job.serviceTitle.includes('Daily Basis') && (
+                              <span className="text-[10px] font-extrabold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full border border-emerald-200">
+                                Daily Wage Basis
+                              </span>
+                            )}
+                            {job.serviceTitle.includes('Hourly Basis') && (
+                              <span className="text-[10px] font-extrabold bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full border border-blue-200">
+                                Hourly Machinery Rate
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-[#5B6B8C] mt-0.5 flex items-center gap-1.5">
+                            <MapPin className="w-3.5 h-3.5 text-[#0B5FD9]" />
+                            <span>{job.address} ({job.distanceKm} km away)</span>
                           </p>
-                        )}
+                        </div>
+                        <div className="text-right">
+                          <p className="text-xs text-[#5B6B8C]">Your Net Payout</p>
+                          <p className="text-base font-bold text-emerald-600 font-mono-num">
+                            {formatINR(Math.round(job.grossAmountPaise * (1 - job.commissionRate)))}
+                          </p>
+                          <span className="text-[10px] text-[#5B6B8C]">
+                            Gross: {formatINR(job.grossAmountPaise)} (10% comm.)
+                          </span>
+                        </div>
                       </div>
 
-                      {/* Payout Breakdown */}
-                      <div className="text-left sm:text-right bg-white sm:bg-transparent p-3 sm:p-0 rounded-xl border sm:border-0 border-[#E2EEFE] shrink-0">
-                        <p className="text-[11px] text-[#5B6B8C]">Your Net Payout</p>
-                        <p className="text-lg font-bold text-emerald-600 font-mono-num">{formatINR(netPaise)}</p>
-                        <p className="text-[10px] text-[#94A3B8]">
-                          Customer Total: {formatINR(job.grossAmountPaise)}
-                        </p>
-                        <p className="text-[10px] text-amber-700 font-medium">
-                          SERVA Commission (10%): -{formatINR(commissionPaise)}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Action Bar based on Status */}
-                    <div className="pt-3 border-t border-[#EAEFF8] flex flex-wrap items-center justify-between gap-2">
-                      <div className="flex items-center gap-2 text-xs text-[#5B6B8C]">
-                        <Calendar className="w-3.5 h-3.5 text-[#0B5FD9]" />
-                        <span>Scheduled: <strong>{job.scheduledDate}</strong> at <strong>{job.scheduledTime}</strong></span>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        {/* New Request Actions */}
-                        {job.status === 'PENDING_ACCEPTANCE' && (
-                          <>
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleRejectJob(job.id);
-                              }}
-                              className="px-3.5 py-1.5 rounded-full border border-rose-300 text-rose-700 hover:bg-rose-50 text-xs font-bold cursor-pointer transition-colors"
-                            >
-                              Reject
-                            </button>
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleAcceptJob(job.id);
-                              }}
-                              className="px-4 py-1.5 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm shadow-emerald-500/25 cursor-pointer transition-colors"
-                            >
-                              ✓ Accept Request
-                            </button>
-                          </>
-                        )}
-
-                        {/* Ongoing Step Actions */}
-                        {job.status !== 'PENDING_ACCEPTANCE' && job.status !== 'COMPLETED' && job.status !== 'REJECTED' && (
+                      {/* Status Tracker Bar */}
+                      <div className="pt-2 flex flex-wrap items-center justify-between gap-2 border-t border-[#EAEFF8]">
+                        <span className="px-3 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-800">
+                          Status: {job.status.replace(/_/g, ' ')}
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[11px] text-[#5B6B8C] hidden sm:inline">
+                            Tap card for live status tracker &rarr;
+                          </span>
                           <button
                             type="button"
                             onClick={(e) => {
                               e.stopPropagation();
                               handleAdvanceStatus(job.id);
                             }}
-                            className="px-4 py-1.5 rounded-full bg-[#0B5FD9] hover:bg-blue-700 text-white text-xs font-bold inline-flex items-center gap-1.5 shadow-sm cursor-pointer transition-colors"
+                            className="px-4 py-1.5 rounded-full bg-[#0B5FD9] hover:bg-blue-700 text-white text-xs font-bold inline-flex items-center gap-1.5 shadow-sm cursor-pointer"
                           >
-                            {job.status === 'CONFIRMED' && '🚗 Start Travel (On the Way)'}
-                            {job.status === 'ON_THE_WAY' && '📍 Mark Arrived at Location'}
-                            {job.status === 'ARRIVED' && '🔨 Start Work (In Progress)'}
-                            {job.status === 'IN_PROGRESS' && '✅ Complete Service & Credit Wallet'}
+                            {job.status === 'CONFIRMED' && 'Start Travel (On the Way) →'}
+                            {job.status === 'ON_THE_WAY' && 'Mark Arrived at Location →'}
+                            {job.status === 'ARRIVED' && 'Start Work →'}
+                            {job.status === 'IN_PROGRESS' && '✓ Complete Work & Collect Payout'}
                           </button>
-                        )}
-
-                        {/* Completed Notice */}
-                        {job.status === 'COMPLETED' && (
-                          <span className="text-xs font-bold text-emerald-600 flex items-center gap-1">
-                            <CheckCircle2 className="w-4 h-4" /> Payout Credited to Wallet
-                          </span>
-                        )}
-                        {job.status === 'REJECTED' && (
-                          <span className="text-xs font-bold text-rose-600">
-                            Request Rejected
-                          </span>
-                        )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                );
-              })}
+                  ))}
+              </div>
+            )}
+
+            {/* Quick Announcement Banner from Admin (PDF Section 6) */}
+            <div className="p-4 rounded-2xl bg-gradient-to-r from-blue-900 to-[#0A1F5C] text-white flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-md">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-white shrink-0">
+                  <Sparkles className="w-5 h-5 text-amber-400" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold text-white">Diwali Festival Partner Bonanza</h4>
+                  <p className="text-xs text-blue-200 mt-0.5">
+                    0% platform commission on all weekend service requests completed between 10 AM to 6 PM!
+                  </p>
+                </div>
+              </div>
+              <span className="text-[11px] font-bold px-3 py-1 rounded-full bg-white/15 border border-white/20 self-start sm:self-auto">
+                Active Announcement
+              </span>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* ═══════════════════════════════════════════════
+        {/* ═══════════════════════════════════════════════
+       *  TAB 2: SERVICE JOBS (PDF Section 4)
+       * ═══════════════════════════════════════════════ */}
+        {activeTab === 'jobs' && (
+          <div className="space-y-6">
+            <div className="bg-white rounded-2xl border border-[#DCE7F9] p-5 shadow-sm">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h2 className="text-lg font-bold text-[#0A1F5C]">Service Jobs & Orders</h2>
+                  <p className="text-xs text-[#5B6B8C]">
+                    Accept incoming requests, manage active work in progress, and view completion history.
+                  </p>
+                </div>
+              </div>
+
+              {/* List of Jobs */}
+              <div className="space-y-4">
+                {jobs.map((job) => {
+                  const netPaise = Math.round(job.grossAmountPaise * (1 - job.commissionRate));
+                  const commissionPaise = job.grossAmountPaise - netPaise;
+
+                  return (
+                    <div
+                      key={job.id}
+                      onClick={() => {
+                        window.open(`/partner/job/${job.bookingCode}`, '_blank');
+                      }}
+                      className="group relative p-4.5 rounded-2xl border border-[#DCE7F9] bg-[#FAFCFF] hover:border-[#0B5FD9] hover:bg-white hover:shadow-[0_4px_20px_rgba(11,95,217,0.08)] transition-all space-y-3 cursor-pointer"
+                      title="Click card to open full job details & status in a new tab"
+                    >
+                      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                        <div>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-mono-num text-xs font-bold text-[#0B5FD9] px-2 py-0.5 rounded bg-blue-50 border border-blue-200">
+                              #{job.bookingCode}
+                            </span>
+                            <span className="text-xs text-[#5B6B8C] font-semibold">{job.serviceCategory}</span>
+                            <span
+                              className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase ${job.status === 'PENDING_ACCEPTANCE'
+                                  ? 'bg-amber-100 text-amber-800 animate-pulse'
+                                  : job.status === 'COMPLETED'
+                                    ? 'bg-emerald-100 text-emerald-800'
+                                    : job.status === 'REJECTED'
+                                      ? 'bg-rose-100 text-rose-800'
+                                      : 'bg-blue-100 text-blue-800'
+                                }`}
+                            >
+                              {job.status.replace(/_/g, ' ')}
+                            </span>
+
+                            {/* Explicit Open in New Tab Link */}
+                            <a
+                              href={`/partner/job/${job.bookingCode}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                              className="inline-flex items-center gap-1 text-[11px] font-bold text-[#0B5FD9] bg-blue-50 hover:bg-blue-100 border border-blue-200 px-2 py-0.5 rounded-lg transition-colors group-hover:border-[#0B5FD9]"
+                              title="Open detailed job tracker in a new tab"
+                            >
+                              <span>Open Details & Status</span>
+                              <ExternalLink className="w-3 h-3 text-[#0B5FD9]" />
+                            </a>
+                          </div>
+
+                          <div className="flex items-center gap-1.5 flex-wrap mt-1.5">
+                            <h3 className="text-base font-bold text-[#0A1F5C] group-hover:text-[#0B5FD9] transition-colors">{job.serviceTitle}</h3>
+                            {job.serviceTitle.includes('Daily Basis') && (
+                              <span className="text-[10px] font-extrabold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full border border-emerald-200">
+                                Daily Wage Basis
+                              </span>
+                            )}
+                            {job.serviceTitle.includes('Hourly Basis') && (
+                              <span className="text-[10px] font-extrabold bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full border border-blue-200">
+                                Hourly Machinery Rate
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-[#5B6B8C] mt-0.5">
+                            Customer: <strong className="text-[#0A1F5C]">{job.customerName}</strong> ({job.customerMobile})
+                          </p>
+                          <p className="text-xs text-[#5B6B8C] mt-0.5 flex items-center gap-1.5">
+                            <MapPin className="w-3.5 h-3.5 text-[#0B5FD9] shrink-0" />
+                            <span>{job.address} · <strong className="text-[#0A1F5C]">{job.distanceKm} km</strong></span>
+                          </p>
+                          {job.notes && (
+                            <p className="text-[11px] text-[#475569] mt-1.5 italic bg-white p-2 rounded-lg border border-slate-200">
+                              &ldquo;{job.notes}&rdquo;
+                            </p>
+                          )}
+                        </div>
+
+                        {/* Payout Breakdown */}
+                        <div className="text-left sm:text-right bg-white sm:bg-transparent p-3 sm:p-0 rounded-xl border sm:border-0 border-[#E2EEFE] shrink-0">
+                          <p className="text-[11px] text-[#5B6B8C]">Your Net Payout</p>
+                          <p className="text-lg font-bold text-emerald-600 font-mono-num">{formatINR(netPaise)}</p>
+                          <p className="text-[10px] text-[#94A3B8]">
+                            Customer Total: {formatINR(job.grossAmountPaise)}
+                          </p>
+                          <p className="text-[10px] text-amber-700 font-medium">
+                            SERVA Commission (10%): -{formatINR(commissionPaise)}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Action Bar based on Status */}
+                      <div className="pt-3 border-t border-[#EAEFF8] flex flex-wrap items-center justify-between gap-2">
+                        <div className="flex items-center gap-2 text-xs text-[#5B6B8C]">
+                          <Calendar className="w-3.5 h-3.5 text-[#0B5FD9]" />
+                          <span>Scheduled: <strong>{job.scheduledDate}</strong> at <strong>{job.scheduledTime}</strong></span>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          {/* New Request Actions */}
+                          {job.status === 'PENDING_ACCEPTANCE' && (
+                            <>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleRejectJob(job.id);
+                                }}
+                                className="px-3.5 py-1.5 rounded-full border border-rose-300 text-rose-700 hover:bg-rose-50 text-xs font-bold cursor-pointer transition-colors"
+                              >
+                                Reject
+                              </button>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleAcceptJob(job.id);
+                                }}
+                                className="px-4 py-1.5 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm shadow-emerald-500/25 cursor-pointer transition-colors"
+                              >
+                                ✓ Accept Request
+                              </button>
+                            </>
+                          )}
+
+                          {/* Ongoing Step Actions */}
+                          {job.status !== 'PENDING_ACCEPTANCE' && job.status !== 'COMPLETED' && job.status !== 'REJECTED' && (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleAdvanceStatus(job.id);
+                              }}
+                              className="px-4 py-1.5 rounded-full bg-[#0B5FD9] hover:bg-blue-700 text-white text-xs font-bold inline-flex items-center gap-1.5 shadow-sm cursor-pointer transition-colors"
+                            >
+                              {job.status === 'CONFIRMED' && '🚗 Start Travel (On the Way)'}
+                              {job.status === 'ON_THE_WAY' && '📍 Mark Arrived at Location'}
+                              {job.status === 'ARRIVED' && '🔨 Start Work (In Progress)'}
+                              {job.status === 'IN_PROGRESS' && '✅ Complete Service & Credit Wallet'}
+                            </button>
+                          )}
+
+                          {/* Completed Notice */}
+                          {job.status === 'COMPLETED' && (
+                            <span className="text-xs font-bold text-emerald-600 flex items-center gap-1">
+                              <CheckCircle2 className="w-4 h-4" /> Payout Credited to Wallet
+                            </span>
+                          )}
+                          {job.status === 'REJECTED' && (
+                            <span className="text-xs font-bold text-rose-600">
+                              Request Rejected
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ═══════════════════════════════════════════════
        *  TAB 3: WALLET & WITHDRAWAL (PDF Section 5)
        * ═══════════════════════════════════════════════ */}
-      {activeTab === 'wallet' && (
-        <div className="space-y-6">
-          {/* Top Wallet Summary Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* 1. Available for Withdrawal */}
-            <div className="bg-gradient-to-br from-[#0B5FD9] to-[#0A1F5C] text-white p-6 rounded-3xl shadow-lg relative overflow-hidden flex flex-col justify-between">
-              <div className="relative z-10">
-                <span className="text-xs font-bold text-blue-200 uppercase tracking-wider">
-                  Available Wallet Balance
-                </span>
-                <p className="text-3xl font-extrabold text-white font-mono-num mt-2">
-                  {formatINR(walletBalancePaise)}
-                </p>
-                <p className="text-xs text-blue-200 mt-1">
-                  Ready for instant withdrawal to Bank or UPI.
-                </p>
-              </div>
+        {activeTab === 'wallet' && (
+          <div className="space-y-6">
+            {/* Top Wallet Summary Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* 1. Available for Withdrawal */}
+              <div className="bg-gradient-to-br from-[#0B5FD9] to-[#0A1F5C] text-white p-6 rounded-3xl shadow-lg relative overflow-hidden flex flex-col justify-between">
+                <div className="relative z-10">
+                  <span className="text-xs font-bold text-blue-200 uppercase tracking-wider">
+                    Available Wallet Balance
+                  </span>
+                  <p className="text-3xl font-extrabold text-white font-mono-num mt-2">
+                    {formatINR(walletBalancePaise)}
+                  </p>
+                  <p className="text-xs text-blue-200 mt-1">
+                    Ready for instant withdrawal to Bank or UPI.
+                  </p>
+                </div>
 
-              <div className="mt-4 pt-4 border-t border-white/15 relative z-10 flex items-center justify-between text-xs">
-                <span className="text-blue-100">Min. Withdrawal: ₹500</span>
-                <span className="text-emerald-300 font-bold">✓ KYC Verified</span>
-              </div>
-            </div>
-
-            {/* 2. Lifetime Earnings Breakdown */}
-            <div className="bg-white p-6 rounded-3xl border border-[#DCE7F9] shadow-sm flex flex-col justify-between">
-              <div>
-                <span className="text-xs font-bold text-[#5B6B8C] uppercase tracking-wider">
-                  Gross Earnings & Commission
-                </span>
-                <p className="text-2xl font-bold text-[#0A1F5C] font-mono-num mt-2">
-                  {formatINR(totalGrossPaise)}
-                </p>
-                <div className="mt-3 space-y-1 text-xs">
-                  <div className="flex justify-between text-[#5B6B8C]">
-                    <span>Admin Commission (10%):</span>
-                    <span className="font-bold text-rose-600 font-mono-num">-{formatINR(totalCommissionPaise)}</span>
-                  </div>
-                  <div className="flex justify-between text-[#0A1F5C] font-bold pt-1 border-t border-slate-100">
-                    <span>Net Credited to Wallet:</span>
-                    <span className="text-emerald-600 font-mono-num">{formatINR(totalNetEarnedPaise)}</span>
-                  </div>
+                <div className="mt-4 pt-4 border-t border-white/15 relative z-10 flex items-center justify-between text-xs">
+                  <span className="text-blue-100">Min. Withdrawal: ₹500</span>
+                  <span className="text-emerald-300 font-bold">✓ KYC Verified</span>
                 </div>
               </div>
-            </div>
 
-            {/* 3. Statement & Export */}
-            <div className="bg-white p-6 rounded-3xl border border-[#DCE7F9] shadow-sm flex flex-col justify-between">
-              <div>
-                <span className="text-xs font-bold text-[#5B6B8C] uppercase tracking-wider">
-                  Wallet Statements
-                </span>
-                <p className="text-sm font-bold text-[#0A1F5C] mt-2">
-                  Download Official Tax & Payout Statement
-                </p>
-                <p className="text-xs text-[#5B6B8C] mt-1">
-                  Includes complete itemized breakdown of bookings, platform commission, and bank transfers.
-                </p>
-              </div>
-
-              <button
-                type="button"
-                onClick={handleDownloadStatement}
-                className="mt-4 w-full min-h-[42px] px-4 rounded-full bg-[#EBF2FE] hover:bg-[#DCE7F9] text-[#0B5FD9] font-bold text-xs inline-flex items-center justify-center gap-2 transition-all cursor-pointer"
-              >
-                <Download className="w-4 h-4" />
-                <span>Download Statement (Receipt)</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Withdrawal Form (PDF Rule: Min ₹500, Bank or UPI) */}
-          <div className="bg-white rounded-3xl border border-[#DCE7F9] p-6 shadow-sm space-y-4">
-            <div className="flex items-center justify-between border-b border-[#EAF2FF] pb-4">
-              <div>
-                <h3 className="text-base font-bold text-[#0A1F5C]">Request Withdrawal</h3>
-                <p className="text-xs text-[#5B6B8C]">
-                  Transfer earnings to your registered bank account or verified UPI address.
-                </p>
-              </div>
-              <span className="px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">
-                Rule: Min. ₹500
-              </span>
-            </div>
-
-            {withdrawNotice && (
-              <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 font-bold">
-                {withdrawNotice}
-              </div>
-            )}
-            {withdrawError && (
-              <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 font-bold">
-                {withdrawError}
-              </div>
-            )}
-
-            <form onSubmit={handleWithdraw} className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* Amount */}
+              {/* 2. Lifetime Earnings Breakdown */}
+              <div className="bg-white p-6 rounded-3xl border border-[#DCE7F9] shadow-sm flex flex-col justify-between">
                 <div>
-                  <label className="block text-xs font-bold text-[#0A1F5C] mb-1.5">
-                    Amount to Withdraw (₹)
-                  </label>
-                  <div className="relative">
-                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-bold text-[#0A1F5C]">₹</span>
-                    <input
-                      type="number"
-                      min={500}
-                      step={100}
-                      value={withdrawAmount}
-                      onChange={(e) => setWithdrawAmount(e.target.value)}
-                      placeholder="e.g. 2000"
-                      className="w-full min-h-[46px] pl-8 pr-4 rounded-xl border border-[#DCE7F9] font-mono-num text-sm font-bold text-[#0A1F5C] focus:border-[#0B5FD9] focus:outline-none"
-                    />
-                  </div>
-                  {/* Quick Pills */}
-                  <div className="flex items-center gap-2 mt-2">
-                    {['500', '1000', '2500', '5000'].map((amt) => (
-                      <button
-                        key={amt}
-                        type="button"
-                        onClick={() => setWithdrawAmount(amt)}
-                        className="px-2.5 py-1 rounded-lg bg-[#F1F6FF] hover:bg-[#E2EEFE] text-[11px] font-bold text-[#0B5FD9] cursor-pointer"
-                      >
-                        ₹{amt}
-                      </button>
-                    ))}
-                    <button
-                      type="button"
-                      onClick={() => setWithdrawAmount((walletBalancePaise / 100).toString())}
-                      className="px-2.5 py-1 rounded-lg bg-[#EBF2FE] hover:bg-[#DCE7F9] text-[11px] font-bold text-[#0B5FD9] cursor-pointer"
-                    >
-                      All ({formatINR(walletBalancePaise)})
-                    </button>
+                  <span className="text-xs font-bold text-[#5B6B8C] uppercase tracking-wider">
+                    Gross Earnings & Commission
+                  </span>
+                  <p className="text-2xl font-bold text-[#0A1F5C] font-mono-num mt-2">
+                    {formatINR(totalGrossPaise)}
+                  </p>
+                  <div className="mt-3 space-y-1 text-xs">
+                    <div className="flex justify-between text-[#5B6B8C]">
+                      <span>Admin Commission (10%):</span>
+                      <span className="font-bold text-rose-600 font-mono-num">-{formatINR(totalCommissionPaise)}</span>
+                    </div>
+                    <div className="flex justify-between text-[#0A1F5C] font-bold pt-1 border-t border-slate-100">
+                      <span>Net Credited to Wallet:</span>
+                      <span className="text-emerald-600 font-mono-num">{formatINR(totalNetEarnedPaise)}</span>
+                    </div>
                   </div>
                 </div>
+              </div>
 
-                {/* Destination */}
+              {/* 3. Statement & Export */}
+              <div className="bg-white p-6 rounded-3xl border border-[#DCE7F9] shadow-sm flex flex-col justify-between">
                 <div>
-                  <label className="block text-xs font-bold text-[#0A1F5C] mb-1.5">
-                    Transfer Destination
-                  </label>
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setWithdrawMode('BANK')}
-                      className={`min-h-[46px] p-2 rounded-xl border text-left flex items-center gap-2.5 cursor-pointer transition-all ${
-                        withdrawMode === 'BANK'
-                          ? 'border-[#0B5FD9] bg-blue-50/50 shadow-sm'
-                          : 'border-[#DCE7F9] bg-white'
-                      }`}
-                    >
-                      <Building2 className="w-4 h-4 text-[#0B5FD9]" />
-                      <div className="min-w-0">
-                        <p className="text-xs font-bold text-[#0A1F5C]">HDFC Bank</p>
-                        <p className="text-[10px] text-[#5B6B8C] truncate">A/C: ****4821</p>
-                      </div>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => setWithdrawMode('UPI')}
-                      className={`min-h-[46px] p-2 rounded-xl border text-left flex items-center gap-2.5 cursor-pointer transition-all ${
-                        withdrawMode === 'UPI'
-                          ? 'border-[#0B5FD9] bg-blue-50/50 shadow-sm'
-                          : 'border-[#DCE7F9] bg-white'
-                      }`}
-                    >
-                      <CreditCard className="w-4 h-4 text-[#0B5FD9]" />
-                      <div className="min-w-0">
-                        <p className="text-xs font-bold text-[#0A1F5C]">Verified UPI</p>
-                        <p className="text-[10px] text-[#5B6B8C] truncate">ramesh@okhdfc</p>
-                      </div>
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                disabled={isWithdrawing}
-                className="w-full sm:w-auto min-h-[44px] px-8 rounded-full bg-[#0B5FD9] hover:bg-blue-700 text-white font-bold text-xs inline-flex items-center justify-center gap-2 shadow-md shadow-blue-500/25 active:scale-95 transition-all cursor-pointer"
-              >
-                <span>{isWithdrawing ? 'Processing Transfer...' : 'Confirm & Request Payout →'}</span>
-              </button>
-            </form>
-          </div>
-
-          {/* Transaction & Payout History Table */}
-          <div className="bg-white rounded-2xl sm:rounded-3xl border border-[#DCE7F9] p-4 sm:p-6 shadow-sm space-y-3">
-            <div className="flex items-center justify-between flex-wrap gap-2 pb-1 border-b border-[#EAF2FF]">
-              <div>
-                <h3 className="text-base font-bold text-[#0A1F5C]">Transaction & Payout History</h3>
-                <p className="text-xs text-[#5B6B8C] mt-0.5 sm:hidden">Swipe table horizontally to view full ledger →</p>
-              </div>
-              <span className="text-xs text-[#5B6B8C] font-semibold bg-[#FAFCFF] px-2.5 py-1 rounded-full border border-[#DCE7F9]">
-                {transactions.length} records
-              </span>
-            </div>
-
-            {/* Unified Elegant Data Table with Horizontal Scrolling & Generous Column Spacing */}
-            <div className="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
-              <table className="w-full min-w-[720px] text-left text-xs border-collapse">
-                <thead>
-                  <tr className="border-b border-[#EAF2FF] text-[#5B6B8C] bg-[#FAFCFF]">
-                    <th className="py-3 px-4 font-bold text-[11px] uppercase tracking-wider whitespace-nowrap min-w-[140px]">Date & Time</th>
-                    <th className="py-3 px-4 font-bold text-[11px] uppercase tracking-wider min-w-[200px]">Description</th>
-                    <th className="py-3 px-4 font-bold text-[11px] uppercase tracking-wider whitespace-nowrap min-w-[110px]">Reference</th>
-                    <th className="py-3 px-4 font-bold text-[11px] uppercase tracking-wider text-right whitespace-nowrap min-w-[95px]">Gross</th>
-                    <th className="py-3 px-4 font-bold text-[11px] uppercase tracking-wider text-right whitespace-nowrap min-w-[110px]">Commission</th>
-                    <th className="py-3 px-4 font-bold text-[11px] uppercase tracking-wider text-right whitespace-nowrap min-w-[110px]">Net Payout</th>
-                    <th className="py-3 px-4 font-bold text-[11px] uppercase tracking-wider text-center whitespace-nowrap min-w-[90px]">Status</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 font-medium">
-                  {transactions.map((txn) => {
-                    const isWithdrawal = txn.type === 'WITHDRAWAL';
-                    return (
-                      <tr key={txn.id} className="hover:bg-[#F8FAFD] transition-colors">
-                        <td className="py-3.5 px-4 text-[#5B6B8C] whitespace-nowrap">
-                          {txn.date}
-                        </td>
-                        <td className="py-3.5 px-4 text-[#0A1F5C] font-semibold">
-                          {txn.description}
-                        </td>
-                        <td className="py-3.5 px-4 font-mono-num font-bold text-[#0B5FD9] whitespace-nowrap">
-                          <span className="px-2 py-0.5 rounded bg-blue-50 border border-blue-200 text-[11px]">
-                            #{txn.referenceId}
-                          </span>
-                        </td>
-                        <td className="py-3.5 px-4 text-right font-mono-num text-[#5B6B8C] whitespace-nowrap">
-                          {txn.grossPaise ? formatINR(txn.grossPaise) : '—'}
-                        </td>
-                        <td className="py-3.5 px-4 text-right font-mono-num text-amber-700 whitespace-nowrap">
-                          {txn.commissionPaise ? `-${formatINR(txn.commissionPaise)}` : '—'}
-                        </td>
-                        <td className={`py-3.5 px-4 text-right font-bold font-mono-num whitespace-nowrap ${
-                          isWithdrawal ? 'text-blue-700' : 'text-emerald-600'
-                        }`}>
-                          {isWithdrawal ? `-${formatINR(txn.netPaise)}` : `+${formatINR(txn.netPaise)}`}
-                        </td>
-                        <td className="py-3.5 px-4 text-center whitespace-nowrap">
-                          <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                            {txn.status}
-                          </span>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ═══════════════════════════════════════════════
-       *  TAB 4: PARTNER PROFILE & KYC DETAILS
-       *  Simple, understandable, and complete
-       * ═══════════════════════════════════════════════ */}
-      {(activeTab === 'profile' || activeTab === 'kyc') && (
-        <div className="space-y-6">
-          {/* Notification toast if profile updated */}
-          {profileNotice && (
-            <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold flex items-center justify-between shadow-sm">
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                <span>{profileNotice}</span>
-              </div>
-              <button type="button" onClick={() => setProfileNotice(null)} className="text-emerald-700 hover:text-emerald-900 cursor-pointer">
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-          )}
-
-          {/* ── 1. Top Profile & ID Card Banner ── */}
-          <div className="bg-white rounded-3xl border border-[#DCE7F9] p-6 sm:p-7 shadow-sm">
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-6 border-b border-[#EAF2FF]">
-              {/* Partner Identity */}
-              <div className="flex items-start sm:items-center gap-3 sm:gap-4.5">
-                <div className="relative shrink-0">
-                  <div className="w-14 h-14 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-tr from-[#0B5FD9] via-[#094FB6] to-[#0A1F5C] text-white flex items-center justify-center font-black text-xl sm:text-2xl shadow-md border-2 border-white">
-                    {user?.name ? user.name.slice(0, 2).toUpperCase() : 'RK'}
-                  </div>
-                  <span
-                    className={`absolute -bottom-1 -right-1 w-4 h-4 sm:w-5 sm:h-5 rounded-full border-2 border-white flex items-center justify-center ${
-                      isOnline ? 'bg-emerald-500' : 'bg-slate-400'
-                    }`}
-                    title={isOnline ? 'On Duty · Online' : 'Off Duty · Offline'}
-                  >
-                    <span className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full ${isOnline ? 'bg-white animate-pulse' : 'bg-white/60'}`} />
+                  <span className="text-xs font-bold text-[#5B6B8C] uppercase tracking-wider">
+                    Wallet Statements
                   </span>
-                </div>
-
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <h1 className="text-lg sm:text-2xl font-black text-[#0A1F5C]">
-                      {user?.name || 'Ramesh Kumar'}
-                    </h1>
-                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-xs">
-                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                      Verified Professional Partner
-                    </span>
-                  </div>
-
-                  <p className="text-xs sm:text-sm font-semibold text-[#0B5FD9] mt-0.5">
-                    Electrician, Wiring & Home Appliance Specialist
+                  <p className="text-sm font-bold text-[#0A1F5C] mt-2">
+                    Download Official Tax & Payout Statement
                   </p>
-
-                  {/* Pair 1: Partner ID + Rating - STRICTLY SIDE-BY-SIDE via 2-col grid */}
-                  <div className="grid grid-cols-2 gap-2 mt-2 max-w-sm">
-                    {/* Partner ID with Copy */}
-                    <button
-                      type="button"
-                      onClick={handleCopyPartnerId}
-                      className="w-full inline-flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg bg-[#F1F6FF] border border-[#DCE7F9] hover:bg-[#E2EEFE] text-[#0A1F5C] font-mono font-bold transition-all cursor-pointer text-[11px] sm:text-xs min-w-0"
-                      title="Click to copy Partner ID"
-                    >
-                      <UserCheck className="w-3.5 h-3.5 text-[#0B5FD9] shrink-0" />
-                      <span className="truncate">ID: PTR-8821</span>
-                      <Copy className="w-3 h-3 text-slate-400 shrink-0" />
-                      {copiedId && <span className="text-[10px] text-emerald-600 font-bold">✓</span>}
-                    </button>
-
-                    {/* Star Rating Badge */}
-                    <div className="w-full inline-flex items-center justify-center gap-1 text-amber-600 font-bold bg-amber-50 px-2 py-1.5 rounded-lg border border-amber-200/60 text-[11px] sm:text-xs min-w-0">
-                      <Star className="w-3.5 h-3.5 fill-current shrink-0 text-amber-500" />
-                      <span>4.9</span>
-                      <span className="text-[10px] sm:text-[11px] text-[#5B6B8C] font-normal truncate">(142)</span>
-                    </div>
-                  </div>
-
-                  {/* Pair 2: Location + Member Since - STRICTLY SIDE-BY-SIDE via 2-col grid */}
-                  <div className="grid grid-cols-2 gap-2 mt-1.5 text-[11px] sm:text-xs text-[#5B6B8C] max-w-sm">
-                    <div className="inline-flex items-center gap-1 min-w-0">
-                      <MapPin className="w-3.5 h-3.5 text-[#0B5FD9] shrink-0" />
-                      <span className="truncate">Hyderabad, TG</span>
-                    </div>
-
-                    <div className="inline-flex items-center gap-1 min-w-0">
-                      <Calendar className="w-3.5 h-3.5 text-[#5B6B8C] shrink-0" />
-                      <span className="truncate">Since Oct 2024</span>
-                    </div>
-                  </div>
+                  <p className="text-xs text-[#5B6B8C] mt-1">
+                    Includes complete itemized breakdown of bookings, platform commission, and bank transfers.
+                  </p>
                 </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex items-center gap-2.5 flex-wrap self-start lg:self-center">
-                <button
-                  type="button"
-                  onClick={handleDownloadPartnerIdCard}
-                  className="px-4 py-2.5 rounded-xl bg-[#0B5FD9] hover:bg-[#094FB6] text-white text-xs font-bold inline-flex items-center gap-2 shadow-sm transition-all cursor-pointer"
-                  title="Download digital ID certificate"
-                >
-                  <Download className="w-3.5 h-3.5" />
-                  <span>Download Partner ID</span>
-                </button>
 
                 <button
                   type="button"
-                  onClick={() => setIsEditingProfile(true)}
-                  className="px-4 py-2.5 rounded-xl bg-[#F4F8FE] hover:bg-[#EBF2FE] border border-[#DCE7F9] text-[#0A1F5C] text-xs font-bold inline-flex items-center gap-2 transition-all cursor-pointer"
+                  onClick={handleDownloadStatement}
+                  className="mt-4 w-full min-h-[42px] px-4 rounded-full bg-[#EBF2FE] hover:bg-[#DCE7F9] text-[#0B5FD9] font-bold text-xs inline-flex items-center justify-center gap-2 transition-all cursor-pointer"
                 >
-                  <Edit3 className="w-3.5 h-3.5 text-[#0B5FD9]" />
-                  <span>Edit Contact Details</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={toggleDuty}
-                  className={`px-3.5 py-2.5 rounded-xl text-xs font-bold inline-flex items-center gap-2 border transition-all cursor-pointer ${
-                    isOnline
-                      ? 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100'
-                      : 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200'
-                  }`}
-                >
-                  <span className={`w-2 h-2 rounded-full ${isOnline ? 'bg-emerald-600 animate-pulse' : 'bg-slate-400'}`} />
-                  <span>{isOnline ? 'Duty: Online' : 'Duty: Offline'}</span>
+                  <Download className="w-4 h-4" />
+                  <span>Download Statement (Receipt)</span>
                 </button>
               </div>
             </div>
 
-            {/* 4 Summary Highlight Counters */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 pt-6">
-              <div className="p-3.5 rounded-2xl bg-[#F8FAFD] border border-[#EAF2FF]">
-                <div className="text-[11px] font-semibold text-[#5B6B8C]">Completed Doorstep Jobs</div>
-                <div className="text-xl font-black text-[#0A1F5C] mt-1">146</div>
-                <div className="text-[11px] text-emerald-600 font-bold mt-0.5">✓ 98.4% Completion Rate</div>
-              </div>
-
-              <div className="p-3.5 rounded-2xl bg-[#F8FAFD] border border-[#EAF2FF]">
-                <div className="text-[11px] font-semibold text-[#5B6B8C]">Customer Rating</div>
-                <div className="text-xl font-black text-amber-600 mt-1 flex items-center gap-1">
-                  <span>4.9</span>
-                  <Star className="w-4 h-4 fill-current inline" />
-                </div>
-                <div className="text-[11px] text-[#5B6B8C] font-medium mt-0.5">Top 5% Rated in Hyderabad</div>
-              </div>
-
-              <div className="p-3.5 rounded-2xl bg-[#F8FAFD] border border-[#EAF2FF]">
-                <div className="text-[11px] font-semibold text-[#5B6B8C]">Available Wallet Balance</div>
-                <div className="text-xl font-black text-[#0B5FD9] mt-1">{formatINR(walletBalancePaise)}</div>
-                <div className="text-[11px] text-[#0B5FD9] font-bold mt-0.5">Instant Withdrawal Ready</div>
-              </div>
-
-              <div className="p-3.5 rounded-2xl bg-[#F8FAFD] border border-[#EAF2FF]">
-                <div className="text-[11px] font-semibold text-[#5B6B8C]">Partnership Status</div>
-                <div className="text-xl font-black text-emerald-700 mt-1">Active & Approved</div>
-                <div className="text-[11px] text-emerald-600 font-bold mt-0.5">Zero Infractions / Clear</div>
-              </div>
-            </div>
-          </div>
-
-          {/* ── 2. Grid with Complete & Simple Profile Details ── */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Card A: Personal & Contact Information */}
+            {/* Withdrawal Form (PDF Rule: Min ₹500, Bank or UPI) */}
             <div className="bg-white rounded-3xl border border-[#DCE7F9] p-6 shadow-sm space-y-4">
-              <div className="flex items-center justify-between border-b border-[#F0F4FA] pb-3">
-                <h3 className="text-sm font-bold text-[#0A1F5C] flex items-center gap-2">
-                  <User className="w-4 h-4 text-[#0B5FD9]" />
-                  <span>Personal & Contact Information</span>
-                </h3>
-                <button
-                  type="button"
-                  onClick={() => setIsEditingProfile(true)}
-                  className="text-xs font-bold text-[#0B5FD9] hover:underline flex items-center gap-1 cursor-pointer"
-                >
-                  <Edit3 className="w-3 h-3" />
-                  <span>Edit</span>
-                </button>
-              </div>
-
-              <div className="space-y-3 text-xs">
-                <div className="flex flex-col sm:flex-row sm:justify-between py-1.5 border-b border-slate-100 gap-1">
-                  <span className="text-[#5B6B8C]">Full Legal Name:</span>
-                  <span className="font-bold text-[#0A1F5C]">{user?.name || 'Ramesh Kumar'} (as per PAN)</span>
-                </div>
-                <div className="flex flex-col sm:flex-row sm:justify-between py-1.5 border-b border-slate-100 gap-1">
-                  <span className="text-[#5B6B8C]">Primary Mobile Number:</span>
-                  <span className="font-bold text-[#0A1F5C] flex items-center gap-1">
-                    <span>{profileMobile}</span>
-                    <span className="text-[10px] font-extrabold text-emerald-600 bg-emerald-50 px-1.5 py-0.2 rounded">OTP Verified ✓</span>
-                  </span>
-                </div>
-                <div className="flex flex-col sm:flex-row sm:justify-between py-1.5 border-b border-slate-100 gap-1">
-                  <span className="text-[#5B6B8C]">Secondary / Alternate Phone:</span>
-                  <span className="font-bold text-[#0A1F5C]">{profileAltMobile}</span>
-                </div>
-                <div className="flex flex-col sm:flex-row sm:justify-between py-1.5 border-b border-slate-100 gap-1">
-                  <span className="text-[#5B6B8C]">Registered Email:</span>
-                  <span className="font-bold text-[#0A1F5C] flex items-center gap-1">
-                    <span>{profileEmail}</span>
-                    <span className="text-[10px] font-extrabold text-emerald-600 bg-emerald-50 px-1.5 py-0.2 rounded">Verified ✓</span>
-                  </span>
-                </div>
-                <div className="flex flex-col sm:flex-row sm:justify-between py-1.5 border-b border-slate-100 gap-1">
-                  <span className="text-[#5B6B8C]">Communication Languages:</span>
-                  <span className="font-bold text-[#0A1F5C]">Telugu (Native), Hindi, English</span>
-                </div>
-                <div className="flex flex-col sm:flex-row sm:justify-between py-1.5 gap-1">
-                  <span className="text-[#5B6B8C]">Base Operating Address:</span>
-                  <span className="font-bold text-[#0A1F5C] text-left sm:text-right max-w-xs">{profileAddress}</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Card B: Service Coverage & Skills */}
-            <div className="bg-white rounded-3xl border border-[#DCE7F9] p-6 shadow-sm space-y-4">
-              <div className="flex items-center justify-between border-b border-[#F0F4FA] pb-3">
-                <h3 className="text-sm font-bold text-[#0A1F5C] flex items-center gap-2">
-                  <Briefcase className="w-4 h-4 text-[#0B5FD9]" />
-                  <span>Service Coverage & Specializations</span>
-                </h3>
-                <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                  Active in Hyderabad
-                </span>
-              </div>
-
-              <div className="space-y-3 text-xs">
-                <div className="flex flex-col sm:flex-row sm:justify-between py-1.5 border-b border-slate-100 gap-1">
-                  <span className="text-[#5B6B8C]">Primary Category:</span>
-                  <span className="font-bold text-[#0A1F5C]">Home Services & Electrical Repair</span>
-                </div>
-                <div className="flex flex-col sm:flex-row sm:justify-between py-1.5 border-b border-slate-100 gap-1">
-                  <span className="text-[#5B6B8C]">Operating Radius:</span>
-                  <span className="font-bold text-[#0A1F5C]">{profileServiceRadius}</span>
-                </div>
-                <div className="py-1.5 border-b border-slate-100">
-                  <span className="text-[#5B6B8C] block mb-2">Registered Doorstep Skills:</span>
-                  <div className="flex flex-wrap gap-1.5">
-                    {[
-                      'Switchboard & MCB Repair',
-                      'AC Installation & Gas Top-up',
-                      'Geyser Power Socket & Heating Line',
-                      'Inverter & Battery Wiring',
-                      'Chandelier & False Ceiling Lights',
-                      'Appliance Earthing & Safety Inspection',
-                    ].map((skill) => (
-                      <span key={skill} className="px-2 py-1 rounded-md bg-[#F4F8FE] text-[#0A1F5C] font-semibold text-[11px] border border-[#DCE7F9]">
-                        ✓ {skill}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-                <div className="flex flex-col sm:flex-row sm:justify-between py-1.5 border-b border-slate-100 gap-1">
-                  <span className="text-[#5B6B8C]">Field Experience:</span>
-                  <span className="font-bold text-[#0A1F5C]">8+ Years in Electrical Engineering</span>
-                </div>
-                <div className="flex flex-col sm:flex-row sm:justify-between py-1.5 gap-1">
-                  <span className="text-[#5B6B8C]">Safety Toolkit & Inspection Gear:</span>
-                  <span className="font-bold text-[#0A1F5C]">1000V Insulated Toolset, Multimeter, SERVA Uniform</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Card C: Government KYC & Compliance Details (PDF SOW Sec 2 & 3) */}
-            <div className="bg-white rounded-3xl border border-[#DCE7F9] p-6 shadow-sm space-y-4">
-              <div className="flex items-center justify-between border-b border-[#F0F4FA] pb-3">
-                <h3 className="text-sm font-bold text-[#0A1F5C] flex items-center gap-2">
-                  <FileCheck className="w-4 h-4 text-[#0B5FD9]" />
-                  <span>Government KYC & Verification Documents</span>
-                </h3>
-                <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
-                  100% Cleared ✓
-                </span>
-              </div>
-
-              <div className="space-y-3 text-xs">
-                <div className="flex flex-col sm:flex-row sm:justify-between py-1.5 border-b border-slate-100 gap-1">
-                  <span className="text-[#5B6B8C]">KYC Approval Status:</span>
-                  <span className="font-bold text-emerald-700">Verified by Admin Operations (12 Oct 2026)</span>
-                </div>
-                <div className="flex flex-col sm:flex-row sm:justify-between py-1.5 border-b border-slate-100 gap-1">
-                  <span className="text-[#5B6B8C]">Partner Classification:</span>
-                  <span className="font-bold text-[#0A1F5C]">Individual Professional Technician</span>
-                </div>
-                <div className="flex flex-col sm:flex-row sm:justify-between py-1.5 border-b border-slate-100 gap-1">
-                  <span className="text-[#5B6B8C]">Permanent Account Number (PAN):</span>
-                  <span className="font-bold text-[#0A1F5C] flex items-center gap-2">
-                    <span className="font-mono">BPZPR4521K</span>
-                    <span className="text-[10px] text-emerald-600 bg-emerald-50 px-1.5 py-0.2 rounded font-bold">Document Attached ✓</span>
-                  </span>
-                </div>
-                <div className="flex flex-col sm:flex-row sm:justify-between py-1.5 border-b border-slate-100 gap-1">
-                  <span className="text-[#5B6B8C]">Aadhaar / National Identity:</span>
-                  <span className="font-bold text-[#0A1F5C] flex items-center gap-2">
-                    <span className="font-mono">•••• •••• 6712</span>
-                    <span className="text-[10px] text-emerald-600 bg-emerald-50 px-1.5 py-0.2 rounded font-bold">UIDAI Linked ✓</span>
-                  </span>
-                </div>
-                <div className="flex flex-col sm:flex-row sm:justify-between py-1.5 border-b border-slate-100 gap-1">
-                  <span className="text-[#5B6B8C]">Police Verification & Criminal Check:</span>
-                  <span className="font-bold text-emerald-700">Cleared (Zero Adverse Record)</span>
-                </div>
-                <div className="flex flex-col sm:flex-row sm:justify-between py-1.5 gap-1">
-                  <span className="text-[#5B6B8C]">Wireman / Technical License:</span>
-                  <span className="font-bold text-[#0A1F5C]">State License #TL-HYD-4412</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Card D: Payout Bank & UPI Settlement (PDF SOW Sec 3) */}
-            <div className="bg-white rounded-3xl border border-[#DCE7F9] p-6 shadow-sm space-y-4">
-              <div className="flex items-center justify-between border-b border-[#F0F4FA] pb-3">
-                <h3 className="text-sm font-bold text-[#0A1F5C] flex items-center gap-2">
-                  <Building2 className="w-4 h-4 text-[#0B5FD9]" />
-                  <span>Withdrawal Bank Account & UPI Setup</span>
-                </h3>
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('wallet')}
-                  className="text-xs font-bold text-[#0B5FD9] hover:underline flex items-center gap-1 cursor-pointer"
-                >
-                  <Wallet className="w-3 h-3" />
-                  <span>Open Wallet</span>
-                </button>
-              </div>
-
-              <div className="space-y-3 text-xs">
-                <div className="flex flex-col sm:flex-row sm:justify-between py-1.5 border-b border-slate-100 gap-1">
-                  <span className="text-[#5B6B8C]">Receiving Bank Name:</span>
-                  <span className="font-bold text-[#0A1F5C]">HDFC Bank Ltd. (Jubilee Hills Branch)</span>
-                </div>
-                <div className="flex flex-col sm:flex-row sm:justify-between py-1.5 border-b border-slate-100 gap-1">
-                  <span className="text-[#5B6B8C]">Account Holder Name:</span>
-                  <span className="font-bold text-[#0A1F5C]">{user?.name || 'Ramesh Kumar'}</span>
-                </div>
-                <div className="flex flex-col sm:flex-row sm:justify-between py-1.5 border-b border-slate-100 gap-1">
-                  <span className="text-[#5B6B8C]">Bank Account Number:</span>
-                  <span className="font-bold text-[#0A1F5C] font-mono">•••• •••• •••• 9283</span>
-                </div>
-                <div className="flex flex-col sm:flex-row sm:justify-between py-1.5 border-b border-slate-100 gap-1">
-                  <span className="text-[#5B6B8C]">Branch IFSC Code:</span>
-                  <span className="font-bold text-[#0A1F5C] font-mono">HDFC0001234</span>
-                </div>
-                <div className="flex flex-col sm:flex-row sm:justify-between py-1.5 border-b border-slate-100 gap-1">
-                  <span className="text-[#5B6B8C]">Instant UPI Payout ID:</span>
-                  <span className="font-bold text-[#0B5FD9] font-mono">ramesh.partner@okhdfcbank</span>
-                </div>
-                <div className="flex flex-col sm:flex-row sm:justify-between py-1.5 gap-1">
-                  <span className="text-[#5B6B8C]">Settlement Time:</span>
-                  <span className="font-bold text-emerald-700">Instant (24x7 Real-Time Payout)</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Card E: Approved Wage Structure & Shift Rates (Verified by SERVA Admin) */}
-            <div className="bg-white rounded-3xl border border-emerald-200 p-6 shadow-sm space-y-4 md:col-span-2 bg-gradient-to-br from-emerald-50/20 via-white to-white">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#F0F4FA] pb-3 gap-2">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">
-                    <DollarSign className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-bold text-[#0A1F5C] flex items-center gap-2">
-                      <span>Approved Wage Structure & Shift Rates</span>
-                      <span className="text-[10px] font-extrabold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full border border-emerald-200">
-                        Admin Verified &amp; Guaranteed ✓
-                      </span>
-                    </h3>
-                    <p className="text-[11px] text-[#5B6B8C]">
-                      Independent wage rates configured for your profile by SERVA Operations Admin Console.
-                    </p>
-                  </div>
-                </div>
-
-                <span className="text-[11px] font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-lg w-fit">
-                  Live System Sync
-                </span>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
-                {/* 1. Daily Basis Shift */}
-                <div className="p-3.5 rounded-2xl bg-white border border-emerald-200 shadow-2xs space-y-1">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] uppercase font-bold text-[#5B6B8C]">Field Labour &amp; Workers</span>
-                    <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700">Daily Basis</span>
-                  </div>
-                  <div className="text-xl font-black text-emerald-700 font-mono-num">
-                    ₹{(agriWageSettings.workerDailyWagePaise / 100).toLocaleString('en-IN')}
-                    <span className="text-xs font-normal text-slate-500"> / worker / day</span>
-                  </div>
-                  <p className="text-[11px] text-slate-500">
-                    Standard 8-hour shift. Sowing, weeding, harvesting &amp; farm labour.
-                  </p>
-                </div>
-
-                {/* 2. Hourly Tractor */}
-                <div className="p-3.5 rounded-2xl bg-white border border-blue-200 shadow-2xs space-y-1">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] uppercase font-bold text-[#5B6B8C]">Tractor &amp; Implements</span>
-                    <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-blue-50 text-blue-700">Hourly Basis</span>
-                  </div>
-                  <div className="text-xl font-black text-[#0B5FD9] font-mono-num">
-                    ₹{(agriWageSettings.tractorHourlyPaise / 100).toLocaleString('en-IN')}
-                    <span className="text-xs font-normal text-slate-500"> / hour</span>
-                  </div>
-                  <p className="text-[11px] text-slate-500">
-                    Metered operating hours for 45-55 HP tractors, rotavator &amp; plowing.
-                  </p>
-                </div>
-
-                {/* 3. Operator Hourly Wage */}
-                <div className="p-3.5 rounded-2xl bg-white border border-amber-200 shadow-2xs space-y-1">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] uppercase font-bold text-[#5B6B8C]">Certified Operator</span>
-                    <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-amber-50 text-amber-700">Hourly Wage</span>
-                  </div>
-                  <div className="text-xl font-black text-amber-700 font-mono-num">
-                    ₹{(agriWageSettings.operatorHourlyPaise / 100).toLocaleString('en-IN')}
-                    <span className="text-xs font-normal text-slate-500"> / hour</span>
-                  </div>
-                  <p className="text-[11px] text-slate-500">
-                    Dedicated driver/operator compensation credited alongside machine rental.
-                  </p>
-                </div>
-
-                {/* 4. Combine Harvester & Drone */}
-                <div className="p-3.5 rounded-2xl bg-white border border-purple-200 shadow-2xs space-y-1">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] uppercase font-bold text-[#5B6B8C]">Harvester &amp; Drone</span>
-                    <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-purple-50 text-purple-700">Hourly Basis</span>
-                  </div>
-                  <div className="text-xl font-black text-purple-700 font-mono-num">
-                    ₹{(agriWageSettings.harvesterHourlyPaise / 100).toLocaleString('en-IN')}
-                    <span className="text-xs font-normal text-slate-500"> / hour</span>
-                  </div>
-                  <p className="text-[11px] text-slate-500">
-                    Multi-crop combine harvester with operator crew included.
-                  </p>
-                </div>
-              </div>
-
-              <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200 text-slate-700 text-xs flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
-                  <span className="text-[11px]">
-                    <strong>Wage Rate Lock Guarantee:</strong> Rates above are set by SERVA Admin and applied automatically across all customer bookings in your area. Payouts are credited instantly to your wallet.
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* ── 3. Commercial Terms & Platform Partnership ── */}
-          <div className="bg-white rounded-3xl border border-[#DCE7F9] p-6 shadow-sm">
-            <h3 className="text-sm font-bold text-[#0A1F5C] mb-4 flex items-center gap-2">
-              <Award className="w-4 h-4 text-[#0B5FD9]" />
-              <span>Commercial Terms, Commission & Safety Agreement</span>
-            </h3>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
-              <div className="p-4 rounded-2xl bg-[#F8FAFD] border border-[#E2EEFE]">
-                <span className="font-bold text-[#0A1F5C] block text-sm">10% Platform Commission</span>
-                <p className="text-[#5B6B8C] mt-1">
-                  Standard platform service fee. You retain 90% of gross order value for all completed bookings.
-                </p>
-              </div>
-
-              <div className="p-4 rounded-2xl bg-[#F8FAFD] border border-[#E2EEFE] flex flex-col justify-between">
+              <div className="flex items-center justify-between border-b border-[#EAF2FF] pb-4">
                 <div>
-                  <span className="font-bold text-[#0A1F5C] block text-sm">Gold Support Priority</span>
-                  <p className="text-[#5B6B8C] mt-1">
-                    Direct hotline access to SERVA Partner Desk (1800-123-4567) and 24x7 WhatsApp Partner Support.
+                  <h3 className="text-base font-bold text-[#0A1F5C]">Request Withdrawal</h3>
+                  <p className="text-xs text-[#5B6B8C]">
+                    Transfer earnings to your registered bank account or verified UPI address.
                   </p>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setActiveTab('support');
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                  }}
-                  className="mt-3 text-xs font-bold text-[#0B5FD9] hover:text-blue-800 inline-flex items-center gap-1 self-start cursor-pointer"
-                >
-                  <HelpCircle className="w-3.5 h-3.5" />
-                  <span>Open Helpdesk & Tickets &rarr;</span>
-                </button>
+                <span className="px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                  Rule: Min. ₹500
+                </span>
               </div>
 
-              <div className="p-4 rounded-2xl bg-[#F8FAFD] border border-[#E2EEFE]">
-                <span className="font-bold text-[#0A1F5C] block text-sm">₹50,000 Doorstep Insurance</span>
-                <p className="text-[#5B6B8C] mt-1">
-                  Complimentary accidental and third-party transit protection while on active service duty.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ═══════════════════════════════════════════════
-       *  TAB 5: RATINGS & REVIEWS (PDF Section 4)
-       * ═══════════════════════════════════════════════ */}
-      {activeTab === 'reviews' && (
-        <div className="space-y-6">
-          <div className="bg-white rounded-3xl border border-[#DCE7F9] p-6 shadow-sm space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#EAF2FF] pb-5">
-              <div>
-                <h2 className="text-lg font-bold text-[#0A1F5C]">Customer Ratings & Reviews</h2>
-                <p className="text-xs text-[#5B6B8C]">
-                  Real feedback from customers who booked your services.
-                </p>
-              </div>
-
-              {/* Summary Score */}
-              <div className="flex items-center gap-3">
-                <div className="text-right">
-                  <div className="flex items-center gap-1.5 justify-end">
-                    <span className="text-2xl font-extrabold text-[#0A1F5C]">4.9</span>
-                    <div className="flex text-amber-500">
-                      {[1, 2, 3, 4, 5].map((s) => (
-                        <Star key={s} className="w-4 h-4 fill-current" />
-                      ))}
-                    </div>
-                  </div>
-                  <span className="text-xs text-[#5B6B8C]">142 Verified Ratings</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Review Cards */}
-            <div className="space-y-4">
-              {reviews.map((rev) => (
-                <div
-                  key={rev.id}
-                  className="p-4.5 rounded-2xl border border-[#E4EEFC] bg-[#FAFCFF] space-y-3"
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className="text-sm font-bold text-[#0A1F5C]">{rev.customerName}</h4>
-                      <p className="text-xs text-[#5B6B8C]">{rev.serviceTitle} · {rev.date}</p>
-                    </div>
-                    <div className="flex text-amber-500">
-                      {Array.from({ length: rev.rating }).map((_, i) => (
-                        <Star key={i} className="w-3.5 h-3.5 fill-current" />
-                      ))}
-                    </div>
-                  </div>
-
-                  <p className="text-xs text-[#334155] leading-relaxed">
-                    "{rev.comment}"
-                  </p>
-
-                  {/* Partner Reply */}
-                  {rev.partnerReply ? (
-                    <div className="p-3 rounded-xl bg-blue-50/70 border border-blue-100 text-xs text-[#0A1F5C] space-y-0.5">
-                      <span className="text-[10px] font-bold text-[#0B5FD9] uppercase tracking-wider block">
-                        Your Response:
-                      </span>
-                      <p className="italic">{rev.partnerReply}</p>
-                    </div>
-                  ) : (
-                    <div>
-                      {replyOpen[rev.id] ? (
-                        <div className="mt-2 space-y-2">
-                          <textarea
-                            rows={2}
-                            value={replyText[rev.id] || ''}
-                            onChange={(e) =>
-                              setReplyText((prev) => ({ ...prev, [rev.id]: e.target.value }))
-                            }
-                            placeholder="Write a polite response to this customer..."
-                            className="w-full p-2.5 rounded-xl border border-[#DCE7F9] text-xs focus:outline-none focus:border-[#0B5FD9]"
-                          />
-                          <div className="flex justify-end gap-2">
-                            <button
-                              type="button"
-                              onClick={() => setReplyOpen((prev) => ({ ...prev, [rev.id]: false }))}
-                              className="px-3 py-1 rounded-full text-xs text-[#5B6B8C] hover:bg-slate-100 cursor-pointer"
-                            >
-                              Cancel
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => handleAddReviewReply(rev.id)}
-                              className="px-4 py-1 rounded-full bg-[#0B5FD9] hover:bg-blue-700 text-white text-xs font-bold cursor-pointer"
-                            >
-                              Post Reply
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => setReplyOpen((prev) => ({ ...prev, [rev.id]: true }))}
-                          className="text-xs font-bold text-[#0B5FD9] hover:underline cursor-pointer"
-                        >
-                          + Reply to customer
-                        </button>
-                      )}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ═══════════════════════════════════════════════
-       *  TAB 6: HELP & SUPPORT TICKETS (PDF Section 4 & 6)
-       * ═══════════════════════════════════════════════ */}
-      {activeTab === 'support' && (
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            {/* Left: Raise a Ticket */}
-            <div className="lg:col-span-6 bg-white rounded-3xl border border-[#DCE7F9] p-6 shadow-sm space-y-4">
-              <div>
-                <h2 className="text-base font-bold text-[#0A1F5C]">Raise a Partner Support Ticket</h2>
-                <p className="text-xs text-[#5B6B8C]">
-                  Direct line to SERVA Partner Operations for payouts, booking issues, or re-verification.
-                </p>
-              </div>
-
-              {ticketNotice && (
+              {withdrawNotice && (
                 <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 font-bold">
-                  {ticketNotice}
+                  {withdrawNotice}
+                </div>
+              )}
+              {withdrawError && (
+                <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 font-bold">
+                  {withdrawError}
                 </div>
               )}
 
-              <form onSubmit={handleCreateTicket} className="space-y-3.5">
-                <div>
-                  <label className="block text-xs font-bold text-[#0A1F5C] mb-1">Issue Category</label>
-                  <select
-                    value={newTicketCategory}
-                    onChange={(e) => setNewTicketCategory(e.target.value as SupportTicket['category'])}
-                    className="w-full min-h-[42px] px-3.5 rounded-xl border border-[#DCE7F9] text-xs font-medium text-[#0A1F5C] bg-white focus:outline-none focus:border-[#0B5FD9]"
-                  >
-                    <option value="PAYOUT">Payout / Wallet Withdrawal Issue</option>
-                    <option value="BOOKING_ISSUE">Customer Booking Dispute or Scope Change</option>
-                    <option value="KYC_DOCUMENTS">KYC Document Re-submission</option>
-                    <option value="CUSTOMER_DISPUTE">Emergency Job Cancellation</option>
-                    <option value="OTHER">Other Partner Query</option>
-                  </select>
-                </div>
+              <form onSubmit={handleWithdraw} className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Amount */}
+                  <div>
+                    <label className="block text-xs font-bold text-[#0A1F5C] mb-1.5">
+                      Amount to Withdraw (₹)
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-bold text-[#0A1F5C]">₹</span>
+                      <input
+                        type="number"
+                        min={500}
+                        step={100}
+                        value={withdrawAmount}
+                        onChange={(e) => setWithdrawAmount(e.target.value)}
+                        placeholder="e.g. 2000"
+                        className="w-full min-h-[46px] pl-8 pr-4 rounded-xl border border-[#DCE7F9] font-mono-num text-sm font-bold text-[#0A1F5C] focus:border-[#0B5FD9] focus:outline-none"
+                      />
+                    </div>
+                    {/* Quick Pills */}
+                    <div className="flex items-center gap-2 mt-2">
+                      {['500', '1000', '2500', '5000'].map((amt) => (
+                        <button
+                          key={amt}
+                          type="button"
+                          onClick={() => setWithdrawAmount(amt)}
+                          className="px-2.5 py-1 rounded-lg bg-[#F1F6FF] hover:bg-[#E2EEFE] text-[11px] font-bold text-[#0B5FD9] cursor-pointer"
+                        >
+                          ₹{amt}
+                        </button>
+                      ))}
+                      <button
+                        type="button"
+                        onClick={() => setWithdrawAmount((walletBalancePaise / 100).toString())}
+                        className="px-2.5 py-1 rounded-lg bg-[#EBF2FE] hover:bg-[#DCE7F9] text-[11px] font-bold text-[#0B5FD9] cursor-pointer"
+                      >
+                        All ({formatINR(walletBalancePaise)})
+                      </button>
+                    </div>
+                  </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-[#0A1F5C] mb-1">Subject</label>
-                  <input
-                    type="text"
-                    value={newTicketSubject}
-                    onChange={(e) => setNewTicketSubject(e.target.value)}
-                    placeholder="Brief description of the issue"
-                    className="w-full min-h-[42px] px-3.5 rounded-xl border border-[#DCE7F9] text-xs font-medium text-[#0A1F5C] focus:outline-none focus:border-[#0B5FD9]"
-                  />
-                </div>
+                  {/* Destination */}
+                  <div>
+                    <label className="block text-xs font-bold text-[#0A1F5C] mb-1.5">
+                      Transfer Destination
+                    </label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setWithdrawMode('BANK')}
+                        className={`min-h-[46px] p-2 rounded-xl border text-left flex items-center gap-2.5 cursor-pointer transition-all ${withdrawMode === 'BANK'
+                            ? 'border-[#0B5FD9] bg-blue-50/50 shadow-sm'
+                            : 'border-[#DCE7F9] bg-white'
+                          }`}
+                      >
+                        <Building2 className="w-4 h-4 text-[#0B5FD9]" />
+                        <div className="min-w-0">
+                          <p className="text-xs font-bold text-[#0A1F5C]">HDFC Bank</p>
+                          <p className="text-[10px] text-[#5B6B8C] truncate">A/C: ****4821</p>
+                        </div>
+                      </button>
 
-                <div>
-                  <label className="block text-xs font-bold text-[#0A1F5C] mb-1">Message Details</label>
-                  <textarea
-                    rows={4}
-                    value={newTicketMessage}
-                    onChange={(e) => setNewTicketMessage(e.target.value)}
-                    placeholder="Provide details such as Booking ID, date, or specific request..."
-                    className="w-full p-3 rounded-xl border border-[#DCE7F9] text-xs font-medium text-[#0A1F5C] focus:outline-none focus:border-[#0B5FD9]"
-                  />
+                      <button
+                        type="button"
+                        onClick={() => setWithdrawMode('UPI')}
+                        className={`min-h-[46px] p-2 rounded-xl border text-left flex items-center gap-2.5 cursor-pointer transition-all ${withdrawMode === 'UPI'
+                            ? 'border-[#0B5FD9] bg-blue-50/50 shadow-sm'
+                            : 'border-[#DCE7F9] bg-white'
+                          }`}
+                      >
+                        <CreditCard className="w-4 h-4 text-[#0B5FD9]" />
+                        <div className="min-w-0">
+                          <p className="text-xs font-bold text-[#0A1F5C]">Verified UPI</p>
+                          <p className="text-[10px] text-[#5B6B8C] truncate">ramesh@okhdfc</p>
+                        </div>
+                      </button>
+                    </div>
+                  </div>
                 </div>
 
                 <button
                   type="submit"
-                  className="w-full min-h-[44px] rounded-full bg-[#0B5FD9] hover:bg-blue-700 text-white font-bold text-xs inline-flex items-center justify-center gap-2 shadow-md shadow-blue-500/25 active:scale-95 transition-all cursor-pointer"
+                  disabled={isWithdrawing}
+                  className="w-full sm:w-auto min-h-[44px] px-8 rounded-full bg-[#0B5FD9] hover:bg-blue-700 text-white font-bold text-xs inline-flex items-center justify-center gap-2 shadow-md shadow-blue-500/25 active:scale-95 transition-all cursor-pointer"
                 >
-                  <Send className="w-3.5 h-3.5" />
-                  <span>Submit Support Ticket</span>
+                  <span>{isWithdrawing ? 'Processing Transfer...' : 'Confirm & Request Payout →'}</span>
                 </button>
               </form>
             </div>
 
-            {/* Right: Partner Helpline & Ticket History */}
-            <div className="lg:col-span-6 space-y-4">
-              {/* Emergency Hotline Card */}
-              <div className="bg-gradient-to-br from-[#EBF3FE] to-[#F8FAFD] border border-[#CDE0FC] p-5 rounded-3xl shadow-sm space-y-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-2xl bg-[#0B5FD9] text-white flex items-center justify-center shrink-0">
-                    <Phone className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-bold text-[#0A1F5C]">SERVA Partner Emergency Helpline</h3>
-                    <p className="text-xs text-[#5B6B8C]">24/7 dedicated assistance for active on-site jobs</p>
-                  </div>
+            {/* Transaction & Payout History Table */}
+            <div className="bg-white rounded-2xl sm:rounded-3xl border border-[#DCE7F9] p-4 sm:p-6 shadow-sm space-y-3">
+              <div className="flex items-center justify-between flex-wrap gap-2 pb-1 border-b border-[#EAF2FF]">
+                <div>
+                  <h3 className="text-base font-bold text-[#0A1F5C]">Transaction & Payout History</h3>
+                  <p className="text-xs text-[#5B6B8C] mt-0.5 sm:hidden">Swipe table horizontally to view full ledger →</p>
                 </div>
-                <div className="flex items-center gap-2 pt-1">
-                  <a
-                    href="tel:18001234567"
-                    className="px-4 py-2 rounded-full bg-[#0B5FD9] text-white text-xs font-bold inline-flex items-center gap-1.5 shadow-sm hover:bg-blue-700"
-                  >
-                    <Phone className="w-3.5 h-3.5" /> Call 1800-123-4567
-                  </a>
-                  <a
-                    href="https://wa.me/919876543210"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="px-4 py-2 rounded-full bg-emerald-600 text-white text-xs font-bold inline-flex items-center gap-1.5 shadow-sm hover:bg-emerald-700"
-                  >
-                    WhatsApp Support
-                  </a>
-                </div>
+                <span className="text-xs text-[#5B6B8C] font-semibold bg-[#FAFCFF] px-2.5 py-1 rounded-full border border-[#DCE7F9]">
+                  {transactions.length} records
+                </span>
               </div>
 
-              {/* My Active Tickets */}
-              <div className="bg-white rounded-3xl border border-[#DCE7F9] p-5 shadow-sm space-y-3">
-                <h3 className="text-sm font-bold text-[#0A1F5C]">My Recent Tickets</h3>
-                {tickets.length === 0 ? (
-                  <p className="text-xs text-[#5B6B8C]">No open tickets. Everything is running smoothly!</p>
-                ) : (
-                  <div className="space-y-3">
-                    {tickets.map((t) => (
-                      <div key={t.id} className="p-3.5 rounded-xl border border-slate-100 bg-[#FAFCFF] space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[10px] font-mono-num font-bold text-[#0B5FD9]">#{t.id}</span>
-                          <span
-                            className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                              t.status === 'RESOLVED' ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'
-                            }`}
-                          >
-                            {t.status}
-                          </span>
-                        </div>
-                        <h4 className="text-xs font-bold text-[#0A1F5C]">{t.subject}</h4>
-                        <p className="text-xs text-[#5B6B8C]">{t.message}</p>
-                        {t.adminReply && (
-                          <div className="p-2.5 rounded-lg bg-blue-50/60 border border-blue-100 text-[11px] text-[#0A1F5C]">
-                            <span className="font-bold text-[#0B5FD9] block">SERVA Operations Reply:</span>
-                            <p>{t.adminReply}</p>
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
+              {/* Unified Elegant Data Table with Horizontal Scrolling & Generous Column Spacing */}
+              <div className="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
+                <table className="w-full min-w-[720px] text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="border-b border-[#EAF2FF] text-[#5B6B8C] bg-[#FAFCFF]">
+                      <th className="py-3 px-4 font-bold text-[11px] uppercase tracking-wider whitespace-nowrap min-w-[140px]">Date & Time</th>
+                      <th className="py-3 px-4 font-bold text-[11px] uppercase tracking-wider min-w-[200px]">Description</th>
+                      <th className="py-3 px-4 font-bold text-[11px] uppercase tracking-wider whitespace-nowrap min-w-[110px]">Reference</th>
+                      <th className="py-3 px-4 font-bold text-[11px] uppercase tracking-wider text-right whitespace-nowrap min-w-[95px]">Gross</th>
+                      <th className="py-3 px-4 font-bold text-[11px] uppercase tracking-wider text-right whitespace-nowrap min-w-[110px]">Commission</th>
+                      <th className="py-3 px-4 font-bold text-[11px] uppercase tracking-wider text-right whitespace-nowrap min-w-[110px]">Net Payout</th>
+                      <th className="py-3 px-4 font-bold text-[11px] uppercase tracking-wider text-center whitespace-nowrap min-w-[90px]">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 font-medium">
+                    {transactions.map((txn) => {
+                      const isWithdrawal = txn.type === 'WITHDRAWAL';
+                      return (
+                        <tr key={txn.id} className="hover:bg-[#F8FAFD] transition-colors">
+                          <td className="py-3.5 px-4 text-[#5B6B8C] whitespace-nowrap">
+                            {txn.date}
+                          </td>
+                          <td className="py-3.5 px-4 text-[#0A1F5C] font-semibold">
+                            {txn.description}
+                          </td>
+                          <td className="py-3.5 px-4 font-mono-num font-bold text-[#0B5FD9] whitespace-nowrap">
+                            <span className="px-2 py-0.5 rounded bg-blue-50 border border-blue-200 text-[11px]">
+                              #{txn.referenceId}
+                            </span>
+                          </td>
+                          <td className="py-3.5 px-4 text-right font-mono-num text-[#5B6B8C] whitespace-nowrap">
+                            {txn.grossPaise ? formatINR(txn.grossPaise) : '—'}
+                          </td>
+                          <td className="py-3.5 px-4 text-right font-mono-num text-amber-700 whitespace-nowrap">
+                            {txn.commissionPaise ? `-${formatINR(txn.commissionPaise)}` : '—'}
+                          </td>
+                          <td className={`py-3.5 px-4 text-right font-bold font-mono-num whitespace-nowrap ${isWithdrawal ? 'text-blue-700' : 'text-emerald-600'
+                            }`}>
+                            {isWithdrawal ? `-${formatINR(txn.netPaise)}` : `+${formatINR(txn.netPaise)}`}
+                          </td>
+                          <td className="py-3.5 px-4 text-center whitespace-nowrap">
+                            <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                              {txn.status}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* ═══════════════════════════════════════════════
-       *  TAB 7: PORTFOLIO & INTERIOR LEADS HUB
+        {/* ═══════════════════════════════════════════════
+       *  TAB 4: PARTNER PROFILE & KYC DETAILS
+       *  Simple, understandable, and complete
        * ═══════════════════════════════════════════════ */}
-      {activeTab === 'portfolio' && (
-        <div className="space-y-6">
-          {/* Header Banner */}
-          <div className="bg-white rounded-3xl border border-[#DCE7F9] p-6 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-[11px] font-extrabold uppercase px-2.5 py-0.5 rounded-full bg-[#EAF2FF] text-[#0B5FD9]">
-                  Verified Interior Designer Portal
-                </span>
-                <span className="text-xs text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-full flex items-center gap-1">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Live on SERVA Directory
-                </span>
+        {(activeTab === 'profile' || activeTab === 'kyc') && (
+          <div className="space-y-6">
+            {/* Notification toast if profile updated */}
+            {profileNotice && (
+              <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold flex items-center justify-between shadow-sm">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>{profileNotice}</span>
+                </div>
+                <button type="button" onClick={() => setProfileNotice(null)} className="text-emerald-700 hover:text-emerald-900 cursor-pointer">
+                  <X className="w-4 h-4" />
+                </button>
               </div>
-              <h2 className="text-xl font-bold text-[#0A1F5C] mt-1">Portfolio & Consultation Leads Hub</h2>
-              <p className="text-xs text-[#5B6B8C] mt-0.5">
-                Manage your past project showcases (photos & video walkthroughs), review performance metrics, and respond to incoming customer consultation leads.
-              </p>
-            </div>
+            )}
 
-            <div className="flex flex-wrap items-center gap-2.5">
-              <button
-                type="button"
-                onClick={() => setShowAddProjectModal(true)}
-                className="px-4 py-2.5 rounded-xl bg-[#0B5FD9] hover:bg-[#094FB6] text-white text-xs font-bold flex items-center gap-2 shadow-sm transition-all cursor-pointer"
-              >
-                <PlusCircle className="w-4 h-4" />
-                <span>Add Project Media</span>
-              </button>
-            </div>
-          </div>
-
-          {projectSuccessMsg && (
-            <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold flex items-center gap-2 animate-fade-in">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-              <span>{projectSuccessMsg}</span>
-            </div>
-          )}
-
-          {/* Sub-Navigation: Event Planners vs Interior Designers */}
-          <div className="flex items-center gap-2 border-b border-[#EAF2FF] pb-2 flex-wrap">
-            <button
-              type="button"
-              onClick={() => setPortfolioHubType('events')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
-                portfolioHubType === 'events'
-                  ? 'bg-purple-800 text-white shadow-xs'
-                  : 'bg-white border border-[#DCE7F9] text-[#5B6B8C] hover:text-[#0A1F5C]'
-              }`}
-            >
-              <Calendar className="w-3.5 h-3.5 text-purple-300" />
-              <span>Event Planners &amp; Quote Leads ({eventInquiries.length})</span>
-              {eventInquiries.filter((i) => i.status === 'NEW').length > 0 && (
-                <span className="px-2 py-0.5 rounded-full bg-amber-400 text-slate-900 text-[10px] font-black">
-                  {eventInquiries.filter((i) => i.status === 'NEW').length} New
-                </span>
-              )}
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setPortfolioHubType('interior')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
-                portfolioHubType === 'interior'
-                  ? 'bg-[#0B5FD9] text-white shadow-xs'
-                  : 'bg-white border border-[#DCE7F9] text-[#5B6B8C] hover:text-[#0A1F5C]'
-              }`}
-            >
-              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-              <span>Interior Design Portfolios &amp; Leads ({designerInquiries.length})</span>
-            </button>
-          </div>
-
-          {/* ═══════════════ SUB-VIEW 1: EVENT PLANNER HUB ═══════════════ */}
-          {portfolioHubType === 'events' && (
-            <div className="space-y-6">
-              {/* Event Performance Scorecards */}
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                <div className="bg-white rounded-2xl border border-purple-200 p-4 shadow-sm bg-gradient-to-br from-purple-50/30 to-white">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-purple-800">Customer Quote Leads</span>
-                  <p className="text-2xl font-extrabold text-purple-900 mt-1 font-mono-num">{eventInquiries.length}</p>
-                  <span className="text-[11px] font-bold text-rose-600 flex items-center gap-1 mt-1">
-                    {eventInquiries.filter((i) => i.status === 'NEW').length} Pending Response
-                  </span>
-                </div>
-
-                <div className="bg-white rounded-2xl border border-[#DCE7F9] p-4 shadow-sm">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#5B6B8C]">Completed Celebrations</span>
-                  <p className="text-2xl font-extrabold text-[#0A1F5C] mt-1 font-mono-num">460+</p>
-                  <span className="text-[11px] font-bold text-emerald-600 flex items-center gap-1 mt-1">
-                    <TrendingUp className="w-3 h-3" /> 99.4% On-Time Execution
-                  </span>
-                </div>
-
-                <div className="bg-white rounded-2xl border border-[#DCE7F9] p-4 shadow-sm">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#5B6B8C]">Client Rating</span>
-                  <div className="flex items-center gap-1.5 mt-1">
-                    <Star className="w-5 h-5 fill-amber-400 text-amber-500" />
-                    <span className="text-2xl font-extrabold text-[#0A1F5C] font-mono-num">4.95</span>
-                    <span className="text-xs text-[#5B6B8C]">/ 5.0</span>
+            {/* ── 1. Top Profile & ID Card Banner ── */}
+            <div className="bg-white rounded-3xl border border-[#DCE7F9] p-6 sm:p-7 shadow-sm">
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-6 border-b border-[#EAF2FF]">
+                {/* Partner Identity */}
+                <div className="flex items-start sm:items-center gap-3 sm:gap-4.5">
+                  <div className="relative shrink-0">
+                    <div className="w-14 h-14 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-tr from-[#0B5FD9] via-[#094FB6] to-[#0A1F5C] text-white flex items-center justify-center font-black text-xl sm:text-2xl shadow-md border-2 border-white">
+                      {user?.name ? user.name.slice(0, 2).toUpperCase() : 'RK'}
+                    </div>
+                    <span
+                      className={`absolute -bottom-1 -right-1 w-4 h-4 sm:w-5 sm:h-5 rounded-full border-2 border-white flex items-center justify-center ${isOnline ? 'bg-emerald-500' : 'bg-slate-400'
+                        }`}
+                      title={isOnline ? 'On Duty · Online' : 'Off Duty · Offline'}
+                    >
+                      <span className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full ${isOnline ? 'bg-white animate-pulse' : 'bg-white/60'}`} />
+                    </span>
                   </div>
-                  <span className="text-[11px] text-[#5B6B8C] font-semibold mt-1 block">
-                    Based on 310 verified reviews
-                  </span>
+
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h1 className="text-lg sm:text-2xl font-black text-[#0A1F5C]">
+                        {user?.name || 'Ramesh Kumar'}
+                      </h1>
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-xs">
+                        <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                        Verified Professional Partner
+                      </span>
+                    </div>
+
+                    <p className="text-xs sm:text-sm font-semibold text-[#0B5FD9] mt-0.5">
+                      Electrician, Wiring & Home Appliance Specialist
+                    </p>
+
+                    {/* Pair 1: Partner ID + Rating - STRICTLY SIDE-BY-SIDE via 2-col grid */}
+                    <div className="grid grid-cols-2 gap-2 mt-2 max-w-sm">
+                      {/* Partner ID with Copy */}
+                      <button
+                        type="button"
+                        onClick={handleCopyPartnerId}
+                        className="w-full inline-flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg bg-[#F1F6FF] border border-[#DCE7F9] hover:bg-[#E2EEFE] text-[#0A1F5C] font-mono font-bold transition-all cursor-pointer text-[11px] sm:text-xs min-w-0"
+                        title="Click to copy Partner ID"
+                      >
+                        <UserCheck className="w-3.5 h-3.5 text-[#0B5FD9] shrink-0" />
+                        <span className="truncate">ID: PTR-8821</span>
+                        <Copy className="w-3 h-3 text-slate-400 shrink-0" />
+                        {copiedId && <span className="text-[10px] text-emerald-600 font-bold">✓</span>}
+                      </button>
+
+                      {/* Star Rating Badge */}
+                      <div className="w-full inline-flex items-center justify-center gap-1 text-amber-600 font-bold bg-amber-50 px-2 py-1.5 rounded-lg border border-amber-200/60 text-[11px] sm:text-xs min-w-0">
+                        <Star className="w-3.5 h-3.5 fill-current shrink-0 text-amber-500" />
+                        <span>4.9</span>
+                        <span className="text-[10px] sm:text-[11px] text-[#5B6B8C] font-normal truncate">(142)</span>
+                      </div>
+                    </div>
+
+                    {/* Pair 2: Location + Member Since - STRICTLY SIDE-BY-SIDE via 2-col grid */}
+                    <div className="grid grid-cols-2 gap-2 mt-1.5 text-[11px] sm:text-xs text-[#5B6B8C] max-w-sm">
+                      <div className="inline-flex items-center gap-1 min-w-0">
+                        <MapPin className="w-3.5 h-3.5 text-[#0B5FD9] shrink-0" />
+                        <span className="truncate">Hyderabad, TG</span>
+                      </div>
+
+                      <div className="inline-flex items-center gap-1 min-w-0">
+                        <Calendar className="w-3.5 h-3.5 text-[#5B6B8C] shrink-0" />
+                        <span className="truncate">Since Oct 2024</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
-                <div className="bg-white rounded-2xl border border-[#DCE7F9] p-4 shadow-sm">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#5B6B8C]">Pre-Decided Event Packages</span>
-                  <p className="text-2xl font-extrabold text-[#0B5FD9] mt-1 font-mono-num">13 Events</p>
-                  <span className="text-[11px] font-semibold text-emerald-600 mt-1 block">
-                    Configured with upfront pricing
-                  </span>
+                {/* Action Buttons */}
+                <div className="flex items-center gap-2.5 flex-wrap self-start lg:self-center">
+                  <button
+                    type="button"
+                    onClick={handleDownloadPartnerIdCard}
+                    className="px-4 py-2.5 rounded-xl bg-[#0B5FD9] hover:bg-[#094FB6] text-white text-xs font-bold inline-flex items-center gap-2 shadow-sm transition-all cursor-pointer"
+                    title="Download digital ID certificate"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    <span>Download Partner ID</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setIsEditingProfile(true)}
+                    className="px-4 py-2.5 rounded-xl bg-[#F4F8FE] hover:bg-[#EBF2FE] border border-[#DCE7F9] text-[#0A1F5C] text-xs font-bold inline-flex items-center gap-2 transition-all cursor-pointer"
+                  >
+                    <Edit3 className="w-3.5 h-3.5 text-[#0B5FD9]" />
+                    <span>Edit Contact Details</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={toggleDuty}
+                    className={`px-3.5 py-2.5 rounded-xl text-xs font-bold inline-flex items-center gap-2 border transition-all cursor-pointer ${isOnline
+                        ? 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100'
+                        : 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200'
+                      }`}
+                  >
+                    <span className={`w-2 h-2 rounded-full ${isOnline ? 'bg-emerald-600 animate-pulse' : 'bg-slate-400'}`} />
+                    <span>{isOnline ? 'Duty: Online' : 'Duty: Offline'}</span>
+                  </button>
                 </div>
               </div>
 
-              {/* Incoming Event Quotation Leads */}
-              <div className="bg-white rounded-3xl border border-[#DCE7F9] p-6 shadow-sm space-y-5">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#EAF2FF] pb-4">
-                  <div>
-                    <h3 className="text-base font-bold text-[#0A1F5C] flex items-center gap-2">
-                      <MessageSquare className="w-4 h-4 text-purple-600" />
-                      <span>Incoming Event Quotation Requests</span>
-                      <span className="px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 text-xs font-bold border border-purple-200">
-                        {eventInquiries.length} Inquiries
-                      </span>
-                    </h3>
-                    <p className="text-xs text-[#5B6B8C] mt-0.5">
-                      Customer requests submitted through SERVA Events Directory with pre-decided starting rates.
+              {/* 4 Summary Highlight Counters */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 pt-6">
+                <div className="p-3.5 rounded-2xl bg-[#F8FAFD] border border-[#EAF2FF]">
+                  <div className="text-[11px] font-semibold text-[#5B6B8C]">Completed Doorstep Jobs</div>
+                  <div className="text-xl font-black text-[#0A1F5C] mt-1">146</div>
+                  <div className="text-[11px] text-emerald-600 font-bold mt-0.5">✓ 98.4% Completion Rate</div>
+                </div>
+
+                <div className="p-3.5 rounded-2xl bg-[#F8FAFD] border border-[#EAF2FF]">
+                  <div className="text-[11px] font-semibold text-[#5B6B8C]">Customer Rating</div>
+                  <div className="text-xl font-black text-amber-600 mt-1 flex items-center gap-1">
+                    <span>4.9</span>
+                    <Star className="w-4 h-4 fill-current inline" />
+                  </div>
+                  <div className="text-[11px] text-[#5B6B8C] font-medium mt-0.5">Top 5% Rated in Hyderabad</div>
+                </div>
+
+                <div className="p-3.5 rounded-2xl bg-[#F8FAFD] border border-[#EAF2FF]">
+                  <div className="text-[11px] font-semibold text-[#5B6B8C]">Available Wallet Balance</div>
+                  <div className="text-xl font-black text-[#0B5FD9] mt-1">{formatINR(walletBalancePaise)}</div>
+                  <div className="text-[11px] text-[#0B5FD9] font-bold mt-0.5">Instant Withdrawal Ready</div>
+                </div>
+
+                <div className="p-3.5 rounded-2xl bg-[#F8FAFD] border border-[#EAF2FF]">
+                  <div className="text-[11px] font-semibold text-[#5B6B8C]">Partnership Status</div>
+                  <div className="text-xl font-black text-emerald-700 mt-1">Active & Approved</div>
+                  <div className="text-[11px] text-emerald-600 font-bold mt-0.5">Zero Infractions / Clear</div>
+                </div>
+              </div>
+            </div>
+
+            {/* ── 2. Grid with Complete & Simple Profile Details ── */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Card A: Personal & Contact Information */}
+              <div className="bg-white rounded-3xl border border-[#DCE7F9] p-6 shadow-sm space-y-4">
+                <div className="flex items-center justify-between border-b border-[#F0F4FA] pb-3">
+                  <h3 className="text-sm font-bold text-[#0A1F5C] flex items-center gap-2">
+                    <User className="w-4 h-4 text-[#0B5FD9]" />
+                    <span>Personal & Contact Information</span>
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={() => setIsEditingProfile(true)}
+                    className="text-xs font-bold text-[#0B5FD9] hover:underline flex items-center gap-1 cursor-pointer"
+                  >
+                    <Edit3 className="w-3 h-3" />
+                    <span>Edit</span>
+                  </button>
+                </div>
+
+                <div className="space-y-3 text-xs">
+                  <div className="flex flex-col sm:flex-row sm:justify-between py-1.5 border-b border-slate-100 gap-1">
+                    <span className="text-[#5B6B8C]">Full Legal Name:</span>
+                    <span className="font-bold text-[#0A1F5C]">{user?.name || 'Ramesh Kumar'} (as per PAN)</span>
+                  </div>
+                  <div className="flex flex-col sm:flex-row sm:justify-between py-1.5 border-b border-slate-100 gap-1">
+                    <span className="text-[#5B6B8C]">Primary Mobile Number:</span>
+                    <span className="font-bold text-[#0A1F5C] flex items-center gap-1">
+                      <span>{profileMobile}</span>
+                      <span className="text-[10px] font-extrabold text-emerald-600 bg-emerald-50 px-1.5 py-0.2 rounded">OTP Verified ✓</span>
+                    </span>
+                  </div>
+                  <div className="flex flex-col sm:flex-row sm:justify-between py-1.5 border-b border-slate-100 gap-1">
+                    <span className="text-[#5B6B8C]">Secondary / Alternate Phone:</span>
+                    <span className="font-bold text-[#0A1F5C]">{profileAltMobile}</span>
+                  </div>
+                  <div className="flex flex-col sm:flex-row sm:justify-between py-1.5 border-b border-slate-100 gap-1">
+                    <span className="text-[#5B6B8C]">Registered Email:</span>
+                    <span className="font-bold text-[#0A1F5C] flex items-center gap-1">
+                      <span>{profileEmail}</span>
+                      <span className="text-[10px] font-extrabold text-emerald-600 bg-emerald-50 px-1.5 py-0.2 rounded">Verified ✓</span>
+                    </span>
+                  </div>
+                  <div className="flex flex-col sm:flex-row sm:justify-between py-1.5 border-b border-slate-100 gap-1">
+                    <span className="text-[#5B6B8C]">Communication Languages:</span>
+                    <span className="font-bold text-[#0A1F5C]">Telugu (Native), Hindi, English</span>
+                  </div>
+                  <div className="flex flex-col sm:flex-row sm:justify-between py-1.5 gap-1">
+                    <span className="text-[#5B6B8C]">Base Operating Address:</span>
+                    <span className="font-bold text-[#0A1F5C] text-left sm:text-right max-w-xs">{profileAddress}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Card B: Service Coverage & Skills */}
+              <div className="bg-white rounded-3xl border border-[#DCE7F9] p-6 shadow-sm space-y-4">
+                <div className="flex items-center justify-between border-b border-[#F0F4FA] pb-3">
+                  <h3 className="text-sm font-bold text-[#0A1F5C] flex items-center gap-2">
+                    <Briefcase className="w-4 h-4 text-[#0B5FD9]" />
+                    <span>Service Coverage & Specializations</span>
+                  </h3>
+                  <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                    Active in Hyderabad
+                  </span>
+                </div>
+
+                <div className="space-y-3 text-xs">
+                  <div className="flex flex-col sm:flex-row sm:justify-between py-1.5 border-b border-slate-100 gap-1">
+                    <span className="text-[#5B6B8C]">Primary Category:</span>
+                    <span className="font-bold text-[#0A1F5C]">Home Services & Electrical Repair</span>
+                  </div>
+                  <div className="flex flex-col sm:flex-row sm:justify-between py-1.5 border-b border-slate-100 gap-1">
+                    <span className="text-[#5B6B8C]">Operating Radius:</span>
+                    <span className="font-bold text-[#0A1F5C]">{profileServiceRadius}</span>
+                  </div>
+                  <div className="py-1.5 border-b border-slate-100">
+                    <span className="text-[#5B6B8C] block mb-2">Registered Doorstep Skills:</span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {[
+                        'Switchboard & MCB Repair',
+                        'AC Installation & Gas Top-up',
+                        'Geyser Power Socket & Heating Line',
+                        'Inverter & Battery Wiring',
+                        'Chandelier & False Ceiling Lights',
+                        'Appliance Earthing & Safety Inspection',
+                      ].map((skill) => (
+                        <span key={skill} className="px-2 py-1 rounded-md bg-[#F4F8FE] text-[#0A1F5C] font-semibold text-[11px] border border-[#DCE7F9]">
+                          ✓ {skill}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="flex flex-col sm:flex-row sm:justify-between py-1.5 border-b border-slate-100 gap-1">
+                    <span className="text-[#5B6B8C]">Field Experience:</span>
+                    <span className="font-bold text-[#0A1F5C]">8+ Years in Electrical Engineering</span>
+                  </div>
+                  <div className="flex flex-col sm:flex-row sm:justify-between py-1.5 gap-1">
+                    <span className="text-[#5B6B8C]">Safety Toolkit & Inspection Gear:</span>
+                    <span className="font-bold text-[#0A1F5C]">1000V Insulated Toolset, Multimeter, SERVA Uniform</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Card C: Government KYC & Compliance Details (PDF SOW Sec 2 & 3) */}
+              <div className="bg-white rounded-3xl border border-[#DCE7F9] p-6 shadow-sm space-y-4">
+                <div className="flex items-center justify-between border-b border-[#F0F4FA] pb-3">
+                  <h3 className="text-sm font-bold text-[#0A1F5C] flex items-center gap-2">
+                    <FileCheck className="w-4 h-4 text-[#0B5FD9]" />
+                    <span>Government KYC & Verification Documents</span>
+                  </h3>
+                  <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                    100% Cleared ✓
+                  </span>
+                </div>
+
+                <div className="space-y-3 text-xs">
+                  <div className="flex flex-col sm:flex-row sm:justify-between py-1.5 border-b border-slate-100 gap-1">
+                    <span className="text-[#5B6B8C]">KYC Approval Status:</span>
+                    <span className="font-bold text-emerald-700">Verified by Admin Operations (12 Oct 2026)</span>
+                  </div>
+                  <div className="flex flex-col sm:flex-row sm:justify-between py-1.5 border-b border-slate-100 gap-1">
+                    <span className="text-[#5B6B8C]">Partner Classification:</span>
+                    <span className="font-bold text-[#0A1F5C]">Individual Professional Technician</span>
+                  </div>
+                  <div className="flex flex-col sm:flex-row sm:justify-between py-1.5 border-b border-slate-100 gap-1">
+                    <span className="text-[#5B6B8C]">Permanent Account Number (PAN):</span>
+                    <span className="font-bold text-[#0A1F5C] flex items-center gap-2">
+                      <span className="font-mono">BPZPR4521K</span>
+                      <span className="text-[10px] text-emerald-600 bg-emerald-50 px-1.5 py-0.2 rounded font-bold">Document Attached ✓</span>
+                    </span>
+                  </div>
+                  <div className="flex flex-col sm:flex-row sm:justify-between py-1.5 border-b border-slate-100 gap-1">
+                    <span className="text-[#5B6B8C]">Aadhaar / National Identity:</span>
+                    <span className="font-bold text-[#0A1F5C] flex items-center gap-2">
+                      <span className="font-mono">•••• •••• 6712</span>
+                      <span className="text-[10px] text-emerald-600 bg-emerald-50 px-1.5 py-0.2 rounded font-bold">UIDAI Linked ✓</span>
+                    </span>
+                  </div>
+                  <div className="flex flex-col sm:flex-row sm:justify-between py-1.5 border-b border-slate-100 gap-1">
+                    <span className="text-[#5B6B8C]">Police Verification & Criminal Check:</span>
+                    <span className="font-bold text-emerald-700">Cleared (Zero Adverse Record)</span>
+                  </div>
+                  <div className="flex flex-col sm:flex-row sm:justify-between py-1.5 gap-1">
+                    <span className="text-[#5B6B8C]">Wireman / Technical License:</span>
+                    <span className="font-bold text-[#0A1F5C]">State License #TL-HYD-4412</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Card D: Payout Bank & UPI Settlement (PDF SOW Sec 3) */}
+              <div className="bg-white rounded-3xl border border-[#DCE7F9] p-6 shadow-sm space-y-4">
+                <div className="flex items-center justify-between border-b border-[#F0F4FA] pb-3">
+                  <h3 className="text-sm font-bold text-[#0A1F5C] flex items-center gap-2">
+                    <Building2 className="w-4 h-4 text-[#0B5FD9]" />
+                    <span>Withdrawal Bank Account & UPI Setup</span>
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('wallet')}
+                    className="text-xs font-bold text-[#0B5FD9] hover:underline flex items-center gap-1 cursor-pointer"
+                  >
+                    <Wallet className="w-3 h-3" />
+                    <span>Open Wallet</span>
+                  </button>
+                </div>
+
+                <div className="space-y-3 text-xs">
+                  <div className="flex flex-col sm:flex-row sm:justify-between py-1.5 border-b border-slate-100 gap-1">
+                    <span className="text-[#5B6B8C]">Receiving Bank Name:</span>
+                    <span className="font-bold text-[#0A1F5C]">HDFC Bank Ltd. (Jubilee Hills Branch)</span>
+                  </div>
+                  <div className="flex flex-col sm:flex-row sm:justify-between py-1.5 border-b border-slate-100 gap-1">
+                    <span className="text-[#5B6B8C]">Account Holder Name:</span>
+                    <span className="font-bold text-[#0A1F5C]">{user?.name || 'Ramesh Kumar'}</span>
+                  </div>
+                  <div className="flex flex-col sm:flex-row sm:justify-between py-1.5 border-b border-slate-100 gap-1">
+                    <span className="text-[#5B6B8C]">Bank Account Number:</span>
+                    <span className="font-bold text-[#0A1F5C] font-mono">•••• •••• •••• 9283</span>
+                  </div>
+                  <div className="flex flex-col sm:flex-row sm:justify-between py-1.5 border-b border-slate-100 gap-1">
+                    <span className="text-[#5B6B8C]">Branch IFSC Code:</span>
+                    <span className="font-bold text-[#0A1F5C] font-mono">HDFC0001234</span>
+                  </div>
+                  <div className="flex flex-col sm:flex-row sm:justify-between py-1.5 border-b border-slate-100 gap-1">
+                    <span className="text-[#5B6B8C]">Instant UPI Payout ID:</span>
+                    <span className="font-bold text-[#0B5FD9] font-mono">ramesh.partner@okhdfcbank</span>
+                  </div>
+                  <div className="flex flex-col sm:flex-row sm:justify-between py-1.5 gap-1">
+                    <span className="text-[#5B6B8C]">Settlement Time:</span>
+                    <span className="font-bold text-emerald-700">Instant (24x7 Real-Time Payout)</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Card E: Approved Wage Structure & Shift Rates (Verified by SERVA Admin) */}
+              <div className="bg-white rounded-3xl border border-emerald-200 p-6 shadow-sm space-y-4 md:col-span-2 bg-gradient-to-br from-emerald-50/20 via-white to-white">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#F0F4FA] pb-3 gap-2">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">
+                      <DollarSign className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-bold text-[#0A1F5C] flex items-center gap-2">
+                        <span>Approved Wage Structure & Shift Rates</span>
+                        <span className="text-[10px] font-extrabold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full border border-emerald-200">
+                          Admin Verified &amp; Guaranteed ✓
+                        </span>
+                      </h3>
+                      <p className="text-[11px] text-[#5B6B8C]">
+                        Independent wage rates configured for your profile by SERVA Operations Admin Console.
+                      </p>
+                    </div>
+                  </div>
+
+                  <span className="text-[11px] font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-lg w-fit">
+                    Live System Sync
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+                  {/* 1. Daily Basis Shift */}
+                  <div className="p-3.5 rounded-2xl bg-white border border-emerald-200 shadow-2xs space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] uppercase font-bold text-[#5B6B8C]">Field Labour &amp; Workers</span>
+                      <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700">Daily Basis</span>
+                    </div>
+                    <div className="text-xl font-black text-emerald-700 font-mono-num">
+                      ₹{(agriWageSettings.workerDailyWagePaise / 100).toLocaleString('en-IN')}
+                      <span className="text-xs font-normal text-slate-500"> / worker / day</span>
+                    </div>
+                    <p className="text-[11px] text-slate-500">
+                      Standard 8-hour shift. Sowing, weeding, harvesting &amp; farm labour.
                     </p>
                   </div>
 
-                  {/* Filter Pills */}
-                  <div className="flex items-center gap-1.5 overflow-x-auto">
-                    {['ALL', 'NEW', 'CONTACTED', 'QUOTED', 'CONFIRMED'].map((st) => (
-                      <button
-                        key={st}
-                        type="button"
-                        onClick={() => setEventInquiryFilter(st)}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
-                          eventInquiryFilter === st
-                            ? 'bg-purple-800 text-white shadow-xs'
-                            : 'bg-[#F1F6FF] text-[#5B6B8C] hover:text-[#0A1F5C]'
-                        }`}
+                  {/* 2. Hourly Tractor */}
+                  <div className="p-3.5 rounded-2xl bg-white border border-blue-200 shadow-2xs space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] uppercase font-bold text-[#5B6B8C]">Tractor &amp; Implements</span>
+                      <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-blue-50 text-blue-700">Hourly Basis</span>
+                    </div>
+                    <div className="text-xl font-black text-[#0B5FD9] font-mono-num">
+                      ₹{(agriWageSettings.tractorHourlyPaise / 100).toLocaleString('en-IN')}
+                      <span className="text-xs font-normal text-slate-500"> / hour</span>
+                    </div>
+                    <p className="text-[11px] text-slate-500">
+                      Metered operating hours for 45-55 HP tractors, rotavator &amp; plowing.
+                    </p>
+                  </div>
+
+                  {/* 3. Operator Hourly Wage */}
+                  <div className="p-3.5 rounded-2xl bg-white border border-amber-200 shadow-2xs space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] uppercase font-bold text-[#5B6B8C]">Certified Operator</span>
+                      <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-amber-50 text-amber-700">Hourly Wage</span>
+                    </div>
+                    <div className="text-xl font-black text-amber-700 font-mono-num">
+                      ₹{(agriWageSettings.operatorHourlyPaise / 100).toLocaleString('en-IN')}
+                      <span className="text-xs font-normal text-slate-500"> / hour</span>
+                    </div>
+                    <p className="text-[11px] text-slate-500">
+                      Dedicated driver/operator compensation credited alongside machine rental.
+                    </p>
+                  </div>
+
+                  {/* 4. Combine Harvester & Drone */}
+                  <div className="p-3.5 rounded-2xl bg-white border border-purple-200 shadow-2xs space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] uppercase font-bold text-[#5B6B8C]">Harvester &amp; Drone</span>
+                      <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-purple-50 text-purple-700">Hourly Basis</span>
+                    </div>
+                    <div className="text-xl font-black text-purple-700 font-mono-num">
+                      ₹{(agriWageSettings.harvesterHourlyPaise / 100).toLocaleString('en-IN')}
+                      <span className="text-xs font-normal text-slate-500"> / hour</span>
+                    </div>
+                    <p className="text-[11px] text-slate-500">
+                      Multi-crop combine harvester with operator crew included.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200 text-slate-700 text-xs flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span className="text-[11px]">
+                      <strong>Wage Rate Lock Guarantee:</strong> Rates above are set by SERVA Admin and applied automatically across all customer bookings in your area. Payouts are credited instantly to your wallet.
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* ── 3. Commercial Terms & Platform Partnership ── */}
+            <div className="bg-white rounded-3xl border border-[#DCE7F9] p-6 shadow-sm">
+              <h3 className="text-sm font-bold text-[#0A1F5C] mb-4 flex items-center gap-2">
+                <Award className="w-4 h-4 text-[#0B5FD9]" />
+                <span>Commercial Terms, Commission & Safety Agreement</span>
+              </h3>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+                <div className="p-4 rounded-2xl bg-[#F8FAFD] border border-[#E2EEFE]">
+                  <span className="font-bold text-[#0A1F5C] block text-sm">10% Platform Commission</span>
+                  <p className="text-[#5B6B8C] mt-1">
+                    Standard platform service fee. You retain 90% of gross order value for all completed bookings.
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-[#F8FAFD] border border-[#E2EEFE] flex flex-col justify-between">
+                  <div>
+                    <span className="font-bold text-[#0A1F5C] block text-sm">Gold Support Priority</span>
+                    <p className="text-[#5B6B8C] mt-1">
+                      Direct hotline access to SERVA Partner Desk (1800-123-4567) and 24x7 WhatsApp Partner Support.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveTab('support');
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                    className="mt-3 text-xs font-bold text-[#0B5FD9] hover:text-blue-800 inline-flex items-center gap-1 self-start cursor-pointer"
+                  >
+                    <HelpCircle className="w-3.5 h-3.5" />
+                    <span>Open Helpdesk & Tickets &rarr;</span>
+                  </button>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-[#F8FAFD] border border-[#E2EEFE]">
+                  <span className="font-bold text-[#0A1F5C] block text-sm">₹50,000 Doorstep Insurance</span>
+                  <p className="text-[#5B6B8C] mt-1">
+                    Complimentary accidental and third-party transit protection while on active service duty.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ═══════════════════════════════════════════════
+       *  TAB 5: RATINGS & REVIEWS (PDF Section 4)
+       * ═══════════════════════════════════════════════ */}
+        {activeTab === 'reviews' && (
+          <div className="space-y-6">
+            <div className="bg-white rounded-3xl border border-[#DCE7F9] p-6 shadow-sm space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#EAF2FF] pb-5">
+                <div>
+                  <h2 className="text-lg font-bold text-[#0A1F5C]">Customer Ratings & Reviews</h2>
+                  <p className="text-xs text-[#5B6B8C]">
+                    Real feedback from customers who booked your services.
+                  </p>
+                </div>
+
+                {/* Summary Score */}
+                <div className="flex items-center gap-3">
+                  <div className="text-right">
+                    <div className="flex items-center gap-1.5 justify-end">
+                      <span className="text-2xl font-extrabold text-[#0A1F5C]">4.9</span>
+                      <div className="flex text-amber-500">
+                        {[1, 2, 3, 4, 5].map((s) => (
+                          <Star key={s} className="w-4 h-4 fill-current" />
+                        ))}
+                      </div>
+                    </div>
+                    <span className="text-xs text-[#5B6B8C]">142 Verified Ratings</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Review Cards */}
+              <div className="space-y-4">
+                {reviews.map((rev) => (
+                  <div
+                    key={rev.id}
+                    className="p-4.5 rounded-2xl border border-[#E4EEFC] bg-[#FAFCFF] space-y-3"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="text-sm font-bold text-[#0A1F5C]">{rev.customerName}</h4>
+                        <p className="text-xs text-[#5B6B8C]">{rev.serviceTitle} · {rev.date}</p>
+                      </div>
+                      <div className="flex text-amber-500">
+                        {Array.from({ length: rev.rating }).map((_, i) => (
+                          <Star key={i} className="w-3.5 h-3.5 fill-current" />
+                        ))}
+                      </div>
+                    </div>
+
+                    <p className="text-xs text-[#334155] leading-relaxed">
+                      "{rev.comment}"
+                    </p>
+
+                    {/* Partner Reply */}
+                    {rev.partnerReply ? (
+                      <div className="p-3 rounded-xl bg-blue-50/70 border border-blue-100 text-xs text-[#0A1F5C] space-y-0.5">
+                        <span className="text-[10px] font-bold text-[#0B5FD9] uppercase tracking-wider block">
+                          Your Response:
+                        </span>
+                        <p className="italic">{rev.partnerReply}</p>
+                      </div>
+                    ) : (
+                      <div>
+                        {replyOpen[rev.id] ? (
+                          <div className="mt-2 space-y-2">
+                            <textarea
+                              rows={2}
+                              value={replyText[rev.id] || ''}
+                              onChange={(e) =>
+                                setReplyText((prev) => ({ ...prev, [rev.id]: e.target.value }))
+                              }
+                              placeholder="Write a polite response to this customer..."
+                              className="w-full p-2.5 rounded-xl border border-[#DCE7F9] text-xs focus:outline-none focus:border-[#0B5FD9]"
+                            />
+                            <div className="flex justify-end gap-2">
+                              <button
+                                type="button"
+                                onClick={() => setReplyOpen((prev) => ({ ...prev, [rev.id]: false }))}
+                                className="px-3 py-1 rounded-full text-xs text-[#5B6B8C] hover:bg-slate-100 cursor-pointer"
+                              >
+                                Cancel
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleAddReviewReply(rev.id)}
+                                className="px-4 py-1 rounded-full bg-[#0B5FD9] hover:bg-blue-700 text-white text-xs font-bold cursor-pointer"
+                              >
+                                Post Reply
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => setReplyOpen((prev) => ({ ...prev, [rev.id]: true }))}
+                            className="text-xs font-bold text-[#0B5FD9] hover:underline cursor-pointer"
+                          >
+                            + Reply to customer
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ═══════════════════════════════════════════════
+       *  TAB 6: HELP & SUPPORT TICKETS (PDF Section 4 & 6)
+       * ═══════════════════════════════════════════════ */}
+        {activeTab === 'support' && (
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              {/* Left: Raise a Ticket */}
+              <div className="lg:col-span-6 bg-white rounded-3xl border border-[#DCE7F9] p-6 shadow-sm space-y-4">
+                <div>
+                  <h2 className="text-base font-bold text-[#0A1F5C]">Raise a Partner Support Ticket</h2>
+                  <p className="text-xs text-[#5B6B8C]">
+                    Direct line to SERVA Partner Operations for payouts, booking issues, or re-verification.
+                  </p>
+                </div>
+
+                {ticketNotice && (
+                  <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 font-bold">
+                    {ticketNotice}
+                  </div>
+                )}
+
+                <form onSubmit={handleCreateTicket} className="space-y-3.5">
+                  <div>
+                    <label className="block text-xs font-bold text-[#0A1F5C] mb-1">Issue Category</label>
+                    <select
+                      value={newTicketCategory}
+                      onChange={(e) => setNewTicketCategory(e.target.value as SupportTicket['category'])}
+                      className="w-full min-h-[42px] px-3.5 rounded-xl border border-[#DCE7F9] text-xs font-medium text-[#0A1F5C] bg-white focus:outline-none focus:border-[#0B5FD9]"
+                    >
+                      <option value="PAYOUT">Payout / Wallet Withdrawal Issue</option>
+                      <option value="BOOKING_ISSUE">Customer Booking Dispute or Scope Change</option>
+                      <option value="KYC_DOCUMENTS">KYC Document Re-submission</option>
+                      <option value="CUSTOMER_DISPUTE">Emergency Job Cancellation</option>
+                      <option value="OTHER">Other Partner Query</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-[#0A1F5C] mb-1">Subject</label>
+                    <input
+                      type="text"
+                      value={newTicketSubject}
+                      onChange={(e) => setNewTicketSubject(e.target.value)}
+                      placeholder="Brief description of the issue"
+                      className="w-full min-h-[42px] px-3.5 rounded-xl border border-[#DCE7F9] text-xs font-medium text-[#0A1F5C] focus:outline-none focus:border-[#0B5FD9]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-[#0A1F5C] mb-1">Message Details</label>
+                    <textarea
+                      rows={4}
+                      value={newTicketMessage}
+                      onChange={(e) => setNewTicketMessage(e.target.value)}
+                      placeholder="Provide details such as Booking ID, date, or specific request..."
+                      className="w-full p-3 rounded-xl border border-[#DCE7F9] text-xs font-medium text-[#0A1F5C] focus:outline-none focus:border-[#0B5FD9]"
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="w-full min-h-[44px] rounded-full bg-[#0B5FD9] hover:bg-blue-700 text-white font-bold text-xs inline-flex items-center justify-center gap-2 shadow-md shadow-blue-500/25 active:scale-95 transition-all cursor-pointer"
+                  >
+                    <Send className="w-3.5 h-3.5" />
+                    <span>Submit Support Ticket</span>
+                  </button>
+                </form>
+              </div>
+
+              {/* Right: Partner Helpline & Ticket History */}
+              <div className="lg:col-span-6 space-y-4">
+                {/* Emergency Hotline Card */}
+                <div className="bg-gradient-to-br from-[#EBF3FE] to-[#F8FAFD] border border-[#CDE0FC] p-5 rounded-3xl shadow-sm space-y-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-2xl bg-[#0B5FD9] text-white flex items-center justify-center shrink-0">
+                      <Phone className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-bold text-[#0A1F5C]">SERVA Partner Emergency Helpline</h3>
+                      <p className="text-xs text-[#5B6B8C]">24/7 dedicated assistance for active on-site jobs</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 pt-1">
+                    <a
+                      href="tel:18001234567"
+                      className="px-4 py-2 rounded-full bg-[#0B5FD9] text-white text-xs font-bold inline-flex items-center gap-1.5 shadow-sm hover:bg-blue-700"
+                    >
+                      <Phone className="w-3.5 h-3.5" /> Call 1800-123-4567
+                    </a>
+                    <a
+                      href="https://wa.me/919876543210"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="px-4 py-2 rounded-full bg-emerald-600 text-white text-xs font-bold inline-flex items-center gap-1.5 shadow-sm hover:bg-emerald-700"
+                    >
+                      WhatsApp Support
+                    </a>
+                  </div>
+                </div>
+
+                {/* My Active Tickets */}
+                <div className="bg-white rounded-3xl border border-[#DCE7F9] p-5 shadow-sm space-y-3">
+                  <h3 className="text-sm font-bold text-[#0A1F5C]">My Recent Tickets</h3>
+                  {tickets.length === 0 ? (
+                    <p className="text-xs text-[#5B6B8C]">No open tickets. Everything is running smoothly!</p>
+                  ) : (
+                    <div className="space-y-3">
+                      {tickets.map((t) => (
+                        <div key={t.id} className="p-3.5 rounded-xl border border-slate-100 bg-[#FAFCFF] space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[10px] font-mono-num font-bold text-[#0B5FD9]">#{t.id}</span>
+                            <span
+                              className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${t.status === 'RESOLVED' ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'
+                                }`}
+                            >
+                              {t.status}
+                            </span>
+                          </div>
+                          <h4 className="text-xs font-bold text-[#0A1F5C]">{t.subject}</h4>
+                          <p className="text-xs text-[#5B6B8C]">{t.message}</p>
+                          {t.adminReply && (
+                            <div className="p-2.5 rounded-lg bg-blue-50/60 border border-blue-100 text-[11px] text-[#0A1F5C]">
+                              <span className="font-bold text-[#0B5FD9] block">SERVA Operations Reply:</span>
+                              <p>{t.adminReply}</p>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ═══════════════════════════════════════════════
+       *  TAB 7: PORTFOLIO & INTERIOR LEADS HUB
+       * ═══════════════════════════════════════════════ */}
+        {activeTab === 'portfolio' && (
+          <div className="space-y-6">
+            {/* Header Banner */}
+            <div className="bg-white rounded-3xl border border-[#DCE7F9] p-6 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] font-extrabold uppercase px-2.5 py-0.5 rounded-full bg-[#EAF2FF] text-[#0B5FD9]">
+                    Verified Interior Designer Portal
+                  </span>
+                  <span className="text-xs text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-full flex items-center gap-1">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Live on SERVA Directory
+                  </span>
+                </div>
+                <h2 className="text-xl font-bold text-[#0A1F5C] mt-1">Portfolio & Consultation Leads Hub</h2>
+                <p className="text-xs text-[#5B6B8C] mt-0.5">
+                  Manage your past project showcases (photos & video walkthroughs), review performance metrics, and respond to incoming customer consultation leads.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => setShowAddProjectModal(true)}
+                  className="px-4 py-2.5 rounded-xl bg-[#0B5FD9] hover:bg-[#094FB6] text-white text-xs font-bold flex items-center gap-2 shadow-sm transition-all cursor-pointer"
+                >
+                  <PlusCircle className="w-4 h-4" />
+                  <span>Add Project Media</span>
+                </button>
+              </div>
+            </div>
+
+            {projectSuccessMsg && (
+              <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold flex items-center gap-2 animate-fade-in">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>{projectSuccessMsg}</span>
+              </div>
+            )}
+
+            {/* Sub-Navigation: Event Planners vs Interior Designers */}
+            <div className="flex items-center gap-2 border-b border-[#EAF2FF] pb-2 flex-wrap">
+              <button
+                type="button"
+                onClick={() => setPortfolioHubType('events')}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${portfolioHubType === 'events'
+                    ? 'bg-purple-800 text-white shadow-xs'
+                    : 'bg-white border border-[#DCE7F9] text-[#5B6B8C] hover:text-[#0A1F5C]'
+                  }`}
+              >
+                <Calendar className="w-3.5 h-3.5 text-purple-300" />
+                <span>Event Planners &amp; Quote Leads ({eventInquiries.length})</span>
+                {eventInquiries.filter((i) => i.status === 'NEW').length > 0 && (
+                  <span className="px-2 py-0.5 rounded-full bg-amber-400 text-slate-900 text-[10px] font-black">
+                    {eventInquiries.filter((i) => i.status === 'NEW').length} New
+                  </span>
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setPortfolioHubType('interior')}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${portfolioHubType === 'interior'
+                    ? 'bg-[#0B5FD9] text-white shadow-xs'
+                    : 'bg-white border border-[#DCE7F9] text-[#5B6B8C] hover:text-[#0A1F5C]'
+                  }`}
+              >
+                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                <span>Interior Design Portfolios &amp; Leads ({designerInquiries.length})</span>
+              </button>
+            </div>
+
+            {/* ═══════════════ SUB-VIEW 1: EVENT PLANNER HUB ═══════════════ */}
+            {portfolioHubType === 'events' && (
+              <div className="space-y-6">
+                {/* Event Performance Scorecards */}
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                  <div className="bg-white rounded-2xl border border-purple-200 p-4 shadow-sm bg-gradient-to-br from-purple-50/30 to-white">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-purple-800">Customer Quote Leads</span>
+                    <p className="text-2xl font-extrabold text-purple-900 mt-1 font-mono-num">{eventInquiries.length}</p>
+                    <span className="text-[11px] font-bold text-rose-600 flex items-center gap-1 mt-1">
+                      {eventInquiries.filter((i) => i.status === 'NEW').length} Pending Response
+                    </span>
+                  </div>
+
+                  <div className="bg-white rounded-2xl border border-[#DCE7F9] p-4 shadow-sm">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#5B6B8C]">Completed Celebrations</span>
+                    <p className="text-2xl font-extrabold text-[#0A1F5C] mt-1 font-mono-num">460+</p>
+                    <span className="text-[11px] font-bold text-emerald-600 flex items-center gap-1 mt-1">
+                      <TrendingUp className="w-3 h-3" /> 99.4% On-Time Execution
+                    </span>
+                  </div>
+
+                  <div className="bg-white rounded-2xl border border-[#DCE7F9] p-4 shadow-sm">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#5B6B8C]">Client Rating</span>
+                    <div className="flex items-center gap-1.5 mt-1">
+                      <Star className="w-5 h-5 fill-amber-400 text-amber-500" />
+                      <span className="text-2xl font-extrabold text-[#0A1F5C] font-mono-num">4.95</span>
+                      <span className="text-xs text-[#5B6B8C]">/ 5.0</span>
+                    </div>
+                    <span className="text-[11px] text-[#5B6B8C] font-semibold mt-1 block">
+                      Based on 310 verified reviews
+                    </span>
+                  </div>
+
+                  <div className="bg-white rounded-2xl border border-[#DCE7F9] p-4 shadow-sm">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#5B6B8C]">Pre-Decided Event Packages</span>
+                    <p className="text-2xl font-extrabold text-[#0B5FD9] mt-1 font-mono-num">13 Events</p>
+                    <span className="text-[11px] font-semibold text-emerald-600 mt-1 block">
+                      Configured with upfront pricing
+                    </span>
+                  </div>
+                </div>
+
+                {/* Incoming Event Quotation Leads */}
+                <div className="bg-white rounded-3xl border border-[#DCE7F9] p-6 shadow-sm space-y-5">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#EAF2FF] pb-4">
+                    <div>
+                      <h3 className="text-base font-bold text-[#0A1F5C] flex items-center gap-2">
+                        <MessageSquare className="w-4 h-4 text-purple-600" />
+                        <span>Incoming Event Quotation Requests</span>
+                        <span className="px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 text-xs font-bold border border-purple-200">
+                          {eventInquiries.length} Inquiries
+                        </span>
+                      </h3>
+                      <p className="text-xs text-[#5B6B8C] mt-0.5">
+                        Customer requests submitted through SERVA Events Directory with pre-decided starting rates.
+                      </p>
+                    </div>
+
+                    {/* Filter Pills */}
+                    <div className="flex items-center gap-1.5 overflow-x-auto">
+                      {['ALL', 'NEW', 'CONTACTED', 'QUOTED', 'CONFIRMED'].map((st) => (
+                        <button
+                          key={st}
+                          type="button"
+                          onClick={() => setEventInquiryFilter(st)}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${eventInquiryFilter === st
+                              ? 'bg-purple-800 text-white shadow-xs'
+                              : 'bg-[#F1F6FF] text-[#5B6B8C] hover:text-[#0A1F5C]'
+                            }`}
+                        >
+                          {st === 'ALL' ? 'All Quotes' : st}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {eventInquiries.length === 0 ? (
+                    <div className="text-center py-10 text-xs text-[#5B6B8C]">
+                      No event quote requests yet. Customers submitting quotes for your pre-decided packages will appear here instantly.
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {eventInquiries
+                        .filter((inq) => eventInquiryFilter === 'ALL' || inq.status === eventInquiryFilter)
+                        .map((inq) => (
+                          <div
+                            key={inq.id}
+                            className="p-4 rounded-2xl bg-[#F8FAFD] border border-[#E2EEFE] hover:border-purple-300 transition-all space-y-3"
+                          >
+                            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
+                              <div>
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-purple-100 text-purple-800">
+                                    #{inq.id}
+                                  </span>
+                                  <span className="font-bold text-sm text-[#0A1F5C]">{inq.customerName}</span>
+                                  <span className="text-xs font-mono text-[#5B6B8C]">({inq.customerMobile})</span>
+                                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-[#0B5FD9]">
+                                    {inq.eventType}
+                                  </span>
+                                </div>
+
+                                <div className="flex items-center gap-3 mt-1.5 text-xs text-[#5B6B8C] flex-wrap">
+                                  <span className="flex items-center gap-1 font-semibold text-[#0A1F5C]">
+                                    <Calendar className="w-3.5 h-3.5 text-[#0B5FD9]" />
+                                    <span>Date: {inq.eventDate}</span>
+                                  </span>
+                                  <span>&bull;</span>
+                                  <span className="flex items-center gap-1">
+                                    <Users className="w-3.5 h-3.5 text-[#0B5FD9]" />
+                                    <span>{inq.guestCount} Guests</span>
+                                  </span>
+                                  <span>&bull;</span>
+                                  <span className="flex items-center gap-1">
+                                    <MapPin className="w-3.5 h-3.5 text-[#0B5FD9]" />
+                                    <span>{inq.venueLocation}</span>
+                                  </span>
+                                </div>
+                              </div>
+
+                              <div className="text-left sm:text-right shrink-0">
+                                <span className="text-[10px] uppercase font-bold text-[#5B6B8C] block">Pre-Decided Starting Price</span>
+                                <span className="text-base font-black text-purple-700 font-mono-num">{inq.preDecidedPriceDisplay}</span>
+                                <span className="text-[10px] text-slate-500 block">Target: {inq.budgetRange}</span>
+                              </div>
+                            </div>
+
+                            {inq.notes && (
+                              <p className="text-xs text-[#475569] bg-white p-2.5 rounded-xl border border-slate-200 italic">
+                                &ldquo;{inq.notes}&rdquo;
+                              </p>
+                            )}
+
+                            <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-[#EAEFF8]">
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs font-semibold text-[#5B6B8C]">Update Status:</span>
+                                <select
+                                  value={inq.status}
+                                  onChange={(e) =>
+                                    handleUpdateEventInquiryStatus(inq.id, e.target.value as EventInquiry['status'])
+                                  }
+                                  className="text-xs font-bold text-[#0A1F5C] bg-white border border-[#DCE7F9] rounded-xl px-2.5 py-1 focus:outline-none focus:border-purple-600 cursor-pointer"
+                                >
+                                  <option value="NEW">NEW LEAD</option>
+                                  <option value="CONTACTED">CONTACTED CUSTOMER</option>
+                                  <option value="QUOTED">FORMAL QUOTE SENT</option>
+                                  <option value="CONFIRMED">CONFIRMED / ADVANCE PAID</option>
+                                  <option value="REJECTED">DECLINED / CANCELLED</option>
+                                </select>
+                              </div>
+
+                              <div className="flex items-center gap-2">
+                                <a
+                                  href={`tel:${inq.customerMobile}`}
+                                  className="px-3 py-1.5 rounded-xl border border-blue-200 bg-white hover:bg-blue-50 text-[#0B5FD9] text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                                >
+                                  <Phone className="w-3.5 h-3.5" />
+                                  <span>Call Customer</span>
+                                </a>
+                                <a
+                                  href={`https://wa.me/91${inq.customerMobile.replace(/\D/g, '')}?text=${encodeURIComponent(
+                                    `Hello ${inq.customerName}, this is Sandeep from Grand Royal Events regarding your ${inq.eventType} planned on ${inq.eventDate}. I have reviewed your requirements.`
+                                  )}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                                >
+                                  <Send className="w-3.5 h-3.5" />
+                                  <span>WhatsApp Quote</span>
+                                </a>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Section 2: Pre-Decided Event Packages & Pricing Setup */}
+                <div className="bg-white rounded-3xl border border-[#DCE7F9] p-6 shadow-sm space-y-4">
+                  <div className="border-b border-[#EAF2FF] pb-3">
+                    <h3 className="text-base font-bold text-[#0A1F5C] flex items-center gap-2">
+                      <Tag className="w-4 h-4 text-purple-600" />
+                      <span>Your Pre-Decided Event Packages &amp; Starting Rates</span>
+                    </h3>
+                    <p className="text-xs text-[#5B6B8C] mt-0.5">
+                      These pre-decided starting packages are displayed to customers browsing the SERVA Events section.
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+                    {Object.values(EVENT_PLANNERS_DATA[0].packages).map((pkg) => (
+                      <div
+                        key={pkg.eventType}
+                        className="p-4 rounded-2xl bg-gradient-to-br from-purple-50/40 via-white to-white border border-purple-100 shadow-2xs space-y-2"
                       >
-                        {st === 'ALL' ? 'All Quotes' : st}
-                      </button>
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <span className="text-[10px] font-bold text-purple-800 bg-purple-100 px-2 py-0.5 rounded-full">
+                              {pkg.eventType}
+                            </span>
+                            <h4 className="text-xs font-bold text-[#0A1F5C] mt-1">{pkg.packageName}</h4>
+                          </div>
+                          <span className="text-sm font-black text-purple-700 font-mono-num shrink-0">
+                            {pkg.priceDisplay}
+                          </span>
+                        </div>
+                        <div className="space-y-1 pt-1">
+                          {pkg.highlights.map((h, i) => (
+                            <div key={i} className="text-[11px] text-slate-600 flex items-start gap-1">
+                              <span className="text-emerald-600 font-bold">✓</span>
+                              <span>{h}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
                     ))}
                   </div>
                 </div>
 
-                {eventInquiries.length === 0 ? (
-                  <div className="text-center py-10 text-xs text-[#5B6B8C]">
-                    No event quote requests yet. Customers submitting quotes for your pre-decided packages will appear here instantly.
+                {/* Section 3: Event Portfolio Media Reel */}
+                <div className="bg-white rounded-3xl border border-[#DCE7F9] p-6 shadow-sm space-y-4">
+                  <div className="border-b border-[#EAF2FF] pb-3">
+                    <h3 className="text-base font-bold text-[#0A1F5C] flex items-center gap-2">
+                      <ImageIcon className="w-4 h-4 text-[#0B5FD9]" />
+                      <span>Event Showcase Portfolios (Photos &amp; Walkthrough Videos)</span>
+                    </h3>
+                    <p className="text-xs text-[#5B6B8C] mt-0.5">
+                      Verified media uploaded and visible on your public planner portfolio.
+                    </p>
                   </div>
-                ) : (
-                  <div className="space-y-3">
-                    {eventInquiries
-                      .filter((inq) => eventInquiryFilter === 'ALL' || inq.status === eventInquiryFilter)
-                      .map((inq) => (
-                        <div
-                          key={inq.id}
-                          className="p-4 rounded-2xl bg-[#F8FAFD] border border-[#E2EEFE] hover:border-purple-300 transition-all space-y-3"
-                        >
-                          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
-                            <div>
-                              <div className="flex items-center gap-2 flex-wrap">
-                                <span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-purple-100 text-purple-800">
-                                  #{inq.id}
-                                </span>
-                                <span className="font-bold text-sm text-[#0A1F5C]">{inq.customerName}</span>
-                                <span className="text-xs font-mono text-[#5B6B8C]">({inq.customerMobile})</span>
-                                <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-[#0B5FD9]">
-                                  {inq.eventType}
-                                </span>
-                              </div>
 
-                              <div className="flex items-center gap-3 mt-1.5 text-xs text-[#5B6B8C] flex-wrap">
-                                <span className="flex items-center gap-1 font-semibold text-[#0A1F5C]">
-                                  <Calendar className="w-3.5 h-3.5 text-[#0B5FD9]" />
-                                  <span>Date: {inq.eventDate}</span>
-                                </span>
-                                <span>&bull;</span>
-                                <span className="flex items-center gap-1">
-                                  <Users className="w-3.5 h-3.5 text-[#0B5FD9]" />
-                                  <span>{inq.guestCount} Guests</span>
-                                </span>
-                                <span>&bull;</span>
-                                <span className="flex items-center gap-1">
-                                  <MapPin className="w-3.5 h-3.5 text-[#0B5FD9]" />
-                                  <span>{inq.venueLocation}</span>
-                                </span>
-                              </div>
-                            </div>
-
-                            <div className="text-left sm:text-right shrink-0">
-                              <span className="text-[10px] uppercase font-bold text-[#5B6B8C] block">Pre-Decided Starting Price</span>
-                              <span className="text-base font-black text-purple-700 font-mono-num">{inq.preDecidedPriceDisplay}</span>
-                              <span className="text-[10px] text-slate-500 block">Target: {inq.budgetRange}</span>
-                            </div>
-                          </div>
-
-                          {inq.notes && (
-                            <p className="text-xs text-[#475569] bg-white p-2.5 rounded-xl border border-slate-200 italic">
-                              &ldquo;{inq.notes}&rdquo;
-                            </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                    {EVENT_PLANNERS_DATA[0].portfolio.map((media) => (
+                      <div
+                        key={media.id}
+                        className="rounded-2xl border border-[#EAF2FF] overflow-hidden bg-white shadow-2xs space-y-2 p-3"
+                      >
+                        <div className="relative aspect-video rounded-xl bg-slate-900 overflow-hidden">
+                          {media.mediaType === 'VIDEO' ? (
+                            <video
+                              src={media.mediaUrl}
+                              poster={media.thumbnailUrl}
+                              controls
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <img
+                              src={media.mediaUrl}
+                              alt={media.title}
+                              className="w-full h-full object-cover"
+                            />
                           )}
 
-                          <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-[#EAEFF8]">
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs font-semibold text-[#5B6B8C]">Update Status:</span>
-                              <select
-                                value={inq.status}
-                                onChange={(e) =>
-                                  handleUpdateEventInquiryStatus(inq.id, e.target.value as EventInquiry['status'])
-                                }
-                                className="text-xs font-bold text-[#0A1F5C] bg-white border border-[#DCE7F9] rounded-xl px-2.5 py-1 focus:outline-none focus:border-purple-600 cursor-pointer"
-                              >
-                                <option value="NEW">NEW LEAD</option>
-                                <option value="CONTACTED">CONTACTED CUSTOMER</option>
-                                <option value="QUOTED">FORMAL QUOTE SENT</option>
-                                <option value="CONFIRMED">CONFIRMED / ADVANCE PAID</option>
-                                <option value="REJECTED">DECLINED / CANCELLED</option>
-                              </select>
+                          <span className="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-black/75 text-white text-[10px] font-bold flex items-center gap-1">
+                            {media.mediaType === 'VIDEO' ? (
+                              <>
+                                <Play className="w-3 h-3 fill-white" />
+                                <span>Walkthrough ({media.videoDuration || '2:15'})</span>
+                              </>
+                            ) : (
+                              <>
+                                <ImageIcon className="w-3 h-3" />
+                                <span>Photo</span>
+                              </>
+                            )}
+                          </span>
+                        </div>
+
+                        <div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-[10px] font-bold text-purple-700 bg-purple-50 px-2 py-0.2 rounded">
+                              {media.eventType}
+                            </span>
+                            {media.venueName && (
+                              <span className="text-[10px] text-[#5B6B8C] truncate max-w-[150px]">
+                                {media.venueName}
+                              </span>
+                            )}
+                          </div>
+                          <h5 className="text-xs font-bold text-[#0A1F5C] mt-1">{media.title}</h5>
+                          {media.description && (
+                            <p className="text-[11px] text-[#5B6B8C] mt-0.5">{media.description}</p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ═══════════════ SUB-VIEW 2: INTERIOR DESIGNER HUB ═══════════════ */}
+            {portfolioHubType === 'interior' && (
+              <div className="space-y-6">
+
+                {/* Past Performance Scorecard Strip */}
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                  <div className="bg-white rounded-2xl border border-[#DCE7F9] p-4 shadow-sm">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#5B6B8C]">Completed Projects</span>
+                    <p className="text-2xl font-extrabold text-[#0A1F5C] mt-1 font-mono-num">124</p>
+                    <span className="text-[11px] font-bold text-emerald-600 flex items-center gap-1 mt-1">
+                      <TrendingUp className="w-3 h-3" /> 100% Verified Handover
+                    </span>
+                  </div>
+
+                  <div className="bg-white rounded-2xl border border-[#DCE7F9] p-4 shadow-sm">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#5B6B8C]">On-Time Handover Rate</span>
+                    <p className="text-2xl font-extrabold text-blue-600 mt-1 font-mono-num">98.6%</p>
+                    <span className="text-[11px] font-semibold text-[#5B6B8C] mt-1 block">
+                      Avg. Turnaround: 35 Days
+                    </span>
+                  </div>
+
+                  <div className="bg-white rounded-2xl border border-[#DCE7F9] p-4 shadow-sm">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#5B6B8C]">Client Rating</span>
+                    <div className="flex items-center gap-1.5 mt-1">
+                      <Star className="w-5 h-5 fill-amber-400 text-amber-500" />
+                      <span className="text-2xl font-extrabold text-[#0A1F5C] font-mono-num">4.92</span>
+                      <span className="text-xs text-[#5B6B8C]">/ 5.0</span>
+                    </div>
+                    <span className="text-[11px] text-[#5B6B8C] font-semibold mt-1 block">
+                      Based on 88 verified reviews
+                    </span>
+                  </div>
+
+                  <div className="bg-white rounded-2xl border border-[#DCE7F9] p-4 shadow-sm">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#5B6B8C]">Consultation Leads</span>
+                    <p className="text-2xl font-extrabold text-[#0B5FD9] mt-1 font-mono-num">
+                      {designerInquiries.length}
+                    </p>
+                    <span className="text-[11px] font-bold text-rose-600 mt-1 block">
+                      {designerInquiries.filter(i => i.status === 'NEW').length} New Pending Contact
+                    </span>
+                  </div>
+                </div>
+
+                {/* ── Section 1: Customer Consultation Leads ── */}
+                <div className="bg-white rounded-3xl border border-[#DCE7F9] p-6 shadow-sm space-y-5">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#EAF2FF] pb-4">
+                    <div>
+                      <h3 className="text-base font-bold text-[#0A1F5C] flex items-center gap-2">
+                        <MessageSquare className="w-4 h-4 text-[#0B5FD9]" />
+                        <span>Incoming Customer Consultation Leads</span>
+                        <span className="px-2 py-0.5 rounded-full bg-[#EAF2FF] text-[#0B5FD9] text-xs font-bold">
+                          {designerInquiries.length} Total
+                        </span>
+                      </h3>
+                      <p className="text-xs text-[#5B6B8C] mt-0.5">
+                        Customers who submitted &quot;Contact Designer&quot; requests on the SERVA Contractors Directory.
+                      </p>
+                    </div>
+
+                    {/* Status Filter */}
+                    <div className="flex items-center gap-1.5 overflow-x-auto">
+                      {['ALL', 'NEW', 'CONTACTED', 'SITE_VISIT_BOOKED', 'CONVERTED'].map((st) => (
+                        <button
+                          key={st}
+                          type="button"
+                          onClick={() => setInquiryStatusFilter(st)}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${inquiryStatusFilter === st
+                              ? 'bg-[#0A1F5C] text-white shadow-xs'
+                              : 'bg-[#F1F6FF] text-[#5B6B8C] hover:text-[#0A1F5C]'
+                            }`}
+                        >
+                          {st === 'ALL' ? 'All Leads' : st.replace(/_/g, ' ')}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {designerInquiries.length === 0 ? (
+                    <div className="text-center py-10 text-xs text-[#5B6B8C]">
+                      No customer inquiries yet. When clients click &quot;Contact Designer&quot;, their leads will arrive here instantly.
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {designerInquiries
+                        .filter((inq) => inquiryStatusFilter === 'ALL' || inq.status === inquiryStatusFilter)
+                        .map((inq) => (
+                          <div
+                            key={inq.id}
+                            className="p-4 sm:p-5 rounded-2xl border border-[#EAF2FF] hover:border-blue-200 bg-[#FAFCFF] transition-all space-y-3"
+                          >
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                              <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-full bg-blue-100 text-[#0B5FD9] font-bold text-sm flex items-center justify-center shrink-0">
+                                  {inq.customerName.charAt(0)}
+                                </div>
+                                <div>
+                                  <div className="flex items-center gap-2">
+                                    <h4 className="text-sm font-bold text-[#0A1F5C]">{inq.customerName}</h4>
+                                    <span
+                                      className={`text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full ${inq.status === 'NEW'
+                                          ? 'bg-rose-100 text-rose-700 animate-pulse'
+                                          : inq.status === 'CONTACTED'
+                                            ? 'bg-amber-100 text-amber-700'
+                                            : (inq.status === 'SITE_VISIT_BOOKED' || inq.status === 'SITE_VISIT_SCHEDULED')
+                                              ? 'bg-blue-100 text-[#0B5FD9]'
+                                              : 'bg-emerald-100 text-emerald-700'
+                                        }`}
+                                    >
+                                      {inq.status.replace(/_/g, ' ')}
+                                    </span>
+                                  </div>
+                                  <p className="text-xs text-[#5B6B8C]">
+                                    {inq.customerMobile} &bull; {inq.customerAddress || inq.customerArea || 'Hyderabad'} &bull; Submitted {inq.createdAt || inq.submittedAt || 'Recently'}
+                                  </p>
+                                </div>
+                              </div>
+
+                              <div className="flex items-center gap-2">
+                                {/* Direct Call */}
+                                <a
+                                  href={`tel:${inq.customerMobile}`}
+                                  className="px-3 py-1.5 rounded-xl border border-blue-200 text-[#0B5FD9] hover:bg-blue-50 text-xs font-bold flex items-center gap-1.5"
+                                >
+                                  <Phone className="w-3.5 h-3.5" />
+                                  <span>Call</span>
+                                </a>
+
+                                {/* WhatsApp */}
+                                <a
+                                  href={`https://wa.me/91${inq.customerMobile.replace(/\D/g, '')}?text=${encodeURIComponent(
+                                    `Hello ${inq.customerName}, this is regarding your interior design inquiry for ${inq.scope || inq.roomType || 'Interior Design'} on SERVA!`
+                                  )}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5"
+                                >
+                                  <Send className="w-3.5 h-3.5" />
+                                  <span>WhatsApp</span>
+                                </a>
+
+                                {/* Status Updater */}
+                                <select
+                                  value={inq.status}
+                                  onChange={(e) => handleUpdateInquiryStatus(inq.id, e.target.value as DesignerInquiry['status'])}
+                                  className="px-2.5 py-1.5 rounded-xl border border-[#DCE7F9] bg-white text-xs font-bold text-[#0A1F5C] cursor-pointer"
+                                >
+                                  <option value="NEW">Status: New</option>
+                                  <option value="CONTACTED">Status: Contacted</option>
+                                  <option value="SITE_VISIT_SCHEDULED">Status: Site Visit</option>
+                                  <option value="COMPLETED">Status: Completed</option>
+                                </select>
+                              </div>
                             </div>
 
-                            <div className="flex items-center gap-2">
-                              <a
-                                href={`tel:${inq.customerMobile}`}
-                                className="px-3 py-1.5 rounded-xl border border-blue-200 bg-white hover:bg-blue-50 text-[#0B5FD9] text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                            {/* Lead Details Grid */}
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 p-3 rounded-xl bg-white border border-[#EAF2FF] text-xs">
+                              <div>
+                                <span className="text-[10px] uppercase font-bold text-[#5B6B8C] block">Interior Scope</span>
+                                <span className="font-bold text-[#0A1F5C]">{inq.scope || inq.roomType}</span>
+                              </div>
+                              <div>
+                                <span className="text-[10px] uppercase font-bold text-[#5B6B8C] block">Target Date</span>
+                                <span className="font-bold text-[#0A1F5C]">{inq.preferredDate || inq.scheduledDate}</span>
+                              </div>
+                              <div>
+                                <span className="text-[10px] uppercase font-bold text-[#5B6B8C] block">Budget Estimate</span>
+                                <span className="font-bold text-[#0B5FD9]">{inq.estimatedBudget || inq.budgetRange}</span>
+                              </div>
+                              <div>
+                                <span className="text-[10px] uppercase font-bold text-[#5B6B8C] block">Assigned Designer</span>
+                                <span className="font-bold text-[#0A1F5C] truncate block">{inq.designerName}</span>
+                              </div>
+                            </div>
+
+                            {inq.notes && (
+                              <p className="text-xs text-[#5B6B8C] bg-white p-2.5 rounded-xl border border-[#EAF2FF]">
+                                <span className="font-bold text-[#0A1F5C]">Customer Notes:</span> {inq.notes}
+                              </p>
+                            )}
+                          </div>
+                        ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* ── Section 2: Verified Portfolio Media Reel ── */}
+                <div className="bg-white rounded-3xl border border-[#DCE7F9] p-6 shadow-sm space-y-5">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#EAF2FF] pb-4">
+                    <div>
+                      <h3 className="text-base font-bold text-[#0A1F5C] flex items-center gap-2">
+                        <ImageIcon className="w-4 h-4 text-[#0B5FD9]" />
+                        <span>Verified Portfolio Media ({portfolioMediaList.length} Items)</span>
+                      </h3>
+                      <p className="text-xs text-[#5B6B8C] mt-0.5">
+                        High-res photos and video walkthroughs displayed to prospective clients on your public portfolio card.
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      {(['all', 'photo', 'video'] as const).map((mode) => (
+                        <button
+                          key={mode}
+                          type="button"
+                          onClick={() => setPortfolioMediaFilter(mode)}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${portfolioMediaFilter === mode
+                              ? 'bg-[#0B5FD9] text-white shadow-xs'
+                              : 'bg-[#F1F6FF] text-[#5B6B8C] hover:text-[#0A1F5C]'
+                            }`}
+                        >
+                          {mode === 'all' ? 'All Media' : mode === 'photo' ? 'Photos Only' : 'Videos Only'}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {portfolioMediaList
+                      .filter((item) => portfolioMediaFilter === 'all' || (portfolioMediaFilter === 'video' ? (item.type === 'video' || item.mediaType === 'VIDEO') : (item.type === 'photo' || item.mediaType === 'IMAGE')))
+                      .map((item) => (
+                        <div
+                          key={item.id}
+                          className="rounded-2xl border border-[#EAF2FF] overflow-hidden bg-white shadow-xs hover:shadow-md transition-all group flex flex-col justify-between"
+                        >
+                          <div className="relative aspect-video bg-slate-900 overflow-hidden">
+                            {(item.type === 'video' || item.mediaType === 'VIDEO') ? (
+                              <video
+                                src={item.mediaUrl}
+                                poster={item.thumbnailUrl}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                muted
+                                loop
+                                playsInline
+                                onMouseEnter={(e) => (e.currentTarget as HTMLVideoElement).play().catch(() => { })}
+                                onMouseLeave={(e) => (e.currentTarget as HTMLVideoElement).pause()}
+                              />
+                            ) : (
+                              <img
+                                src={item.mediaUrl}
+                                alt={item.title}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                              />
+                            )}
+
+                            {/* Type Badge */}
+                            <span className="absolute top-2.5 left-2.5 px-2.5 py-1 rounded-lg bg-black/75 backdrop-blur-xs text-white text-[10px] font-bold flex items-center gap-1">
+                              {(item.type === 'video' || item.mediaType === 'VIDEO') ? (
+                                <>
+                                  <Play className="w-3 h-3 fill-white text-white" />
+                                  <span>Walkthrough ({item.videoDuration || item.duration || '2:15'})</span>
+                                </>
+                              ) : (
+                                <>
+                                  <ImageIcon className="w-3 h-3" />
+                                  <span>Photo</span>
+                                </>
+                              )}
+                            </span>
+
+                            {(item.budgetEst || item.budget) && (
+                              <span className="absolute bottom-2.5 right-2.5 px-2 py-0.5 rounded-lg bg-white/90 backdrop-blur-xs text-[#0A1F5C] text-[10px] font-mono-num font-bold">
+                                {item.budgetEst || item.budget}
+                              </span>
+                            )}
+                          </div>
+
+                          <div className="p-4 space-y-2 flex-1 flex flex-col justify-between">
+                            <div>
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <span className="text-[10px] font-bold text-[#0B5FD9] bg-[#EAF2FF] px-2 py-0.5 rounded-md">
+                                  {item.roomType}
+                                </span>
+                                <span className="text-[10px] font-semibold text-[#5B6B8C] bg-slate-100 px-2 py-0.5 rounded-md">
+                                  {item.style}
+                                </span>
+                              </div>
+                              <h4 className="text-sm font-bold text-[#0A1F5C] mt-1.5">{item.title}</h4>
+                              {item.description && (
+                                <p className="text-xs text-[#5B6B8C] mt-1 line-clamp-2">{item.description}</p>
+                              )}
+                            </div>
+
+                            <div className="pt-3 border-t border-[#EAF2FF] flex items-center justify-between">
+                              <span className="text-[10px] text-emerald-600 font-bold flex items-center gap-1">
+                                <CheckCircle2 className="w-3 h-3" /> Verified by SERVA
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const updated = portfolioMediaList.filter((m) => m.id !== item.id);
+                                  setPortfolioMediaList(updated);
+                                  try {
+                                    localStorage.setItem('serva_partner_portfolio', JSON.stringify(updated));
+                                  } catch {
+                                    // ignore
+                                  }
+                                }}
+                                className="text-xs font-semibold text-rose-600 hover:text-rose-700 hover:underline"
                               >
-                                <Phone className="w-3.5 h-3.5" />
-                                <span>Call Customer</span>
-                              </a>
-                              <a
-                                href={`https://wa.me/91${inq.customerMobile.replace(/\D/g, '')}?text=${encodeURIComponent(
-                                  `Hello ${inq.customerName}, this is Sandeep from Grand Royal Events regarding your ${inq.eventType} planned on ${inq.eventDate}. I have reviewed your requirements.`
-                                )}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
-                              >
-                                <Send className="w-3.5 h-3.5" />
-                                <span>WhatsApp Quote</span>
-                              </a>
+                                Remove
+                              </button>
                             </div>
                           </div>
                         </div>
                       ))}
                   </div>
-                )}
-              </div>
-
-              {/* Section 2: Pre-Decided Event Packages & Pricing Setup */}
-              <div className="bg-white rounded-3xl border border-[#DCE7F9] p-6 shadow-sm space-y-4">
-                <div className="border-b border-[#EAF2FF] pb-3">
-                  <h3 className="text-base font-bold text-[#0A1F5C] flex items-center gap-2">
-                    <Tag className="w-4 h-4 text-purple-600" />
-                    <span>Your Pre-Decided Event Packages &amp; Starting Rates</span>
-                  </h3>
-                  <p className="text-xs text-[#5B6B8C] mt-0.5">
-                    These pre-decided starting packages are displayed to customers browsing the SERVA Events section.
-                  </p>
                 </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
-                  {Object.values(EVENT_PLANNERS_DATA[0].packages).map((pkg) => (
-                    <div
-                      key={pkg.eventType}
-                      className="p-4 rounded-2xl bg-gradient-to-br from-purple-50/40 via-white to-white border border-purple-100 shadow-2xs space-y-2"
-                    >
-                      <div className="flex items-start justify-between gap-2">
-                        <div>
-                          <span className="text-[10px] font-bold text-purple-800 bg-purple-100 px-2 py-0.5 rounded-full">
-                            {pkg.eventType}
-                          </span>
-                          <h4 className="text-xs font-bold text-[#0A1F5C] mt-1">{pkg.packageName}</h4>
-                        </div>
-                        <span className="text-sm font-black text-purple-700 font-mono-num shrink-0">
-                          {pkg.priceDisplay}
-                        </span>
-                      </div>
-                      <div className="space-y-1 pt-1">
-                        {pkg.highlights.map((h, i) => (
-                          <div key={i} className="text-[11px] text-slate-600 flex items-start gap-1">
-                            <span className="text-emerald-600 font-bold">✓</span>
-                            <span>{h}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Section 3: Event Portfolio Media Reel */}
-              <div className="bg-white rounded-3xl border border-[#DCE7F9] p-6 shadow-sm space-y-4">
-                <div className="border-b border-[#EAF2FF] pb-3">
-                  <h3 className="text-base font-bold text-[#0A1F5C] flex items-center gap-2">
-                    <ImageIcon className="w-4 h-4 text-[#0B5FD9]" />
-                    <span>Event Showcase Portfolios (Photos &amp; Walkthrough Videos)</span>
-                  </h3>
-                  <p className="text-xs text-[#5B6B8C] mt-0.5">
-                    Verified media uploaded and visible on your public planner portfolio.
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                  {EVENT_PLANNERS_DATA[0].portfolio.map((media) => (
-                    <div
-                      key={media.id}
-                      className="rounded-2xl border border-[#EAF2FF] overflow-hidden bg-white shadow-2xs space-y-2 p-3"
-                    >
-                      <div className="relative aspect-video rounded-xl bg-slate-900 overflow-hidden">
-                        {media.mediaType === 'VIDEO' ? (
-                          <video
-                            src={media.mediaUrl}
-                            poster={media.thumbnailUrl}
-                            controls
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <img
-                            src={media.mediaUrl}
-                            alt={media.title}
-                            className="w-full h-full object-cover"
-                          />
-                        )}
-
-                        <span className="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-black/75 text-white text-[10px] font-bold flex items-center gap-1">
-                          {media.mediaType === 'VIDEO' ? (
-                            <>
-                              <Play className="w-3 h-3 fill-white" />
-                              <span>Walkthrough ({media.videoDuration || '2:15'})</span>
-                            </>
-                          ) : (
-                            <>
-                              <ImageIcon className="w-3 h-3" />
-                              <span>Photo</span>
-                            </>
-                          )}
-                        </span>
-                      </div>
-
-                      <div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-[10px] font-bold text-purple-700 bg-purple-50 px-2 py-0.2 rounded">
-                            {media.eventType}
-                          </span>
-                          {media.venueName && (
-                            <span className="text-[10px] text-[#5B6B8C] truncate max-w-[150px]">
-                              {media.venueName}
-                            </span>
-                          )}
-                        </div>
-                        <h5 className="text-xs font-bold text-[#0A1F5C] mt-1">{media.title}</h5>
-                        {media.description && (
-                          <p className="text-[11px] text-[#5B6B8C] mt-0.5">{media.description}</p>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* ═══════════════ SUB-VIEW 2: INTERIOR DESIGNER HUB ═══════════════ */}
-          {portfolioHubType === 'interior' && (
-            <div className="space-y-6">
-
-          {/* Past Performance Scorecard Strip */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-            <div className="bg-white rounded-2xl border border-[#DCE7F9] p-4 shadow-sm">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-[#5B6B8C]">Completed Projects</span>
-              <p className="text-2xl font-extrabold text-[#0A1F5C] mt-1 font-mono-num">124</p>
-              <span className="text-[11px] font-bold text-emerald-600 flex items-center gap-1 mt-1">
-                <TrendingUp className="w-3 h-3" /> 100% Verified Handover
-              </span>
-            </div>
-
-            <div className="bg-white rounded-2xl border border-[#DCE7F9] p-4 shadow-sm">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-[#5B6B8C]">On-Time Handover Rate</span>
-              <p className="text-2xl font-extrabold text-blue-600 mt-1 font-mono-num">98.6%</p>
-              <span className="text-[11px] font-semibold text-[#5B6B8C] mt-1 block">
-                Avg. Turnaround: 35 Days
-              </span>
-            </div>
-
-            <div className="bg-white rounded-2xl border border-[#DCE7F9] p-4 shadow-sm">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-[#5B6B8C]">Client Rating</span>
-              <div className="flex items-center gap-1.5 mt-1">
-                <Star className="w-5 h-5 fill-amber-400 text-amber-500" />
-                <span className="text-2xl font-extrabold text-[#0A1F5C] font-mono-num">4.92</span>
-                <span className="text-xs text-[#5B6B8C]">/ 5.0</span>
-              </div>
-              <span className="text-[11px] text-[#5B6B8C] font-semibold mt-1 block">
-                Based on 88 verified reviews
-              </span>
-            </div>
-
-            <div className="bg-white rounded-2xl border border-[#DCE7F9] p-4 shadow-sm">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-[#5B6B8C]">Consultation Leads</span>
-              <p className="text-2xl font-extrabold text-[#0B5FD9] mt-1 font-mono-num">
-                {designerInquiries.length}
-              </p>
-              <span className="text-[11px] font-bold text-rose-600 mt-1 block">
-                {designerInquiries.filter(i => i.status === 'NEW').length} New Pending Contact
-              </span>
-            </div>
-          </div>
-
-          {/* ── Section 1: Customer Consultation Leads ── */}
-          <div className="bg-white rounded-3xl border border-[#DCE7F9] p-6 shadow-sm space-y-5">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#EAF2FF] pb-4">
-              <div>
-                <h3 className="text-base font-bold text-[#0A1F5C] flex items-center gap-2">
-                  <MessageSquare className="w-4 h-4 text-[#0B5FD9]" />
-                  <span>Incoming Customer Consultation Leads</span>
-                  <span className="px-2 py-0.5 rounded-full bg-[#EAF2FF] text-[#0B5FD9] text-xs font-bold">
-                    {designerInquiries.length} Total
-                  </span>
-                </h3>
-                <p className="text-xs text-[#5B6B8C] mt-0.5">
-                  Customers who submitted &quot;Contact Designer&quot; requests on the SERVA Contractors Directory.
-                </p>
-              </div>
-
-              {/* Status Filter */}
-              <div className="flex items-center gap-1.5 overflow-x-auto">
-                {['ALL', 'NEW', 'CONTACTED', 'SITE_VISIT_BOOKED', 'CONVERTED'].map((st) => (
-                  <button
-                    key={st}
-                    type="button"
-                    onClick={() => setInquiryStatusFilter(st)}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
-                      inquiryStatusFilter === st
-                        ? 'bg-[#0A1F5C] text-white shadow-xs'
-                        : 'bg-[#F1F6FF] text-[#5B6B8C] hover:text-[#0A1F5C]'
-                    }`}
-                  >
-                    {st === 'ALL' ? 'All Leads' : st.replace(/_/g, ' ')}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {designerInquiries.length === 0 ? (
-              <div className="text-center py-10 text-xs text-[#5B6B8C]">
-                No customer inquiries yet. When clients click &quot;Contact Designer&quot;, their leads will arrive here instantly.
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {designerInquiries
-                  .filter((inq) => inquiryStatusFilter === 'ALL' || inq.status === inquiryStatusFilter)
-                  .map((inq) => (
-                    <div
-                      key={inq.id}
-                      className="p-4 sm:p-5 rounded-2xl border border-[#EAF2FF] hover:border-blue-200 bg-[#FAFCFF] transition-all space-y-3"
-                    >
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-blue-100 text-[#0B5FD9] font-bold text-sm flex items-center justify-center shrink-0">
-                            {inq.customerName.charAt(0)}
-                          </div>
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <h4 className="text-sm font-bold text-[#0A1F5C]">{inq.customerName}</h4>
-                              <span
-                                className={`text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full ${
-                                  inq.status === 'NEW'
-                                    ? 'bg-rose-100 text-rose-700 animate-pulse'
-                                    : inq.status === 'CONTACTED'
-                                    ? 'bg-amber-100 text-amber-700'
-                                    : (inq.status === 'SITE_VISIT_BOOKED' || inq.status === 'SITE_VISIT_SCHEDULED')
-                                    ? 'bg-blue-100 text-[#0B5FD9]'
-                                    : 'bg-emerald-100 text-emerald-700'
-                                }`}
-                              >
-                                {inq.status.replace(/_/g, ' ')}
-                              </span>
-                            </div>
-                            <p className="text-xs text-[#5B6B8C]">
-                              {inq.customerMobile} &bull; {inq.customerAddress || inq.customerArea || 'Hyderabad'} &bull; Submitted {inq.createdAt || inq.submittedAt || 'Recently'}
-                            </p>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                          {/* Direct Call */}
-                          <a
-                            href={`tel:${inq.customerMobile}`}
-                            className="px-3 py-1.5 rounded-xl border border-blue-200 text-[#0B5FD9] hover:bg-blue-50 text-xs font-bold flex items-center gap-1.5"
-                          >
-                            <Phone className="w-3.5 h-3.5" />
-                            <span>Call</span>
-                          </a>
-
-                          {/* WhatsApp */}
-                          <a
-                            href={`https://wa.me/91${inq.customerMobile.replace(/\D/g, '')}?text=${encodeURIComponent(
-                              `Hello ${inq.customerName}, this is regarding your interior design inquiry for ${inq.scope || inq.roomType || 'Interior Design'} on SERVA!`
-                            )}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5"
-                          >
-                            <Send className="w-3.5 h-3.5" />
-                            <span>WhatsApp</span>
-                          </a>
-
-                          {/* Status Updater */}
-                          <select
-                            value={inq.status}
-                            onChange={(e) => handleUpdateInquiryStatus(inq.id, e.target.value as DesignerInquiry['status'])}
-                            className="px-2.5 py-1.5 rounded-xl border border-[#DCE7F9] bg-white text-xs font-bold text-[#0A1F5C] cursor-pointer"
-                          >
-                            <option value="NEW">Status: New</option>
-                            <option value="CONTACTED">Status: Contacted</option>
-                            <option value="SITE_VISIT_SCHEDULED">Status: Site Visit</option>
-                            <option value="COMPLETED">Status: Completed</option>
-                          </select>
-                        </div>
-                      </div>
-
-                      {/* Lead Details Grid */}
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 p-3 rounded-xl bg-white border border-[#EAF2FF] text-xs">
-                        <div>
-                          <span className="text-[10px] uppercase font-bold text-[#5B6B8C] block">Interior Scope</span>
-                          <span className="font-bold text-[#0A1F5C]">{inq.scope || inq.roomType}</span>
-                        </div>
-                        <div>
-                          <span className="text-[10px] uppercase font-bold text-[#5B6B8C] block">Target Date</span>
-                          <span className="font-bold text-[#0A1F5C]">{inq.preferredDate || inq.scheduledDate}</span>
-                        </div>
-                        <div>
-                          <span className="text-[10px] uppercase font-bold text-[#5B6B8C] block">Budget Estimate</span>
-                          <span className="font-bold text-[#0B5FD9]">{inq.estimatedBudget || inq.budgetRange}</span>
-                        </div>
-                        <div>
-                          <span className="text-[10px] uppercase font-bold text-[#5B6B8C] block">Assigned Designer</span>
-                          <span className="font-bold text-[#0A1F5C] truncate block">{inq.designerName}</span>
-                        </div>
-                      </div>
-
-                      {inq.notes && (
-                        <p className="text-xs text-[#5B6B8C] bg-white p-2.5 rounded-xl border border-[#EAF2FF]">
-                          <span className="font-bold text-[#0A1F5C]">Customer Notes:</span> {inq.notes}
-                        </p>
-                      )}
-                    </div>
-                  ))}
               </div>
             )}
           </div>
+        )}
 
-          {/* ── Section 2: Verified Portfolio Media Reel ── */}
-          <div className="bg-white rounded-3xl border border-[#DCE7F9] p-6 shadow-sm space-y-5">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#EAF2FF] pb-4">
-              <div>
-                <h3 className="text-base font-bold text-[#0A1F5C] flex items-center gap-2">
-                  <ImageIcon className="w-4 h-4 text-[#0B5FD9]" />
-                  <span>Verified Portfolio Media ({portfolioMediaList.length} Items)</span>
-                </h3>
-                <p className="text-xs text-[#5B6B8C] mt-0.5">
-                  High-res photos and video walkthroughs displayed to prospective clients on your public portfolio card.
-                </p>
-              </div>
-
-              <div className="flex items-center gap-2">
-                {(['all', 'photo', 'video'] as const).map((mode) => (
-                  <button
-                    key={mode}
-                    type="button"
-                    onClick={() => setPortfolioMediaFilter(mode)}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                      portfolioMediaFilter === mode
-                        ? 'bg-[#0B5FD9] text-white shadow-xs'
-                        : 'bg-[#F1F6FF] text-[#5B6B8C] hover:text-[#0A1F5C]'
-                    }`}
-                  >
-                    {mode === 'all' ? 'All Media' : mode === 'photo' ? 'Photos Only' : 'Videos Only'}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {portfolioMediaList
-                .filter((item) => portfolioMediaFilter === 'all' || (portfolioMediaFilter === 'video' ? (item.type === 'video' || item.mediaType === 'VIDEO') : (item.type === 'photo' || item.mediaType === 'IMAGE')))
-                .map((item) => (
-                  <div
-                    key={item.id}
-                    className="rounded-2xl border border-[#EAF2FF] overflow-hidden bg-white shadow-xs hover:shadow-md transition-all group flex flex-col justify-between"
-                  >
-                    <div className="relative aspect-video bg-slate-900 overflow-hidden">
-                      {(item.type === 'video' || item.mediaType === 'VIDEO') ? (
-                        <video
-                          src={item.mediaUrl}
-                          poster={item.thumbnailUrl}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                          muted
-                          loop
-                          playsInline
-                          onMouseEnter={(e) => (e.currentTarget as HTMLVideoElement).play().catch(() => {})}
-                          onMouseLeave={(e) => (e.currentTarget as HTMLVideoElement).pause()}
-                        />
-                      ) : (
-                        <img
-                          src={item.mediaUrl}
-                          alt={item.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
-                      )}
-
-                      {/* Type Badge */}
-                      <span className="absolute top-2.5 left-2.5 px-2.5 py-1 rounded-lg bg-black/75 backdrop-blur-xs text-white text-[10px] font-bold flex items-center gap-1">
-                        {(item.type === 'video' || item.mediaType === 'VIDEO') ? (
-                          <>
-                            <Play className="w-3 h-3 fill-white text-white" />
-                            <span>Walkthrough ({item.videoDuration || item.duration || '2:15'})</span>
-                          </>
-                        ) : (
-                          <>
-                            <ImageIcon className="w-3 h-3" />
-                            <span>Photo</span>
-                          </>
-                        )}
-                      </span>
-
-                      {(item.budgetEst || item.budget) && (
-                        <span className="absolute bottom-2.5 right-2.5 px-2 py-0.5 rounded-lg bg-white/90 backdrop-blur-xs text-[#0A1F5C] text-[10px] font-mono-num font-bold">
-                          {item.budgetEst || item.budget}
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="p-4 space-y-2 flex-1 flex flex-col justify-between">
-                      <div>
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className="text-[10px] font-bold text-[#0B5FD9] bg-[#EAF2FF] px-2 py-0.5 rounded-md">
-                            {item.roomType}
-                          </span>
-                          <span className="text-[10px] font-semibold text-[#5B6B8C] bg-slate-100 px-2 py-0.5 rounded-md">
-                            {item.style}
-                          </span>
-                        </div>
-                        <h4 className="text-sm font-bold text-[#0A1F5C] mt-1.5">{item.title}</h4>
-                        {item.description && (
-                          <p className="text-xs text-[#5B6B8C] mt-1 line-clamp-2">{item.description}</p>
-                        )}
-                      </div>
-
-                      <div className="pt-3 border-t border-[#EAF2FF] flex items-center justify-between">
-                        <span className="text-[10px] text-emerald-600 font-bold flex items-center gap-1">
-                          <CheckCircle2 className="w-3 h-3" /> Verified by SERVA
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const updated = portfolioMediaList.filter((m) => m.id !== item.id);
-                            setPortfolioMediaList(updated);
-                            try {
-                              localStorage.setItem('serva_partner_portfolio', JSON.stringify(updated));
-                            } catch {
-                              // ignore
-                            }
-                          }}
-                          className="text-xs font-semibold text-rose-600 hover:text-rose-700 hover:underline"
-                        >
-                          Remove
-                        </button>
-                      </div>
-                    </div>
+        {/* ── Add Project Media Modal ── */}
+        {showAddProjectModal && (
+          <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+            <div className="bg-white rounded-3xl border border-[#DCE7F9] max-w-lg w-full p-6 sm:p-7 shadow-2xl space-y-5 animate-scale-up">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-blue-50 text-[#0B5FD9] flex items-center justify-center">
+                    <PlusCircle className="w-4 h-4" />
                   </div>
-                ))}
-            </div>
-          </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* ── Add Project Media Modal ── */}
-      {showAddProjectModal && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl border border-[#DCE7F9] max-w-lg w-full p-6 sm:p-7 shadow-2xl space-y-5 animate-scale-up">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-blue-50 text-[#0B5FD9] flex items-center justify-center">
-                  <PlusCircle className="w-4 h-4" />
+                  <div>
+                    <h3 className="text-base font-bold text-[#0A1F5C]">Add Portfolio Project Media</h3>
+                    <p className="text-xs text-[#5B6B8C]">Upload photos or video walkthroughs of your completed works.</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-base font-bold text-[#0A1F5C]">Add Portfolio Project Media</h3>
-                  <p className="text-xs text-[#5B6B8C]">Upload photos or video walkthroughs of your completed works.</p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowAddProjectModal(false)}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleAddPortfolioProject} className="space-y-4 text-xs">
-              <div>
-                <label className="block font-bold text-[#0A1F5C] mb-1">Project Title</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. 3 BHK Modern Living & Dining at Banjara Hills"
-                  value={newProjectTitle}
-                  onChange={(e) => setNewProjectTitle(e.target.value)}
-                  className="w-full p-2.5 rounded-xl border border-[#DCE7F9] font-medium text-xs focus:outline-none focus:border-[#0B5FD9]"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block font-bold text-[#0A1F5C] mb-1">Media Type</label>
-                  <select
-                    value={newProjectType}
-                    onChange={(e) => setNewProjectType(e.target.value as 'photo' | 'video')}
-                    className="w-full p-2.5 rounded-xl border border-[#DCE7F9] font-medium text-xs bg-white"
-                  >
-                    <option value="photo">High-Res Photo</option>
-                    <option value="video">Walkthrough Video</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block font-bold text-[#0A1F5C] mb-1">Room / Space Type</label>
-                  <select
-                    value={newProjectRoom}
-                    onChange={(e) => setNewProjectRoom(e.target.value)}
-                    className="w-full p-2.5 rounded-xl border border-[#DCE7F9] font-medium text-xs bg-white"
-                  >
-                    <option>Living & Dining</option>
-                    <option>Modular Kitchen</option>
-                    <option>Master Suite</option>
-                    <option>Full 3 BHK Home</option>
-                    <option>Full 4 BHK Villa</option>
-                    <option>Commercial / Studio</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block font-bold text-[#0A1F5C] mb-1">Interior Style</label>
-                  <input
-                    type="text"
-                    value={newProjectStyle}
-                    onChange={(e) => setNewProjectStyle(e.target.value)}
-                    placeholder="e.g. Scandinavian, Minimalist"
-                    className="w-full p-2.5 rounded-xl border border-[#DCE7F9] font-medium text-xs"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-bold text-[#0A1F5C] mb-1">Project Budget / Cost</label>
-                  <input
-                    type="text"
-                    value={newProjectBudget}
-                    onChange={(e) => setNewProjectBudget(e.target.value)}
-                    placeholder="e.g. ₹9.5 Lakhs"
-                    className="w-full p-2.5 rounded-xl border border-[#DCE7F9] font-medium text-xs"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block font-bold text-[#0A1F5C] mb-1">
-                  {newProjectType === 'video' ? 'Video URL (MP4 / WebM / Local)' : 'Photo URL (Image)'}
-                </label>
-                <input
-                  type="text"
-                  placeholder={
-                    newProjectType === 'video'
-                      ? 'Default uses /media/interior_showcase.mp4'
-                      : 'Leave blank to use default curated high-res interior photo'
-                  }
-                  value={newProjectUrl}
-                  onChange={(e) => setNewProjectUrl(e.target.value)}
-                  className="w-full p-2.5 rounded-xl border border-[#DCE7F9] font-medium text-xs"
-                />
-              </div>
-
-              {newProjectType === 'video' && (
-                <div>
-                  <label className="block font-bold text-[#0A1F5C] mb-1">Video Duration Tag</label>
-                  <input
-                    type="text"
-                    value={newProjectDuration}
-                    onChange={(e) => setNewProjectDuration(e.target.value)}
-                    placeholder="e.g. 1:45"
-                    className="w-full p-2.5 rounded-xl border border-[#DCE7F9] font-medium text-xs"
-                  />
-                </div>
-              )}
-
-              <div>
-                <label className="block font-bold text-[#0A1F5C] mb-1">Description & Material Specs (Optional)</label>
-                <textarea
-                  rows={2}
-                  value={newProjectDesc}
-                  onChange={(e) => setNewProjectDesc(e.target.value)}
-                  placeholder="e.g. HDHMR board with anti-scratch acrylic laminate, profile LED lighting..."
-                  className="w-full p-2.5 rounded-xl border border-[#DCE7F9] font-medium text-xs"
-                />
-              </div>
-
-              <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setShowAddProjectModal(false)}
-                  className="px-4 py-2 rounded-xl border border-[#DCE7F9] text-[#5B6B8C] text-xs font-semibold hover:bg-slate-50 cursor-pointer"
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 cursor-pointer"
                 >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2 rounded-xl bg-[#0B5FD9] hover:bg-[#094FB6] text-white text-xs font-bold shadow-sm cursor-pointer"
-                >
-                  Publish to Portfolio
+                  <X className="w-5 h-5" />
                 </button>
               </div>
-            </form>
-          </div>
-        </div>
-      )}
 
-      {/* ── Edit Profile Modal ── */}
-      {isEditingProfile && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl border border-[#DCE7F9] max-w-lg w-full p-6 sm:p-7 shadow-2xl space-y-5 animate-scale-up">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-blue-50 text-[#0B5FD9] flex items-center justify-center">
-                  <Edit3 className="w-4 h-4" />
-                </div>
+              <form onSubmit={handleAddPortfolioProject} className="space-y-4 text-xs">
                 <div>
-                  <h3 className="text-base font-bold text-[#0A1F5C]">Edit Contact Information</h3>
-                  <p className="text-xs text-[#5B6B8C]">Keep your contact and operating radius up to date.</p>
+                  <label className="block font-bold text-[#0A1F5C] mb-1">Project Title</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. 3 BHK Modern Living & Dining at Banjara Hills"
+                    value={newProjectTitle}
+                    onChange={(e) => setNewProjectTitle(e.target.value)}
+                    className="w-full p-2.5 rounded-xl border border-[#DCE7F9] font-medium text-xs focus:outline-none focus:border-[#0B5FD9]"
+                  />
                 </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsEditingProfile(false)}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block font-bold text-[#0A1F5C] mb-1">Media Type</label>
+                    <select
+                      value={newProjectType}
+                      onChange={(e) => setNewProjectType(e.target.value as 'photo' | 'video')}
+                      className="w-full p-2.5 rounded-xl border border-[#DCE7F9] font-medium text-xs bg-white"
+                    >
+                      <option value="photo">High-Res Photo</option>
+                      <option value="video">Walkthrough Video</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-[#0A1F5C] mb-1">Room / Space Type</label>
+                    <select
+                      value={newProjectRoom}
+                      onChange={(e) => setNewProjectRoom(e.target.value)}
+                      className="w-full p-2.5 rounded-xl border border-[#DCE7F9] font-medium text-xs bg-white"
+                    >
+                      <option>Living & Dining</option>
+                      <option>Modular Kitchen</option>
+                      <option>Master Suite</option>
+                      <option>Full 3 BHK Home</option>
+                      <option>Full 4 BHK Villa</option>
+                      <option>Commercial / Studio</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block font-bold text-[#0A1F5C] mb-1">Interior Style</label>
+                    <input
+                      type="text"
+                      value={newProjectStyle}
+                      onChange={(e) => setNewProjectStyle(e.target.value)}
+                      placeholder="e.g. Scandinavian, Minimalist"
+                      className="w-full p-2.5 rounded-xl border border-[#DCE7F9] font-medium text-xs"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-[#0A1F5C] mb-1">Project Budget / Cost</label>
+                    <input
+                      type="text"
+                      value={newProjectBudget}
+                      onChange={(e) => setNewProjectBudget(e.target.value)}
+                      placeholder="e.g. ₹9.5 Lakhs"
+                      className="w-full p-2.5 rounded-xl border border-[#DCE7F9] font-medium text-xs"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block font-bold text-[#0A1F5C] mb-1">
+                    {newProjectType === 'video' ? 'Video URL (MP4 / WebM / Local)' : 'Photo URL (Image)'}
+                  </label>
+                  <input
+                    type="text"
+                    placeholder={
+                      newProjectType === 'video'
+                        ? 'Default uses /media/interior_showcase.mp4'
+                        : 'Leave blank to use default curated high-res interior photo'
+                    }
+                    value={newProjectUrl}
+                    onChange={(e) => setNewProjectUrl(e.target.value)}
+                    className="w-full p-2.5 rounded-xl border border-[#DCE7F9] font-medium text-xs"
+                  />
+                </div>
+
+                {newProjectType === 'video' && (
+                  <div>
+                    <label className="block font-bold text-[#0A1F5C] mb-1">Video Duration Tag</label>
+                    <input
+                      type="text"
+                      value={newProjectDuration}
+                      onChange={(e) => setNewProjectDuration(e.target.value)}
+                      placeholder="e.g. 1:45"
+                      className="w-full p-2.5 rounded-xl border border-[#DCE7F9] font-medium text-xs"
+                    />
+                  </div>
+                )}
+
+                <div>
+                  <label className="block font-bold text-[#0A1F5C] mb-1">Description & Material Specs (Optional)</label>
+                  <textarea
+                    rows={2}
+                    value={newProjectDesc}
+                    onChange={(e) => setNewProjectDesc(e.target.value)}
+                    placeholder="e.g. HDHMR board with anti-scratch acrylic laminate, profile LED lighting..."
+                    className="w-full p-2.5 rounded-xl border border-[#DCE7F9] font-medium text-xs"
+                  />
+                </div>
+
+                <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100">
+                  <button
+                    type="button"
+                    onClick={() => setShowAddProjectModal(false)}
+                    className="px-4 py-2 rounded-xl border border-[#DCE7F9] text-[#5B6B8C] text-xs font-semibold hover:bg-slate-50 cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-5 py-2 rounded-xl bg-[#0B5FD9] hover:bg-[#094FB6] text-white text-xs font-bold shadow-sm cursor-pointer"
+                  >
+                    Publish to Portfolio
+                  </button>
+                </div>
+              </form>
             </div>
+          </div>
+        )}
 
-            <form onSubmit={handleSaveProfile} className="space-y-4 text-xs">
-              <div>
-                <label className="block font-bold text-[#0A1F5C] mb-1">Primary Mobile Number</label>
-                <input
-                  type="text"
-                  required
-                  value={editFormMobile}
-                  onChange={(e) => setEditFormMobile(e.target.value)}
-                  className="w-full p-2.5 rounded-xl border border-[#DCE7F9] font-medium text-xs focus:outline-none focus:border-[#0B5FD9]"
-                />
-              </div>
-
-              <div>
-                <label className="block font-bold text-[#0A1F5C] mb-1">Secondary / Emergency Phone</label>
-                <input
-                  type="text"
-                  value={editFormAltMobile}
-                  onChange={(e) => setEditFormAltMobile(e.target.value)}
-                  className="w-full p-2.5 rounded-xl border border-[#DCE7F9] font-medium text-xs focus:outline-none focus:border-[#0B5FD9]"
-                />
-              </div>
-
-              <div>
-                <label className="block font-bold text-[#0A1F5C] mb-1">Registered Email Address</label>
-                <input
-                  type="email"
-                  required
-                  value={editFormEmail}
-                  onChange={(e) => setEditFormEmail(e.target.value)}
-                  className="w-full p-2.5 rounded-xl border border-[#DCE7F9] font-medium text-xs focus:outline-none focus:border-[#0B5FD9]"
-                />
-              </div>
-
-              <div>
-                <label className="block font-bold text-[#0A1F5C] mb-1">Base Operating Address</label>
-                <textarea
-                  rows={2}
-                  required
-                  value={editFormAddress}
-                  onChange={(e) => setEditFormAddress(e.target.value)}
-                  className="w-full p-2.5 rounded-xl border border-[#DCE7F9] font-medium text-xs focus:outline-none focus:border-[#0B5FD9]"
-                />
-              </div>
-
-              <div>
-                <label className="block font-bold text-[#0A1F5C] mb-1">Operating Service Area Radius</label>
-                <select
-                  value={editFormRadius}
-                  onChange={(e) => setEditFormRadius(e.target.value)}
-                  className="w-full p-2.5 rounded-xl border border-[#DCE7F9] font-medium text-xs focus:outline-none focus:border-[#0B5FD9]"
-                >
-                  <option value="10 km radius (Local area only)">10 km radius (Local area only)</option>
-                  <option value="15 km radius (Cyberabad & Central Hyderabad)">15 km radius (Cyberabad & Central Hyderabad)</option>
-                  <option value="25 km radius (All Hyderabad Zones)">25 km radius (All Hyderabad Zones)</option>
-                </select>
-              </div>
-
-              <div className="pt-2 flex items-center justify-end gap-2.5">
+        {/* ── Edit Profile Modal ── */}
+        {isEditingProfile && (
+          <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+            <div className="bg-white rounded-3xl border border-[#DCE7F9] max-w-lg w-full p-6 sm:p-7 shadow-2xl space-y-5 animate-scale-up">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-blue-50 text-[#0B5FD9] flex items-center justify-center">
+                    <Edit3 className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-[#0A1F5C]">Edit Contact Information</h3>
+                    <p className="text-xs text-[#5B6B8C]">Keep your contact and operating radius up to date.</p>
+                  </div>
+                </div>
                 <button
                   type="button"
                   onClick={() => setIsEditingProfile(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 cursor-pointer"
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 cursor-pointer"
                 >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2 rounded-xl bg-[#0B5FD9] hover:bg-[#094FB6] text-white text-xs font-bold shadow-sm cursor-pointer"
-                >
-                  Save Profile Changes
+                  <X className="w-5 h-5" />
                 </button>
               </div>
-            </form>
+
+              <form onSubmit={handleSaveProfile} className="space-y-4 text-xs">
+                <div>
+                  <label className="block font-bold text-[#0A1F5C] mb-1">Primary Mobile Number</label>
+                  <input
+                    type="text"
+                    required
+                    value={editFormMobile}
+                    onChange={(e) => setEditFormMobile(e.target.value)}
+                    className="w-full p-2.5 rounded-xl border border-[#DCE7F9] font-medium text-xs focus:outline-none focus:border-[#0B5FD9]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-[#0A1F5C] mb-1">Secondary / Emergency Phone</label>
+                  <input
+                    type="text"
+                    value={editFormAltMobile}
+                    onChange={(e) => setEditFormAltMobile(e.target.value)}
+                    className="w-full p-2.5 rounded-xl border border-[#DCE7F9] font-medium text-xs focus:outline-none focus:border-[#0B5FD9]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-[#0A1F5C] mb-1">Registered Email Address</label>
+                  <input
+                    type="email"
+                    required
+                    value={editFormEmail}
+                    onChange={(e) => setEditFormEmail(e.target.value)}
+                    className="w-full p-2.5 rounded-xl border border-[#DCE7F9] font-medium text-xs focus:outline-none focus:border-[#0B5FD9]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-[#0A1F5C] mb-1">Base Operating Address</label>
+                  <textarea
+                    rows={2}
+                    required
+                    value={editFormAddress}
+                    onChange={(e) => setEditFormAddress(e.target.value)}
+                    className="w-full p-2.5 rounded-xl border border-[#DCE7F9] font-medium text-xs focus:outline-none focus:border-[#0B5FD9]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-[#0A1F5C] mb-1">Operating Service Area Radius</label>
+                  <select
+                    value={editFormRadius}
+                    onChange={(e) => setEditFormRadius(e.target.value)}
+                    className="w-full p-2.5 rounded-xl border border-[#DCE7F9] font-medium text-xs focus:outline-none focus:border-[#0B5FD9]"
+                  >
+                    <option value="10 km radius (Local area only)">10 km radius (Local area only)</option>
+                    <option value="15 km radius (Cyberabad & Central Hyderabad)">15 km radius (Cyberabad & Central Hyderabad)</option>
+                    <option value="25 km radius (All Hyderabad Zones)">25 km radius (All Hyderabad Zones)</option>
+                  </select>
+                </div>
+
+                <div className="pt-2 flex items-center justify-end gap-2.5">
+                  <button
+                    type="button"
+                    onClick={() => setIsEditingProfile(false)}
+                    className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-5 py-2 rounded-xl bg-[#0B5FD9] hover:bg-[#094FB6] text-white text-xs font-bold shadow-sm cursor-pointer"
+                  >
+                    Save Profile Changes
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
-        </div>
-      )}
+        )}
       </main>
 
       {/* ── Dedicated Partner Mobile Bottom Navigation Bar (md:hidden) ── */}
@@ -4459,9 +4447,8 @@ Verification Portal: https://serva.in/verify/PTR-8821
                 setActiveTab(tab.id);
                 window.scrollTo({ top: 0, behavior: 'smooth' });
               }}
-              className={`relative flex flex-col items-center justify-center py-1 px-1.5 sm:px-2.5 rounded-xl transition-all cursor-pointer ${
-                active ? 'text-[#0B5FD9]' : 'text-[#5B6B8C] hover:text-[#0A1F5C]'
-              }`}
+              className={`relative flex flex-col items-center justify-center py-1 px-1.5 sm:px-2.5 rounded-xl transition-all cursor-pointer ${active ? 'text-[#0B5FD9]' : 'text-[#5B6B8C] hover:text-[#0A1F5C]'
+                }`}
             >
               <div className="relative">
                 <Icon className={`w-5 h-5 ${active ? 'stroke-[2.5]' : 'stroke-2'}`} />

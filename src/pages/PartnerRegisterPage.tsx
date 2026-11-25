@@ -15,6 +15,8 @@ import { useRouter } from '../lib/router.tsx';
 import {
   PARTNER_CATEGORIES,
   getSubCategories,
+  getStoredCategories,
+  type PartnerCategoryConfig,
 } from '../data/partnerCategoriesData.ts';
 
 const PARTNER_TYPES = [
@@ -48,6 +50,7 @@ export function PartnerRegisterPage() {
   const [password, setPassword] = useState('');
 
   const [partnerType, setPartnerType] = useState(PARTNER_TYPES[0]);
+  const [categoryOptions, setCategoryOptions] = useState<PartnerCategoryConfig[]>(() => getStoredCategories());
   const [businessName, setBusinessName] = useState('');
   const [isIndividual, setIsIndividual] = useState(true);
   const [categories, setCategories] = useState<string[]>(['home-services']);
@@ -59,6 +62,16 @@ export function PartnerRegisterPage() {
   const [subCatSearch, setSubCatSearch] = useState('');
   const [servicesText, setServicesText] = useState('Electrician & Wiring, AC Repair, Servicing & Gas Refilling');
   const [serviceArea, setServiceArea] = useState('Hyderabad, TG');
+
+  React.useEffect(() => {
+    const handleCategoryUpdate = (e: any) => {
+      if (e.detail && Array.isArray(e.detail)) {
+        setCategoryOptions(e.detail);
+      }
+    };
+    window.addEventListener('serva:categories-updated', handleCategoryUpdate);
+    return () => window.removeEventListener('serva:categories-updated', handleCategoryUpdate);
+  }, []);
   const [experienceYears, setExperienceYears] = useState(3);
   const [teamSize, setTeamSize] = useState(1);
 
@@ -355,18 +368,18 @@ export function PartnerRegisterPage() {
                 Primary Categories (Click to activate)
               </label>
               <div className="flex flex-wrap gap-2">
-                {CATEGORY_OPTIONS.map((c) => (
+                {categoryOptions.map((c) => (
                   <button
-                    key={c.slug}
+                    key={c.id}
                     type="button"
-                    onClick={() => toggleCategory(c.slug)}
+                    onClick={() => toggleCategory(c.id)}
                     className={`min-h-[40px] px-4 rounded-full text-xs font-bold border cursor-pointer transition-all ${
-                      categories.includes(c.slug)
+                      categories.includes(c.id)
                         ? 'bg-[#0B5FD9] text-white border-[#0B5FD9] shadow-sm'
                         : 'bg-white text-[#0A1F5C] border-[#DCE7F9] hover:bg-[#F8FAFD]'
                     }`}
                   >
-                    {c.label}
+                    {c.icon} {c.name}
                   </button>
                 ))}
               </div>
