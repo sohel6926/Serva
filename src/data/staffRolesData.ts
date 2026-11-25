@@ -4,102 +4,94 @@ export interface AdminModulePermission {
   description: string;
 }
 
+/**
+ * SERVA Native Admin Modules (Strictly aligned with actual sections present in SERVA Admin Panel)
+ */
 export const ADMIN_MODULES: AdminModulePermission[] = [
   {
-    id: 'manage_inventory',
-    name: 'Manage Inventory',
-    description: 'View and manage service equipment & tool listings',
+    id: 'orders',
+    name: 'Orders & Dispatch',
+    description: 'Track customer bookings, assign technicians & verify service completion OTPs',
   },
   {
-    id: 'manage_users',
-    name: 'Manage Users',
-    description: 'View and manage customer and partner accounts',
+    id: 'kyc',
+    name: 'Partner KYC & Verification',
+    description: 'Verify individual PAN cards, business GST licenses, and approve/reject partners',
   },
   {
-    id: 'manage_requests',
-    name: 'Manage Requests',
-    description: 'Handle booking, quote, and emergency requests',
+    id: 'categories',
+    name: 'Categories & Sub-Categories',
+    description: 'Add or remove platform service categories and technician/shop sub-categories',
   },
   {
-    id: 'manage_banners',
-    name: 'Manage Banners',
-    description: 'Create and manage promotional banners',
+    id: 'banners',
+    name: 'Manage Promotional Banners',
+    description: 'Create, toggle, and manage hero carousel slides and homepage marketing banners',
   },
   {
-    id: 'manage_faqs',
-    name: 'Manage FAQs',
-    description: 'Manage frequently asked questions',
+    id: 'commission',
+    name: 'Commission Setup',
+    description: 'Configure platform commission percentages globally and by service category',
   },
   {
-    id: 'manage_articles',
-    name: 'Manage Articles',
-    description: 'Create and publish blog posts & service guides',
+    id: 'coupons',
+    name: 'Coupons & Deals',
+    description: 'Create promotional discount vouchers, promo codes, and customer discount rules',
   },
   {
-    id: 'moderate_reviews',
-    name: 'Moderate Reviews',
-    description: 'Moderate user reviews and ratings',
+    id: 'users',
+    name: 'Customer Users Directory',
+    description: 'View registered customer accounts, booking history, and manage user statuses',
   },
   {
-    id: 'secure_chats',
-    name: 'Secure Chats',
-    description: 'Admin-User and partner communication',
+    id: 'partners',
+    name: 'Service Partners Directory',
+    description: 'Oversee registered partners, daily wages, and interior/event planner portfolios',
   },
   {
-    id: 'manage_staff',
-    name: 'Manage Staff & Roles',
-    description: 'Manage admin team members and access control',
+    id: 'withdrawals',
+    name: 'Withdrawals & Wallet Payouts',
+    description: 'Review and disburse partner earnings payouts via UPI or Bank transfer',
   },
   {
-    id: 'manage_master_data',
-    name: 'Manage Master Data',
-    description: 'Manage categories, sub-categories, cities & zones',
+    id: 'support',
+    name: 'Support Tickets & Helpdesk',
+    description: 'Resolve customer and partner disputes, booking issues, and inquiries',
   },
   {
-    id: 'manage_subscriptions',
-    name: 'Manage Subscriptions',
-    description: 'Manage partner commission rates & tiers',
+    id: 'announcements',
+    name: 'Broadcast Announcements',
+    description: 'Send alerts, updates, and push notifications to customers and partner apps',
   },
   {
-    id: 'send_notifications',
-    name: 'Send Notifications',
-    description: 'Send broadcast and push notifications',
+    id: 'reports',
+    name: 'Reports & Revenue Analytics',
+    description: 'Export GMV metrics, category revenue breakdowns, and order audit CSVs',
   },
   {
-    id: 'manage_settings',
-    name: 'Manage Settings',
-    description: 'System configuration and preferences',
-  },
-  {
-    id: 'view_reports',
-    name: 'View Reports',
-    description: 'Analytics and performance metrics',
-  },
-  {
-    id: 'manage_billing',
-    name: 'Manage Billing',
-    description: 'Payment records, commission & transactions',
+    id: 'roles',
+    name: 'Staff & Roles (RBAC)',
+    description: 'Manage admin panel team members, divisions, and modular access control',
   },
 ];
 
 export const STAFF_DIVISIONS = [
-  'Operations',
-  'Customer Support',
-  'Partner Onboarding & KYC',
-  'Finance & Accounts',
-  'Technology & Engineering',
+  'Operations & Dispatch',
+  'Partner Verification & KYC',
+  'Customer Support & Helpdesk',
+  'Finance & Wallet Settlements',
+  'Category & Content Management',
   'Marketing & Growth',
 ];
 
 export const STAFF_ROLES = [
   'Super Admin',
-  'Operations Manager',
-  'Customer Support Lead',
+  'Operations & Dispatch Lead',
   'KYC Compliance Officer',
+  'Customer Support Lead',
   'Finance & Payout Manager',
-  'Catalog & Content Manager',
-  'Field Supervisor',
-  'Support Executive',
+  'Category & Platform Manager',
+  'Field Operations Supervisor',
 ];
 
 export interface StaffMember {
@@ -123,8 +115,8 @@ export const INITIAL_STAFF_MEMBERS: StaffMember[] = [
     lastName: 'Kumar',
     email: 'rajesh@serva.in',
     phone: '9985955533',
-    division: 'Operations',
-    role: 'Operations Manager',
+    division: 'Operations & Dispatch',
+    role: 'Operations & Dispatch Lead',
     permissions: ADMIN_MODULES.map((m) => m.id),
     status: 'ACTIVE',
     createdAt: '2026-10-15',
@@ -136,9 +128,9 @@ export const INITIAL_STAFF_MEMBERS: StaffMember[] = [
     lastName: 'Sharma',
     email: 'priya.s@serva.in',
     phone: '9848012345',
-    division: 'Partner Onboarding & KYC',
+    division: 'Partner Verification & KYC',
     role: 'KYC Compliance Officer',
-    permissions: ['manage_users', 'manage_requests', 'manage_master_data', 'moderate_reviews', 'secure_chats'],
+    permissions: ['kyc', 'partners', 'categories', 'support'],
     status: 'ACTIVE',
     createdAt: '2026-10-20',
     lastLogin: 'Yesterday, 04:15 PM',
@@ -149,9 +141,9 @@ export const INITIAL_STAFF_MEMBERS: StaffMember[] = [
     lastName: 'Naidu',
     email: 'karthik.n@serva.in',
     phone: '9949098765',
-    division: 'Customer Support',
+    division: 'Customer Support & Helpdesk',
     role: 'Customer Support Lead',
-    permissions: ['manage_users', 'manage_requests', 'manage_faqs', 'moderate_reviews', 'secure_chats', 'send_notifications'],
+    permissions: ['orders', 'users', 'support', 'announcements'],
     status: 'ACTIVE',
     createdAt: '2026-11-01',
     lastLogin: 'Today, 08:45 AM',
@@ -162,9 +154,9 @@ export const INITIAL_STAFF_MEMBERS: StaffMember[] = [
     lastName: 'Deshmukh',
     email: 'anita.d@serva.in',
     phone: '9123456780',
-    division: 'Finance & Accounts',
+    division: 'Finance & Wallet Settlements',
     role: 'Finance & Payout Manager',
-    permissions: ['manage_billing', 'manage_subscriptions', 'view_reports', 'manage_settings'],
+    permissions: ['commission', 'withdrawals', 'coupons', 'reports'],
     status: 'ACTIVE',
     createdAt: '2026-11-05',
     lastLogin: '2 days ago',
@@ -183,7 +175,16 @@ export function getStoredStaff(): StaffMember[] {
     }
     const parsed = JSON.parse(raw);
     if (Array.isArray(parsed) && parsed.length > 0) {
-      return parsed;
+      const validModuleIds = new Set(ADMIN_MODULES.map((m) => m.id));
+      // Sanitize against valid SERVA modules to avoid displaying outdated/legacy permissions
+      const sanitized: StaffMember[] = parsed.map((member: StaffMember) => {
+        const validPerms = (member.permissions || []).filter((p) => validModuleIds.has(p));
+        return {
+          ...member,
+          permissions: validPerms.length > 0 ? validPerms : ADMIN_MODULES.map((m) => m.id),
+        };
+      });
+      return sanitized;
     }
   } catch {}
   return INITIAL_STAFF_MEMBERS;

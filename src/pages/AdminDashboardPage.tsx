@@ -3633,7 +3633,7 @@ export function AdminDashboardPage() {
                             </button>
                           </div>
 
-                          {/* 15 Modules 2-Column Grid */}
+                          {/* Modular Permissions 2-Column Grid */}
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             {ADMIN_MODULES.map((module) => {
                               const isChecked = newStaffPermissions.includes(module.id);
@@ -3754,7 +3754,7 @@ export function AdminDashboardPage() {
                             <div className="flex justify-between py-1 pt-2">
                               <span className="text-[#5B6B8C]">Modules:</span>
                               <span className="font-extrabold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
-                                {newStaffPermissions.length} / 15
+                                {newStaffPermissions.length} / {ADMIN_MODULES.length}
                               </span>
                             </div>
                           </div>
@@ -3796,7 +3796,7 @@ export function AdminDashboardPage() {
                             Staff &amp; Role Management
                           </h2>
                           <p className="text-xs sm:text-sm text-[#5B6B8C] mt-1 max-w-2xl">
-                            Oversee team members, assign modular access across 15 administrative areas, and manage division responsibilities.
+                            Oversee team members, assign modular access across all {ADMIN_MODULES.length} platform administrative sections, and manage division responsibilities.
                           </p>
                         </div>
 
@@ -3854,10 +3854,10 @@ export function AdminDashboardPage() {
                         <div className="p-4 rounded-2xl bg-blue-50/50 border border-blue-100 flex flex-col justify-center">
                           <span className="text-[10px] uppercase font-bold text-[#0B5FD9] flex items-center gap-1">
                             <Key className="w-3.5 h-3.5" />
-                            15 Admin Modules
+                            {ADMIN_MODULES.length} Platform Modules
                           </span>
                           <p className="text-[11px] text-[#0A1F5C] font-semibold mt-1">
-                            Granular permissions from Inventory to Billing and Banners.
+                            Granular permissions tailored directly to your SERVA platform features.
                           </p>
                         </div>
                       </div>
@@ -3970,7 +3970,7 @@ export function AdminDashboardPage() {
                                   <span>Assigned Modules:</span>
                                 </span>
                                 <span className="font-bold text-[#0B5FD9] bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200">
-                                  {member.permissions.length} of 15 Enabled
+                                  {member.permissions.length} of {ADMIN_MODULES.length} Enabled
                                 </span>
                               </div>
                             </div>
